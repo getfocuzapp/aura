@@ -662,89 +662,122 @@
             backdrop-filter: blur(10px);
             white-space: nowrap;
         }
-        /* ── HISTORY MODAL ── */
+        /* ══════════════════════════════════════════
+           HISTORY MODAL — EMOTIONAL ARCHIVE v3
+           Void Canvas · Neon Memory · Gen Z Premium
+           ══════════════════════════════════════════ */
+
         @keyframes sheetSlideUp {
-            from { transform: translateY(100%); opacity: 0; }
-            to   { transform: translateY(0);    opacity: 1; }
+            from { transform: translateY(100%) scale(0.98); opacity: 0; }
+            to   { transform: translateY(0)   scale(1);    opacity: 1; }
         }
         @keyframes overlayFadeIn {
-            from { opacity: 0; }
-            to   { opacity: 1; }
+            from { opacity: 0; backdrop-filter: blur(0px); }
+            to   { opacity: 1; backdrop-filter: blur(20px); }
         }
+        @keyframes cardReveal {
+            from { opacity: 0; transform: translateY(16px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0)    scale(1); }
+        }
+        @keyframes pulseGlow {
+            0%,100% { box-shadow: 0 0 0 0 var(--dot-color); }
+            50%      { box-shadow: 0 0 0 4px transparent; }
+        }
+        @keyframes skeletonPulse {
+            0%,100% { opacity: 0.15; }
+            50%      { opacity: 0.35; }
+        }
+        @keyframes shimmerSlide {
+            from { transform: translateX(-100%); }
+            to   { transform: translateX(100%); }
+        }
+
+        /* ── Overlay ── */
         .history-modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.82);
+            background: rgba(0,0,0,0.75);
             display: flex;
             justify-content: center;
             align-items: flex-end;
             z-index: 500;
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            animation: overlayFadeIn 0.25s ease both;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            animation: overlayFadeIn 0.3s ease both;
         }
         .history-modal-overlay.hidden { display: none; }
+
+        /* ── Sheet ── */
         .history-modal-content {
-            background: linear-gradient(180deg, #0d0d1a 0%, #09090f 100%);
-            border: 1px solid rgba(255,255,255,0.06);
+            background: #070710;
+            border: 1px solid rgba(255,255,255,0.07);
             border-bottom: none;
-            border-radius: 28px 28px 0 0;
+            border-radius: 32px 32px 0 0;
             width: 100%;
             max-width: 480px;
-            max-height: 88vh;
+            max-height: 90vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            animation: sheetSlideUp 0.38s cubic-bezier(0.16,1,0.3,1) both;
-            box-shadow: 0 -8px 60px rgba(0,0,0,0.9);
+            animation: sheetSlideUp 0.42s cubic-bezier(0.16,1,0.3,1) both;
+            box-shadow:
+                0 -1px 0 rgba(255,255,255,0.06),
+                0 -20px 80px rgba(0,0,0,0.95),
+                0 -4px 30px rgba(100,80,200,0.08);
         }
-        /* Drag pill */
+
+        /* ── Drag pill ── */
         .history-drag-pill {
-            width: 32px;
-            height: 3px;
+            width: 36px;
+            height: 3.5px;
             border-radius: 2px;
-            background: rgba(255,255,255,0.10);
-            margin: 10px auto 0;
+            background: rgba(255,255,255,0.12);
+            margin: 12px auto 0;
             flex-shrink: 0;
         }
+
+        /* ── Header ── */
         .history-modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 20px 12px;
+            padding: 18px 20px 14px;
             position: sticky;
             top: 0;
-            background: linear-gradient(180deg, #0d0d1a 75%, transparent 100%);
+            background: linear-gradient(180deg, #070710 65%, transparent 100%);
             z-index: 2;
             flex-shrink: 0;
         }
         .history-modal-title {
             font-family: 'DM Sans', sans-serif;
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 800;
-            color: rgba(255,255,255,0.95);
+            color: #fff;
             margin: 0;
-            letter-spacing: -0.03em;
+            letter-spacing: -0.04em;
+            line-height: 1;
         }
+
+        /* ── Close btn ── */
         .history-close-btn {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.08);
-            color: rgba(255,255,255,0.5);
-            width: 28px;
-            height: 28px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.10);
+            color: rgba(255,255,255,0.45);
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
-            font-size: 13px;
+            font-size: 12px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            line-height: 1;
-            transition: background 0.2s ease, transform 0.15s ease;
+            transition: all 0.2s ease;
             flex-shrink: 0;
         }
         .history-close-btn:active {
-            background: rgba(255,255,255,0.10);
-            transform: scale(0.90);
+            background: rgba(255,255,255,0.12);
+            transform: scale(0.88);
+            color: rgba(255,255,255,0.8);
         }
 
         /* ── Scrollable list ── */
@@ -754,56 +787,50 @@
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
             min-height: 0;
-            padding-bottom: 40px;
+            padding-bottom: 48px;
         }
         .history-list::-webkit-scrollbar { width: 0; }
 
         /* ── Timeline container ── */
         #historyList {
-            padding: 0 16px 0 20px;
+            padding: 4px 16px 0 20px;
             position: relative;
         }
-        /* Vertical timeline spine — faint, fades to void */
         #historyList::before {
             content: "";
             position: absolute;
-            left: 32px;
-            top: 8px;
-            bottom: 24px;
+            left: 33px;
+            top: 12px;
+            bottom: 32px;
             width: 1px;
             background: linear-gradient(180deg,
-                rgba(255,255,255,0.08) 0%,
-                rgba(255,255,255,0.03) 70%,
+                rgba(255,255,255,0.10) 0%,
+                rgba(255,255,255,0.04) 60%,
                 transparent 100%);
             pointer-events: none;
         }
 
+        /* ── Timeline item wrapper ── */
         .history-item {
-            padding: 0 0 0 28px;
+            padding: 0 0 0 30px;
             border: none;
             background: none;
             position: relative;
-            animation: cardSlideUp 0.38s cubic-bezier(0.16,1,0.3,1) both;
+            animation: cardReveal 0.4s cubic-bezier(0.16,1,0.3,1) both;
         }
-        /* Timeline dot — glows in mood color */
         .history-item::before {
             content: "";
             position: absolute;
-            left: 7px;
-            top: 20px;
-            width: 8px;
-            height: 8px;
+            left: 8px;
+            top: 22px;
+            width: 9px;
+            height: 9px;
             border-radius: 50%;
             background: var(--dot-color, rgba(255,255,255,0.15));
-            border: 1.5px solid #08080f;
-            box-shadow: 0 0 10px 2px var(--dot-color, transparent);
+            border: 2px solid #070710;
+            box-shadow: 0 0 12px 3px var(--dot-color, transparent);
             z-index: 1;
-        }
-
-        /* ── Card entrance animation ── */
-        @keyframes cardSlideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to   { opacity: 1; transform: translateY(0); }
+            animation: pulseGlow 3s ease-in-out infinite;
         }
 
         /* ── Date group separator ── */
@@ -811,157 +838,170 @@
             font-family: 'DM Sans', sans-serif;
             font-size: 9px;
             font-weight: 700;
-            letter-spacing: 0.16em;
+            letter-spacing: 0.18em;
             text-transform: uppercase;
-            color: rgba(255,255,255,0.2);
-            padding: 20px 0 10px 28px;
+            color: rgba(255,255,255,0.22);
+            padding: 24px 0 10px 30px;
             display: flex;
             align-items: center;
             gap: 10px;
-            position: relative;
         }
         .history-date-group::after {
             content: "";
             flex: 1;
             height: 1px;
-            background: linear-gradient(90deg, rgba(255,255,255,0.06), transparent);
+            background: linear-gradient(90deg, rgba(255,255,255,0.08), transparent);
         }
 
         /* ── Skeleton loader ── */
-        @keyframes skeletonPulse {
-            0%, 100% { opacity: 0.2; }
-            50%       { opacity: 0.40; }
-        }
         .skeleton-card {
-            border-radius: 18px;
-            padding: 14px;
-            margin-bottom: 12px;
-            margin-left: 28px;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.05);
-            animation: skeletonPulse 1.5s ease-in-out infinite;
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.04);
+            animation: skeletonPulse 1.6s ease-in-out infinite;
+            overflow: hidden;
+            position: relative;
+        }
+        .skeleton-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.04) 50%, transparent 75%);
+            animation: shimmerSlide 1.8s ease-in-out infinite;
         }
         .skeleton-line {
             border-radius: 6px;
-            background: rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.07);
             margin-bottom: 10px;
         }
-        .skeleton-line.short  { height: 13px; width: 36%; }
-        .skeleton-line.medium { height: 11px; width: 72%; }
-        .skeleton-line.long   { height: 11px; width: 52%; margin-bottom: 0; }
-        .skeleton-card:nth-child(2) { animation-delay: 0.18s; opacity: 0.8; }
-        .skeleton-card:nth-child(3) { animation-delay: 0.34s; opacity: 0.6; }
+        .skeleton-line.short  { height: 14px; width: 38%; }
+        .skeleton-line.medium { height: 12px; width: 74%; }
+        .skeleton-line.long   { height: 12px; width: 54%; margin-bottom: 0; }
+        .skeleton-card:nth-child(2) { animation-delay: 0.2s; opacity: 0.75; }
+        .skeleton-card:nth-child(3) { animation-delay: 0.38s; opacity: 0.5; }
 
-        /* ── History card — void canvas, mood border glows outward ── */
+        /* ══ THE CARD — Memory Capsule ══ */
         .history-card {
-            border-radius: 18px;
-            padding: 15px 16px 13px;
-            margin-bottom: 12px;
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border-radius: 20px;
+            padding: 16px 16px 14px;
+            margin-bottom: 10px;
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.22s ease;
             position: relative;
             overflow: hidden;
             will-change: transform;
+            /* background, border, box-shadow set inline by JS */
         }
-        /* Mood glow radiates from top-left into void */
+
+        /* Top-left radial glow from mood color */
         .history-card::before {
             content: "";
             position: absolute;
-            inset: 0;
-            border-radius: 18px;
-            background: radial-gradient(ellipse at 5% 30%, var(--mood-color, rgba(255,255,255,0.05)), transparent 55%);
-            opacity: 0.18;
+            top: -20%;
+            left: -10%;
+            width: 70%;
+            height: 70%;
+            border-radius: 50%;
+            background: var(--mood-color, rgba(255,255,255,0.05));
+            opacity: 0.12;
+            filter: blur(28px);
             pointer-events: none;
             transition: opacity 0.35s ease;
         }
-        .history-card:hover::before { opacity: 0.30; }
-        /* Diagonal shimmer on tap */
+        /* Bottom-right subtle counter-glow */
         .history-card::after {
             content: "";
             position: absolute;
-            inset: 0;
-            border-radius: 18px;
-            opacity: 0;
-            transition: opacity 0.25s ease;
+            bottom: -30%;
+            right: -10%;
+            width: 50%;
+            height: 50%;
+            border-radius: 50%;
+            background: var(--mood-color, transparent);
+            opacity: 0.05;
+            filter: blur(20px);
             pointer-events: none;
-            background: linear-gradient(110deg, transparent 25%, rgba(255,255,255,0.04) 50%, transparent 75%);
         }
-        .history-card:active::after { opacity: 1; }
-        .history-card:active { transform: scale(0.972); }
-        .history-card:hover  {
-            transform: translateY(-1px);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.7) !important;
+        .history-card:active {
+            transform: scale(0.968);
+            box-shadow: none !important;
         }
 
+        /* ── Card internals ── */
         .history-card-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 9px;
+            margin-bottom: 10px;
+            gap: 8px;
         }
-        .latest-card { }
-        .latest-badge {
-            font-size: 8px;
+        .history-mood {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
             font-weight: 800;
-            letter-spacing: 0.12em;
-            padding: 3px 8px;
+            line-height: 1;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .latest-badge {
+            font-size: 7.5px;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            padding: 3.5px 9px;
             border-radius: 20px;
             text-transform: uppercase;
             font-family: 'DM Sans', sans-serif;
             flex-shrink: 0;
         }
-        .history-mood {
-            font-family: 'DM Sans', sans-serif;
-            font-size: 15px;
-            font-weight: 700;
-            text-transform: capitalize;
-            line-height: 1.2;
-            letter-spacing: -0.01em;
-        }
         .history-text {
             font-family: 'DM Sans', sans-serif;
-            font-size: 14px;
-            color: rgba(255,255,255,0.65);
-            line-height: 1.65;
-            margin-bottom: 10px;
+            font-size: 14.5px;
+            color: rgba(255,255,255,0.72);
+            line-height: 1.6;
+            margin-bottom: 11px;
             font-style: italic;
             font-weight: 400;
-            letter-spacing: 0.008em;
+            letter-spacing: 0.01em;
         }
         .history-date {
             font-family: 'DM Sans', sans-serif;
             font-size: 10px;
-            color: rgba(255,255,255,0.20);
-            letter-spacing: 0.05em;
+            letter-spacing: 0.04em;
+            font-weight: 500;
         }
 
         /* ── Empty state ── */
         .empty-history {
             text-align: center;
-            padding: 52px 28px 32px;
+            padding: 56px 28px 32px;
             font-family: 'DM Sans', sans-serif;
         }
         .empty-history-icon {
-            font-size: 32px;
-            margin-bottom: 18px;
+            font-size: 36px;
+            margin-bottom: 20px;
             display: block;
-            filter: drop-shadow(0 0 20px rgba(180,160,255,0.25));
+            filter: drop-shadow(0 0 24px rgba(155,140,255,0.35));
         }
         .empty-history p {
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 700;
-            color: rgba(255,255,255,0.6);
+            color: rgba(255,255,255,0.65);
             margin-bottom: 8px;
-            letter-spacing: -0.01em;
+            letter-spacing: -0.02em;
         }
         .empty-history small {
             font-size: 12px;
-            color: rgba(255,255,255,0.22);
-            line-height: 1.6;
+            color: rgba(255,255,255,0.25);
+            line-height: 1.7;
             display: block;
         }
-        .xp-display {
+
+                .xp-display {
             background: rgba(12, 12, 15, 0.85);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(232, 213, 176, 0.15);
@@ -2998,18 +3038,19 @@ function updateUIWithUserData(data) {
 /* ── HISTORY ── */
 function getMoodColor(mood) {
     const map = {
-        "Anxious":      "#9B6DFF",
-        "Overthinking": "#FFB830",
-        "Tired":        "#6C8CFF",
-        "Motivated":    "#00C897",
-        "Calm":         "#4FC3F7",
-        "Angry":        "#FF6B6B",
-        "Sad":          "#7B8CDE",
-        "Happy":        "#FFD700",
-        "Lonely":       "#C39BD3",
-        "Grateful":     "#52D9A0"
+        "anxious":      "#9B6DFF",
+        "overthinking": "#FFB830",
+        "tired":        "#6C8CFF",
+        "motivated":    "#00C897",
+        "calm":         "#4FC3F7",
+        "angry":        "#FF6B6B",
+        "sad":          "#7B8CDE",
+        "happy":        "#FFD700",
+        "lonely":       "#C39BD3",
+        "grateful":     "#52D9A0",
+        "lost":         "#8ECAE6"
     };
-    return map[mood] || "#A0A0A0";
+    return map[(mood || '').toLowerCase()] || "#9B8FCC";
 }
 
 function getMoodEmoji(mood) {
@@ -3089,19 +3130,19 @@ async function loadHistory() {
 
         // FIX: declare color BEFORE using it
         const color    = getMoodColor(item.mood);
-        const bgTint   = hexToRgba(color, 0.13);
-        const border   = hexToRgba(color, 0.28);
-        const borderL  = hexToRgba(color, 0.75);
-        const glow     = hexToRgba(color, 0.10);
-        const tsColor  = hexToRgba(color, 0.55);
+        const bgTint   = hexToRgba(color, 0.16);
+        const border   = hexToRgba(color, 0.32);
+        const borderL  = hexToRgba(color, 0.85);
+        const glow     = hexToRgba(color, 0.14);
+        const tsColor  = hexToRgba(color, 0.60);
         const isLatest = index === 0;
 
         // Particle starfield inside card
-        const particles = Array.from({length: 8}, () => {
+        const particles = Array.from({length: 10}, () => {
             const x = (Math.random() * 100).toFixed(0);
             const y = (Math.random() * 100).toFixed(0);
-            const s = (Math.random() * 1.5 + 0.5).toFixed(1);
-            const o = (Math.random() * 0.25 + 0.08).toFixed(2);
+            const s = (Math.random() * 2 + 0.6).toFixed(1);
+            const o = (Math.random() * 0.35 + 0.10).toFixed(2);
             return `radial-gradient(circle ${s}px at ${x}% ${y}%, ${hexToRgba(color, parseFloat(o))} 0%, transparent 100%)`;
         }).join(', ');
 
@@ -3118,13 +3159,13 @@ async function loadHistory() {
           <div class="history-card" style="
             background: ${bgTint};
             border: 1px solid ${border};
-            border-left: 2.5px solid ${borderL};
-            box-shadow: -3px 0 14px ${glow}, 0 4px 28px rgba(0,0,0,0.55);
+            border-left: 3px solid ${borderL};
+            box-shadow: -4px 0 20px ${glow}, 0 8px 32px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.04);
             background-image: ${particles};
             --mood-color: ${color};
           ">
             <div class="history-card-header">
-              <div class="history-mood" style="color:${color}">✦ ${item.mood || ''}</div>
+              <div class="history-mood" style="color:${color}">✦ ${item.mood ? item.mood[0].toUpperCase()+item.mood.slice(1) : ''}</div>
               ${isLatest ? `<span class="latest-badge" style="background:${color}; color:#08080f; border:none; font-weight:800">LATEST</span>` : ''}
             </div>
             <div class="history-text">${item.text || ''}</div>

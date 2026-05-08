@@ -882,96 +882,130 @@
         .skeleton-card:nth-child(2) { animation-delay: 0.2s; opacity: 0.75; }
         .skeleton-card:nth-child(3) { animation-delay: 0.38s; opacity: 0.5; }
 
-        /* ══ THE CARD — Memory Capsule ══ */
+        /* ══════════════════════════════════
+           VOID MEMORY — Card Philosophy
+           Suspended · Atmospheric · Precise
+           ══════════════════════════════════ */
+
+        /* The card floats in void — never sits */
         .history-card {
-            border-radius: 20px;
-            padding: 16px 16px 14px;
-            margin-bottom: 10px;
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.22s ease;
+            border-radius: 24px;
+            padding: 20px 20px 16px;
+            margin-bottom: 14px;
+            backdrop-filter: blur(48px) saturate(1.8) brightness(1.05);
+            -webkit-backdrop-filter: blur(48px) saturate(1.8) brightness(1.05);
+            transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1),
+                        box-shadow 0.28s ease,
+                        opacity 0.28s ease;
             position: relative;
             overflow: hidden;
             will-change: transform;
-            /* background, border, box-shadow set inline by JS */
+            /* background, border, box-shadow via JS — mood-derived */
         }
 
-        /* Top-left radial glow from mood color */
+        /* Single hard light catch at top edge — morning fog on glass */
+        .history-card-glass-edge {
+            position: absolute;
+            top: 0; left: 16px; right: 16px;
+            height: 1px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(255,255,255,0.22) 25%,
+                rgba(255,255,255,0.12) 60%,
+                transparent 100%);
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        /* Upper-left mood bloom — the emotion leaking through glass */
         .history-card::before {
             content: "";
             position: absolute;
-            top: -20%;
-            left: -10%;
-            width: 70%;
-            height: 70%;
+            top: -55%;
+            left: -20%;
+            width: 85%;
+            height: 105%;
             border-radius: 50%;
-            background: var(--mood-color, rgba(255,255,255,0.05));
-            opacity: 0.12;
-            filter: blur(28px);
+            background: radial-gradient(ellipse,
+                var(--mood-color, rgba(255,255,255,0.04)) 0%,
+                transparent 68%);
+            opacity: 0.22;
+            filter: blur(22px);
             pointer-events: none;
-            transition: opacity 0.35s ease;
+            transition: opacity 0.5s ease;
         }
-        /* Bottom-right subtle counter-glow */
+
+        /* Lower-right counter-bloom — depth and dimension */
         .history-card::after {
             content: "";
             position: absolute;
-            bottom: -30%;
-            right: -10%;
-            width: 50%;
-            height: 50%;
+            bottom: -60%;
+            right: -25%;
+            width: 65%;
+            height: 85%;
             border-radius: 50%;
-            background: var(--mood-color, transparent);
-            opacity: 0.05;
-            filter: blur(20px);
+            background: radial-gradient(ellipse,
+                var(--mood-color, transparent) 0%,
+                transparent 60%);
+            opacity: 0.06;
+            filter: blur(28px);
             pointer-events: none;
         }
+
         .history-card:active {
-            transform: scale(0.968);
-            box-shadow: none !important;
+            transform: scale(0.964);
+            transition: transform 0.12s ease;
+            opacity: 0.85;
         }
 
-        /* ── Card internals ── */
+        /* ── Three-register typography system ── */
+
+        /* REGISTER 1: Identity — mood name, bold, colored */
         .history-card-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             gap: 8px;
         }
         .history-mood {
             font-family: 'DM Sans', sans-serif;
-            font-size: 15px;
+            font-size: 14.5px;
             font-weight: 800;
             line-height: 1;
-            letter-spacing: -0.02em;
+            letter-spacing: -0.025em;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 7px;
         }
         .latest-badge {
-            font-size: 7.5px;
+            font-size: 6.5px;
             font-weight: 800;
-            letter-spacing: 0.14em;
-            padding: 3.5px 9px;
+            letter-spacing: 0.18em;
+            padding: 4px 10px;
             border-radius: 20px;
             text-transform: uppercase;
             font-family: 'DM Sans', sans-serif;
             flex-shrink: 0;
         }
+
+        /* REGISTER 2: Confession — the quote, dominant visual weight */
         .history-text {
             font-family: 'DM Sans', sans-serif;
-            font-size: 14.5px;
-            color: rgba(255,255,255,0.72);
-            line-height: 1.6;
-            margin-bottom: 11px;
+            font-size: 15px;
+            color: rgba(255,255,255,0.78);
+            line-height: 1.68;
+            margin-bottom: 14px;
             font-style: italic;
             font-weight: 400;
-            letter-spacing: 0.01em;
+            letter-spacing: 0.008em;
         }
+
+        /* REGISTER 3: Trace — timestamp, near-invisible whisper */
         .history-date {
             font-family: 'DM Sans', sans-serif;
-            font-size: 10px;
-            letter-spacing: 0.04em;
+            font-size: 9.5px;
+            letter-spacing: 0.06em;
             font-weight: 500;
         }
 
@@ -3160,10 +3194,11 @@ async function loadHistory() {
             background: ${bgTint};
             border: 1px solid ${border};
             border-left: 3px solid ${borderL};
-            box-shadow: -4px 0 20px ${glow}, 0 8px 32px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.04);
+            box-shadow: -6px 0 28px ${glow}, 0 1px 4px rgba(0,0,0,0.45), 0 8px 24px rgba(0,0,0,0.55), 0 24px 60px rgba(0,0,0,0.50);
             background-image: ${particles};
             --mood-color: ${color};
           ">
+            <div class="history-card-glass-edge"></div>
             <div class="history-card-header">
               <div class="history-mood" style="color:${color}">✦ ${item.mood ? item.mood[0].toUpperCase()+item.mood.slice(1) : ''}</div>
               ${isLatest ? `<span class="latest-badge" style="background:${color}; color:#08080f; border:none; font-weight:800">LATEST</span>` : ''}

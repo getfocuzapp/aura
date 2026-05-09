@@ -1620,325 +1620,457 @@ const MOOD_SVG = {
 
     tired: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <radialGradient id="td-glow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#3868ff" stop-opacity="0.55"/><stop offset="100%" stop-color="#0010cc" stop-opacity="0"/></radialGradient>
-        <radialGradient id="td-orb" cx="38%" cy="30%" r="68%"><stop offset="0%" stop-color="#18224a"/><stop offset="55%" stop-color="#06091e"/><stop offset="100%" stop-color="#02030c"/></radialGradient>
-        <radialGradient id="td-tint" cx="42%" cy="38%" r="60%"><stop offset="0%" stop-color="#3855e0" stop-opacity="0.38"/><stop offset="100%" stop-color="#0820a0" stop-opacity="0.08"/></radialGradient>
-        <radialGradient id="td-hl" cx="32%" cy="22%" r="42%"><stop offset="0%" stop-color="white" stop-opacity="0.42"/><stop offset="100%" stop-color="white" stop-opacity="0"/></radialGradient>
-        <radialGradient id="td-rim" cx="50%" cy="95%" r="55%"><stop offset="0%" stop-color="#6090ff" stop-opacity="0.30"/><stop offset="100%" stop-color="#3060ff" stop-opacity="0"/></radialGradient>
-        <filter id="td-f"><feGaussianBlur stdDeviation="2.5"/></filter>
+        <radialGradient id="td-atm" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#4466ff" stop-opacity="0.60"/><stop offset="100%" stop-color="#0818cc" stop-opacity="0"/></radialGradient>
+        <radialGradient id="td-orb" cx="36%" cy="28%" r="72%"><stop offset="0%" stop-color="#1a2560"/><stop offset="50%" stop-color="#07091c"/><stop offset="100%" stop-color="#020310"/></radialGradient>
+        <radialGradient id="td-tint" cx="45%" cy="42%" r="62%"><stop offset="0%" stop-color="#3855e0" stop-opacity="0.45"/><stop offset="100%" stop-color="#0820a0" stop-opacity="0.06"/></radialGradient>
+        <radialGradient id="td-hl" cx="30%" cy="20%" r="44%"><stop offset="0%" stop-color="white" stop-opacity="0.50"/><stop offset="100%" stop-color="white" stop-opacity="0"/></radialGradient>
+        <radialGradient id="td-rim" cx="50%" cy="96%" r="58%"><stop offset="0%" stop-color="#6090ff" stop-opacity="0.38"/><stop offset="100%" stop-color="#3060ff" stop-opacity="0"/></radialGradient>
+        <radialGradient id="td-moon" cx="35%" cy="28%" r="65%"><stop offset="0%" stop-color="#dce8ff"/><stop offset="60%" stop-color="#b0c8f5"/><stop offset="100%" stop-color="#8aaae8"/></radialGradient>
+        <filter id="td-blur"><feGaussianBlur stdDeviation="1.8"/></filter>
+        <filter id="td-glow"><feGaussianBlur stdDeviation="2.8"/></filter>
         <clipPath id="td-clip"><circle cx="40" cy="40" r="33"/></clipPath>
       </defs>
-      <circle cx="40" cy="40" r="40" fill="url(#td-glow)"/>
-      <ellipse cx="40" cy="75" rx="18" ry="3.5" fill="rgba(40,80,220,0.28)" filter="url(#td-f)"/>
+      <!-- Atmospheric glow -->
+      <circle cx="40" cy="40" r="40" fill="url(#td-atm)"/>
+      <!-- Ground shadow -->
+      <ellipse cx="40" cy="76" rx="20" ry="3.5" fill="rgba(40,80,220,0.25)" filter="url(#td-blur)"/>
+      <!-- Orb body -->
       <circle cx="40" cy="40" r="33" fill="url(#td-orb)"/>
       <circle cx="40" cy="40" r="33" fill="url(#td-tint)"/>
+      <!-- Inner content clipped -->
       <g clip-path="url(#td-clip)">
-        <circle cx="44" cy="37" r="15" fill="rgba(188,210,255,0.92)"/>
-        <circle cx="52" cy="32" r="13.5" fill="rgba(6,10,28,0.96)"/>
-        <circle cx="40" cy="40" r="1.6" fill="rgba(170,205,255,0.65)"/>
-        <circle cx="36" cy="45" r="1.0" fill="rgba(160,200,255,0.50)"/>
-        <circle cx="25" cy="25" r="2.0" fill="rgba(140,185,255,0.90)"/>
-        <path d="M25 19 L26 23.5 L30.5 24.5 L26 25.5 L25 30 L24 25.5 L19.5 24.5 L24 23.5Z" fill="rgba(160,210,255,0.88)" transform="translate(0,0) scale(0.75)"/>
-        <circle cx="57" cy="23" r="1.2" fill="rgba(180,218,255,0.75)"/>
-        <circle cx="29" cy="53" r="0.9" fill="rgba(150,195,255,0.60)"/>
-        <ellipse cx="18" cy="60" rx="10" ry="5.5" fill="rgba(130,165,215,0.42)"/>
-        <ellipse cx="27" cy="57" rx="8" ry="4.5" fill="rgba(148,180,225,0.38)"/>
-        <ellipse cx="13" cy="63" rx="7" ry="3.5" fill="rgba(120,158,210,0.32)"/>
+        <!-- Star glow -->
+        <circle cx="26" cy="24" r="5" fill="rgba(100,155,255,0.18)" filter="url(#td-glow)"/>
+        <!-- Crescent moon body -->
+        <circle cx="42" cy="37" r="16" fill="url(#td-moon)"/>
+        <!-- Shadow bite to form crescent -->
+        <circle cx="51" cy="32" r="14" fill="rgba(7,9,22,0.97)"/>
+        <!-- Moon face: left eye (closed arc) -->
+        <path d="M34.5 37.5 Q36 36 37.5 37.5" stroke="rgba(80,110,200,0.88)" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+        <!-- Moon face: right eye (closed arc) -->
+        <path d="M39 37.5 Q40.5 36 42 37.5" stroke="rgba(80,110,200,0.88)" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+        <!-- Moon face: open mouth (slightly open) -->
+        <path d="M35.5 41 Q38.5 43.5 41.5 41" stroke="rgba(80,110,200,0.80)" stroke-width="1.3" fill="rgba(60,85,180,0.30)" stroke-linecap="round"/>
+        <!-- Sparkle star -->
+        <path d="M26 20 L26.8 23.2 L30 24 L26.8 24.8 L26 28 L25.2 24.8 L22 24 L25.2 23.2Z" fill="rgba(180,215,255,0.95)" filter="url(#td-glow)"/>
+        <!-- Small stars -->
+        <circle cx="55" cy="22" r="1.2" fill="rgba(185,218,255,0.88)"/>
+        <circle cx="22" cy="34" r="0.9" fill="rgba(170,208,255,0.75)"/>
+        <circle cx="58" cy="38" r="0.8" fill="rgba(175,212,255,0.70)"/>
+        <circle cx="30" cy="55" r="0.9" fill="rgba(165,205,255,0.65)"/>
+        <!-- Clouds at bottom -->
+        <ellipse cx="20" cy="61" rx="11" ry="5.5" fill="rgba(130,165,220,0.40)"/>
+        <ellipse cx="29" cy="58" rx="9" ry="4.8" fill="rgba(145,178,228,0.45)"/>
+        <ellipse cx="16" cy="64" rx="7.5" ry="4" fill="rgba(120,155,212,0.35)"/>
+        <ellipse cx="38" cy="62" rx="8" ry="4.5" fill="rgba(138,170,225,0.38)"/>
+        <!-- Misty fog bottom -->
+        <rect x="7" y="60" width="66" height="14" fill="rgba(30,45,110,0.25)" filter="url(#td-blur)"/>
       </g>
-      <circle cx="40" cy="40" r="33" fill="none" stroke="rgba(90,145,255,0.25)" stroke-width="1"/>
+      <!-- Glass rim -->
+      <circle cx="40" cy="40" r="33" fill="none" stroke="rgba(100,155,255,0.28)" stroke-width="1"/>
+      <!-- Bottom rim glow -->
       <circle cx="40" cy="40" r="33" fill="url(#td-rim)"/>
+      <!-- Specular highlight -->
       <circle cx="40" cy="40" r="33" fill="url(#td-hl)"/>
-      <ellipse cx="28" cy="25" rx="9" ry="5.5" fill="rgba(255,255,255,0.20)" transform="rotate(-35,28,25)"/>
+      <ellipse cx="27" cy="24" rx="10" ry="6" fill="rgba(255,255,255,0.22)" transform="rotate(-38,27,24)"/>
     </svg>`,
 
     motivated: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <radialGradient id="mv-glow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffb820" stop-opacity="0.60"/><stop offset="100%" stop-color="#cc5500" stop-opacity="0"/></radialGradient>
-        <radialGradient id="mv-orb" cx="38%" cy="30%" r="68%"><stop offset="0%" stop-color="#2a1a08"/><stop offset="55%" stop-color="#0e0802"/><stop offset="100%" stop-color="#050400"/></radialGradient>
-        <radialGradient id="mv-tint" cx="42%" cy="38%" r="60%"><stop offset="0%" stop-color="#d48010" stop-opacity="0.40"/><stop offset="100%" stop-color="#883200" stop-opacity="0.08"/></radialGradient>
-        <radialGradient id="mv-hl" cx="32%" cy="22%" r="42%"><stop offset="0%" stop-color="white" stop-opacity="0.44"/><stop offset="100%" stop-color="white" stop-opacity="0"/></radialGradient>
-        <radialGradient id="mv-rim" cx="50%" cy="95%" r="55%"><stop offset="0%" stop-color="#ffa020" stop-opacity="0.35"/><stop offset="100%" stop-color="#ff6600" stop-opacity="0"/></radialGradient>
-        <filter id="mv-f"><feGaussianBlur stdDeviation="2.5"/></filter>
-        <filter id="mv-gf"><feGaussianBlur stdDeviation="3.5"/></filter>
+        <radialGradient id="mv-atm" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffb820" stop-opacity="0.65"/><stop offset="100%" stop-color="#cc5500" stop-opacity="0"/></radialGradient>
+        <radialGradient id="mv-orb" cx="36%" cy="28%" r="72%"><stop offset="0%" stop-color="#2e1c08"/><stop offset="50%" stop-color="#100803"/><stop offset="100%" stop-color="#050300"/></radialGradient>
+        <radialGradient id="mv-tint" cx="45%" cy="42%" r="62%"><stop offset="0%" stop-color="#d48010" stop-opacity="0.48"/><stop offset="100%" stop-color="#883200" stop-opacity="0.07"/></radialGradient>
+        <radialGradient id="mv-hl" cx="30%" cy="20%" r="44%"><stop offset="0%" stop-color="white" stop-opacity="0.52"/><stop offset="100%" stop-color="white" stop-opacity="0"/></radialGradient>
+        <radialGradient id="mv-rim" cx="50%" cy="96%" r="58%"><stop offset="0%" stop-color="#ffa020" stop-opacity="0.42"/><stop offset="100%" stop-color="#ff6600" stop-opacity="0"/></radialGradient>
+        <radialGradient id="mv-core" cx="40%" cy="35%" r="60%"><stop offset="0%" stop-color="#fff8d0"/><stop offset="40%" stop-color="#ffcc30"/><stop offset="100%" stop-color="#e07000"/></radialGradient>
+        <filter id="mv-blur"><feGaussianBlur stdDeviation="1.8"/></filter>
+        <filter id="mv-glow"><feGaussianBlur stdDeviation="3.5"/></filter>
+        <filter id="mv-sglow"><feGaussianBlur stdDeviation="2.5"/></filter>
         <clipPath id="mv-clip"><circle cx="40" cy="40" r="33"/></clipPath>
       </defs>
-      <circle cx="40" cy="40" r="40" fill="url(#mv-glow)"/>
-      <ellipse cx="40" cy="75" rx="18" ry="3.5" fill="rgba(200,120,10,0.30)" filter="url(#mv-f)"/>
+      <!-- Atmospheric glow -->
+      <circle cx="40" cy="40" r="40" fill="url(#mv-atm)"/>
+      <!-- Ground shadow -->
+      <ellipse cx="40" cy="76" rx="20" ry="3.5" fill="rgba(200,120,10,0.32)" filter="url(#mv-blur)"/>
+      <!-- Orb body -->
       <circle cx="40" cy="40" r="33" fill="url(#mv-orb)"/>
       <circle cx="40" cy="40" r="33" fill="url(#mv-tint)"/>
+      <!-- Inner content -->
       <g clip-path="url(#mv-clip)">
-        <circle cx="40" cy="40" r="16" fill="rgba(255,185,20,0.15)" filter="url(#mv-gf)"/>
-        <path d="M40 18 L44.5 35.5 L40 33 L35.5 35.5Z" fill="rgba(255,215,80,0.95)"/>
-        <path d="M40 62 L35.5 44.5 L40 47 L44.5 44.5Z" fill="rgba(240,165,20,0.92)"/>
-        <path d="M18 40 L35.5 35.5 L33 40 L35.5 44.5Z" fill="rgba(240,165,20,0.92)"/>
-        <path d="M62 40 L44.5 44.5 L47 40 L44.5 35.5Z" fill="rgba(255,215,80,0.95)"/>
-        <circle cx="40" cy="40" r="6" fill="rgba(255,240,130,0.95)" filter="url(#mv-gf)"/>
-        <circle cx="25" cy="24" r="1.2" fill="rgba(255,210,80,0.80)"/>
-        <circle cx="55" cy="22" r="0.9" fill="rgba(255,218,100,0.70)"/>
-        <circle cx="58" cy="52" r="1.0" fill="rgba(255,200,60,0.65)"/>
-        <circle cx="20" cy="55" r="0.8" fill="rgba(255,205,70,0.60)"/>
+        <!-- Core glow behind star -->
+        <circle cx="40" cy="40" r="18" fill="rgba(255,185,20,0.20)" filter="url(#mv-glow)"/>
+        <!-- 4-pointed star -->
+        <path d="M40 15 L43.5 36.5 L40 34 L36.5 36.5Z" fill="url(#mv-core)"/>
+        <path d="M40 65 L36.5 43.5 L40 46 L43.5 43.5Z" fill="rgba(220,150,15,0.92)"/>
+        <path d="M15 40 L36.5 36.5 L34 40 L36.5 43.5Z" fill="rgba(220,150,15,0.90)"/>
+        <path d="M65 40 L43.5 43.5 L46 40 L43.5 36.5Z" fill="url(#mv-core)"/>
+        <!-- Star center -->
+        <circle cx="40" cy="40" r="7" fill="rgba(255,245,160,0.95)" filter="url(#mv-sglow)"/>
+        <!-- Sparkle dots -->
+        <circle cx="24" cy="24" r="1.8" fill="rgba(255,215,80,0.90)" filter="url(#mv-blur)"/>
+        <circle cx="56" cy="23" r="1.3" fill="rgba(255,220,90,0.80)"/>
+        <circle cx="59" cy="54" r="1.5" fill="rgba(255,205,65,0.78)"/>
+        <circle cx="22" cy="53" r="1.2" fill="rgba(255,210,70,0.72)"/>
+        <circle cx="30" cy="18" r="0.9" fill="rgba(255,225,100,0.70)"/>
+        <circle cx="52" cy="60" r="0.9" fill="rgba(255,200,60,0.68)"/>
+        <circle cx="19" cy="38" r="0.8" fill="rgba(255,218,85,0.65)"/>
       </g>
-      <ellipse cx="40" cy="52" rx="28" ry="6" fill="none" stroke="rgba(255,180,30,0.45)" stroke-width="2" transform="rotate(-12,40,52)"/>
-      <ellipse cx="40" cy="52" rx="28" ry="6" fill="none" stroke="rgba(255,200,80,0.18)" stroke-width="4" filter="url(#mv-f)" transform="rotate(-12,40,52)"/>
-      <circle cx="40" cy="40" r="33" fill="none" stroke="rgba(255,165,30,0.22)" stroke-width="1"/>
+      <!-- Orbital ring outside -->
+      <ellipse cx="40" cy="40" rx="37.5" ry="7.5" fill="none" stroke="rgba(255,175,28,0.55)" stroke-width="2.5" transform="rotate(-18,40,40)"/>
+      <ellipse cx="40" cy="40" rx="37.5" ry="7.5" fill="none" stroke="rgba(255,200,60,0.20)" stroke-width="5" transform="rotate(-18,40,40)" filter="url(#mv-blur)"/>
+      <!-- Glass rim -->
+      <circle cx="40" cy="40" r="33" fill="none" stroke="rgba(255,175,40,0.28)" stroke-width="1"/>
       <circle cx="40" cy="40" r="33" fill="url(#mv-rim)"/>
       <circle cx="40" cy="40" r="33" fill="url(#mv-hl)"/>
-      <ellipse cx="28" cy="25" rx="9" ry="5.5" fill="rgba(255,255,255,0.22)" transform="rotate(-35,28,25)"/>
+      <ellipse cx="27" cy="24" rx="10" ry="6" fill="rgba(255,255,255,0.22)" transform="rotate(-38,27,24)"/>
     </svg>`,
 
     lost: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <radialGradient id="ls-glow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#505060" stop-opacity="0.40"/><stop offset="100%" stop-color="#101018" stop-opacity="0"/></radialGradient>
-        <radialGradient id="ls-orb" cx="38%" cy="30%" r="68%"><stop offset="0%" stop-color="#181820"/><stop offset="55%" stop-color="#07080e"/><stop offset="100%" stop-color="#020205"/></radialGradient>
-        <radialGradient id="ls-mist" cx="50%" cy="60%" r="55%"><stop offset="0%" stop-color="#303848" stop-opacity="0.65"/><stop offset="100%" stop-color="#101418" stop-opacity="0"/></radialGradient>
-        <radialGradient id="ls-hl" cx="32%" cy="22%" r="42%"><stop offset="0%" stop-color="white" stop-opacity="0.30"/><stop offset="100%" stop-color="white" stop-opacity="0"/></radialGradient>
-        <filter id="ls-f"><feGaussianBlur stdDeviation="2"/></filter>
-        <filter id="ls-mf"><feGaussianBlur stdDeviation="4"/></filter>
+        <radialGradient id="ls-atm" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#505868" stop-opacity="0.45"/><stop offset="100%" stop-color="#101820" stop-opacity="0"/></radialGradient>
+        <radialGradient id="ls-orb" cx="36%" cy="28%" r="72%"><stop offset="0%" stop-color="#1a1e28"/><stop offset="50%" stop-color="#080a10"/><stop offset="100%" stop-color="#020305"/></radialGradient>
+        <radialGradient id="ls-tint" cx="50%" cy="50%" r="62%"><stop offset="0%" stop-color="#404868" stop-opacity="0.32"/><stop offset="100%" stop-color="#101828" stop-opacity="0.06"/></radialGradient>
+        <radialGradient id="ls-hl" cx="30%" cy="20%" r="44%"><stop offset="0%" stop-color="white" stop-opacity="0.38"/><stop offset="100%" stop-color="white" stop-opacity="0"/></radialGradient>
+        <radialGradient id="ls-rim" cx="50%" cy="96%" r="58%"><stop offset="0%" stop-color="#707888" stop-opacity="0.28"/><stop offset="100%" stop-color="#404858" stop-opacity="0"/></radialGradient>
+        <radialGradient id="ls-fog" cx="50%" cy="70%" r="55%"><stop offset="0%" stop-color="#505870" stop-opacity="0.50"/><stop offset="100%" stop-color="#202838" stop-opacity="0"/></radialGradient>
+        <filter id="ls-blur"><feGaussianBlur stdDeviation="2.0"/></filter>
+        <filter id="ls-soft"><feGaussianBlur stdDeviation="1.2"/></filter>
         <clipPath id="ls-clip"><circle cx="40" cy="40" r="33"/></clipPath>
       </defs>
-      <circle cx="40" cy="40" r="40" fill="url(#ls-glow)"/>
-      <ellipse cx="40" cy="75" rx="16" ry="3" fill="rgba(50,52,65,0.25)" filter="url(#ls-f)"/>
+      <circle cx="40" cy="40" r="40" fill="url(#ls-atm)"/>
+      <ellipse cx="40" cy="76" rx="18" ry="3" fill="rgba(55,60,80,0.22)" filter="url(#ls-blur)"/>
       <circle cx="40" cy="40" r="33" fill="url(#ls-orb)"/>
+      <circle cx="40" cy="40" r="33" fill="url(#ls-tint)"/>
       <g clip-path="url(#ls-clip)">
-        <circle cx="40" cy="35" r="24" fill="url(#ls-mist)"/>
-        <path d="M22 68 Q30 50 35 44 Q38 41 40 42 Q42 41 45 44 Q50 50 58 68Z" fill="rgba(30,34,45,0.80)"/>
-        <path d="M26 68 Q32 52 37 46 Q38.5 44 40 45 Q41.5 44 43 46 Q48 52 54 68Z" fill="rgba(40,45,58,0.60)"/>
-        <line x1="40" y1="68" x2="40" y2="45" stroke="rgba(180,185,210,0.25)" stroke-width="1.5"/>
-        <line x1="32" y1="68" x2="38" y2="48" stroke="rgba(160,165,195,0.15)" stroke-width="1"/>
-        <line x1="48" y1="68" x2="42" y2="48" stroke="rgba(160,165,195,0.15)" stroke-width="1"/>
-        <rect x="37.5" y="39" width="5" height="7" rx="1" fill="rgba(160,170,200,0.55)"/>
-        <rect x="38.5" y="38" width="3" height="2" rx="0.5" fill="rgba(140,150,185,0.45)"/>
-        <ellipse cx="40" cy="58" rx="14" ry="4" fill="rgba(80,88,110,0.35)" filter="url(#ls-mf)"/>
-        <ellipse cx="40" cy="30" rx="18" ry="10" fill="rgba(70,78,100,0.28)" filter="url(#ls-mf)"/>
+        <!-- Sky fog upper -->
+        <rect x="7" y="7" width="66" height="38" fill="rgba(38,44,60,0.55)" filter="url(#ls-blur)"/>
+        <!-- Floating island rock -->
+        <ellipse cx="40" cy="26" rx="14" ry="6.5" fill="rgba(85,90,110,0.88)"/>
+        <ellipse cx="40" cy="28" rx="13" ry="5" fill="rgba(100,105,125,0.90)"/>
+        <!-- Island top terrain -->
+        <path d="M27 26 Q30 20 34 22 Q38 17 40 21 Q43 18 46 22 Q50 20 53 26Z" fill="rgba(72,78,98,0.92)"/>
+        <!-- Island rock underside -->
+        <ellipse cx="40" cy="30" rx="12" ry="4" fill="rgba(50,55,75,0.80)"/>
+        <!-- Winding path -->
+        <path d="M40 72 Q35 65 40 58 Q45 51 38 44 Q32 38 40 30" stroke="rgba(160,168,200,0.32)" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M40 72 Q35 65 40 58 Q45 51 38 44 Q32 38 40 30" stroke="rgba(140,150,180,0.20)" stroke-width="4" fill="none" stroke-linecap="round" filter="url(#ls-soft)"/>
+        <!-- Figure silhouette at path base -->
+        <rect x="37.5" y="53" width="5" height="10" rx="1" fill="rgba(175,180,210,0.65)"/>
+        <circle cx="40" cy="51.5" r="3.2" fill="rgba(175,180,210,0.65)"/>
+        <!-- Dense bottom fog -->
+        <ellipse cx="40" cy="68" rx="30" ry="10" fill="url(#ls-fog)"/>
+        <ellipse cx="40" cy="72" rx="28" ry="7" fill="rgba(38,44,62,0.45)" filter="url(#ls-blur)"/>
+        <!-- Atmospheric depth -->
+        <circle cx="40" cy="40" r="33" fill="rgba(18,22,38,0.22)" filter="url(#ls-blur)"/>
       </g>
-      <circle cx="40" cy="40" r="33" fill="none" stroke="rgba(90,95,120,0.20)" stroke-width="1"/>
+      <circle cx="40" cy="40" r="33" fill="none" stroke="rgba(88,95,120,0.22)" stroke-width="1"/>
+      <circle cx="40" cy="40" r="33" fill="url(#ls-rim)"/>
       <circle cx="40" cy="40" r="33" fill="url(#ls-hl)"/>
-      <ellipse cx="28" cy="25" rx="9" ry="5" fill="rgba(255,255,255,0.15)" transform="rotate(-35,28,25)"/>
+      <ellipse cx="27" cy="24" rx="10" ry="6" fill="rgba(255,255,255,0.18)" transform="rotate(-38,27,24)"/>
     </svg>`,
 
     angry: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <radialGradient id="ag-glow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#dd1828" stop-opacity="0.60"/><stop offset="70%" stop-color="#7010cc" stop-opacity="0.20"/><stop offset="100%" stop-color="#200010" stop-opacity="0"/></radialGradient>
-        <radialGradient id="ag-orb" cx="38%" cy="30%" r="68%"><stop offset="0%" stop-color="#2a0808"/><stop offset="55%" stop-color="#0d0205"/><stop offset="100%" stop-color="#050002"/></radialGradient>
-        <radialGradient id="ag-tint" cx="42%" cy="45%" r="62%"><stop offset="0%" stop-color="#cc1020" stop-opacity="0.42"/><stop offset="100%" stop-color="#660010" stop-opacity="0.08"/></radialGradient>
-        <radialGradient id="ag-hl" cx="32%" cy="22%" r="42%"><stop offset="0%" stop-color="white" stop-opacity="0.30"/><stop offset="100%" stop-color="white" stop-opacity="0"/></radialGradient>
-        <radialGradient id="ag-rim" cx="50%" cy="95%" r="55%"><stop offset="0%" stop-color="#ff2030" stop-opacity="0.35"/><stop offset="100%" stop-color="#cc0010" stop-opacity="0"/></radialGradient>
-        <filter id="ag-f"><feGaussianBlur stdDeviation="2"/></filter>
-        <filter id="ag-gf"><feGaussianBlur stdDeviation="3"/></filter>
+        <radialGradient id="ag-atm" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ee2030" stop-opacity="0.68"/><stop offset="70%" stop-color="#aa0010" stop-opacity="0.30"/><stop offset="100%" stop-color="#550008" stop-opacity="0"/></radialGradient>
+        <radialGradient id="ag-orb" cx="36%" cy="28%" r="72%"><stop offset="0%" stop-color="#2a0608"/><stop offset="50%" stop-color="#0c0203"/><stop offset="100%" stop-color="#050002"/></radialGradient>
+        <radialGradient id="ag-lava" cx="50%" cy="50%" r="60%"><stop offset="0%" stop-color="#aa0e18" stop-opacity="0.80"/><stop offset="100%" stop-color="#400208" stop-opacity="0.55"/></radialGradient>
+        <radialGradient id="ag-hl" cx="30%" cy="20%" r="44%"><stop offset="0%" stop-color="rgba(255,200,190,0.42)"/><stop offset="100%" stop-color="rgba(255,200,190,0)"/></radialGradient>
+        <radialGradient id="ag-rim" cx="50%" cy="96%" r="58%"><stop offset="0%" stop-color="#ff3030" stop-opacity="0.45"/><stop offset="100%" stop-color="#cc0010" stop-opacity="0"/></radialGradient>
+        <filter id="ag-blur"><feGaussianBlur stdDeviation="1.8"/></filter>
+        <filter id="ag-glow"><feGaussianBlur stdDeviation="3.2"/></filter>
+        <filter id="ag-crack"><feGaussianBlur stdDeviation="0.8"/></filter>
         <clipPath id="ag-clip"><circle cx="40" cy="40" r="33"/></clipPath>
       </defs>
-      <circle cx="40" cy="40" r="40" fill="url(#ag-glow)"/>
-      <ellipse cx="40" cy="75" rx="18" ry="3.5" fill="rgba(200,20,30,0.28)" filter="url(#ag-f)"/>
+      <!-- Atmospheric glow -->
+      <circle cx="40" cy="40" r="40" fill="url(#ag-atm)"/>
+      <!-- Ground shadow -->
+      <ellipse cx="40" cy="76" rx="20" ry="3.5" fill="rgba(200,20,30,0.30)" filter="url(#ag-blur)"/>
+      <!-- Orb body -->
       <circle cx="40" cy="40" r="33" fill="url(#ag-orb)"/>
-      <circle cx="40" cy="40" r="33" fill="url(#ag-tint)"/>
+      <circle cx="40" cy="40" r="33" fill="url(#ag-lava)"/>
       <g clip-path="url(#ag-clip)">
-        <path d="M20 15 L22 35 L18 55 L28 50 L32 65 L40 55 L48 65 L52 50 L62 55 L58 35 L60 15 L48 22 L40 18 L32 22Z" fill="rgba(120,10,15,0.80)"/>
-        <path d="M22 35 L30 28 L38 35" stroke="rgba(255,60,40,0.55)" stroke-width="2" fill="none"/>
-        <path d="M42 35 L50 28 L58 35" stroke="rgba(255,60,40,0.55)" stroke-width="2" fill="none"/>
-        <path d="M20 18 L26 32" stroke="rgba(255,80,50,0.60)" stroke-width="1.5"/>
-        <path d="M60 18 L54 32" stroke="rgba(255,80,50,0.60)" stroke-width="1.5"/>
-        <path d="M35 38 L38 48 L40 44 L42 48 L45 38" stroke="rgba(255,100,60,0.45)" stroke-width="1.2" fill="none"/>
-        <path d="M30 52 Q35 44 40 48 Q45 44 50 52" stroke="rgba(255,120,80,0.50)" stroke-width="2" fill="none"/>
-        <path d="M29 39 Q33 35 37 39" fill="rgba(255,90,50,0.70)"/>
-        <path d="M43 39 Q47 35 51 39" fill="rgba(255,90,50,0.70)"/>
-        <circle cx="40" cy="40" r="14" fill="rgba(255,30,40,0.12)" filter="url(#ag-gf)"/>
-        <circle cx="22" cy="22" r="2" fill="rgba(220,60,40,0.80)"/>
-        <circle cx="58" cy="20" r="1.5" fill="rgba(200,50,35,0.70)"/>
-        <circle cx="62" cy="42" r="1.8" fill="rgba(210,55,38,0.75)"/>
+        <!-- Crack lines with lava glow -->
+        <path d="M40 7 L37 20 L32 25 L28 38 L22 45" stroke="rgba(255,85,20,0.80)" stroke-width="1.5" fill="none" stroke-linecap="round" filter="url(#ag-crack)"/>
+        <path d="M40 7 L43 22 L48 27 L52 40 L58 46" stroke="rgba(255,75,18,0.75)" stroke-width="1.4" fill="none" stroke-linecap="round" filter="url(#ag-crack)"/>
+        <path d="M40 20 L35 30 L38 36" stroke="rgba(255,90,25,0.65)" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        <path d="M40 20 L45 28 L42 36" stroke="rgba(255,82,22,0.62)" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+        <path d="M20 40 L28 43 L32 52 L26 62" stroke="rgba(255,80,18,0.68)" stroke-width="1.2" fill="none" stroke-linecap="round" filter="url(#ag-crack)"/>
+        <path d="M60 40 L52 43 L50 55 L54 65" stroke="rgba(255,70,16,0.62)" stroke-width="1.1" fill="none" stroke-linecap="round" filter="url(#ag-crack)"/>
+        <!-- Lava glow behind eyes -->
+        <ellipse cx="32" cy="35" rx="10" ry="6" fill="rgba(255,120,20,0.25)" filter="url(#ag-glow)"/>
+        <ellipse cx="48" cy="35" rx="10" ry="6" fill="rgba(255,110,18,0.22)" filter="url(#ag-glow)"/>
+        <!-- Left evil eye -->
+        <path d="M24 38 Q32 28 38 38" fill="rgba(255,150,40,0.95)" stroke="rgba(255,90,20,0.50)" stroke-width="0.5"/>
+        <path d="M24 38 Q32 42 38 38" fill="rgba(80,5,10,0.92)"/>
+        <!-- Right evil eye -->
+        <path d="M42 38 Q48 28 56 38" fill="rgba(255,145,38,0.95)" stroke="rgba(255,85,18,0.50)" stroke-width="0.5"/>
+        <path d="M42 38 Q48 42 56 38" fill="rgba(80,5,10,0.92)"/>
+        <!-- Glowing eye pupils -->
+        <ellipse cx="31" cy="36" rx="3.5" ry="2.2" fill="rgba(255,160,45,0.90)" filter="url(#ag-blur)"/>
+        <ellipse cx="49" cy="36" rx="3.5" ry="2.2" fill="rgba(255,155,42,0.88)" filter="url(#ag-blur)"/>
       </g>
-      <circle cx="40" cy="40" r="33" fill="none" stroke="rgba(220,40,50,0.25)" stroke-width="1"/>
+      <!-- Floating red crystal fragments outside orb -->
+      <path d="M71 24 L74 20 L77 25 L73 27Z" fill="rgba(215,35,45,0.82)"/>
+      <path d="M68 18 L71 15 L73 20 L70 21Z" fill="rgba(200,28,38,0.72)"/>
+      <path d="M73 32 L76 30 L77 34 L74 35Z" fill="rgba(195,30,40,0.68)"/>
+      <path d="M4 28 L7 24 L9 29 L6 30Z" fill="rgba(205,32,42,0.62)"/>
+      <!-- Glass rim -->
+      <circle cx="40" cy="40" r="33" fill="none" stroke="rgba(225,45,55,0.30)" stroke-width="1"/>
       <circle cx="40" cy="40" r="33" fill="url(#ag-rim)"/>
       <circle cx="40" cy="40" r="33" fill="url(#ag-hl)"/>
-      <ellipse cx="28" cy="25" rx="9" ry="5.5" fill="rgba(255,255,255,0.18)" transform="rotate(-35,28,25)"/>
+      <ellipse cx="27" cy="24" rx="10" ry="6" fill="rgba(255,200,190,0.20)" transform="rotate(-38,27,24)"/>
     </svg>`,
 
     anxious: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <radialGradient id="ax-glow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#2848ee" stop-opacity="0.60"/><stop offset="100%" stop-color="#0820bb" stop-opacity="0"/></radialGradient>
-        <radialGradient id="ax-orb" cx="38%" cy="30%" r="68%"><stop offset="0%" stop-color="#0e1640"/><stop offset="55%" stop-color="#05081a"/><stop offset="100%" stop-color="#02030b"/></radialGradient>
-        <radialGradient id="ax-tint" cx="42%" cy="42%" r="62%"><stop offset="0%" stop-color="#2040cc" stop-opacity="0.42"/><stop offset="100%" stop-color="#1028aa" stop-opacity="0.08"/></radialGradient>
-        <radialGradient id="ax-hl" cx="32%" cy="22%" r="42%"><stop offset="0%" stop-color="white" stop-opacity="0.40"/><stop offset="100%" stop-color="white" stop-opacity="0"/></radialGradient>
-        <radialGradient id="ax-rim" cx="50%" cy="95%" r="55%"><stop offset="0%" stop-color="#4060ff" stop-opacity="0.32"/><stop offset="100%" stop-color="#2040dd" stop-opacity="0"/></radialGradient>
-        <filter id="ax-f"><feGaussianBlur stdDeviation="2"/></filter>
-        <filter id="ax-wf"><feGaussianBlur stdDeviation="1.5"/></filter>
+        <radialGradient id="ax-atm" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#2840e8" stop-opacity="0.62"/><stop offset="100%" stop-color="#0a1590" stop-opacity="0"/></radialGradient>
+        <radialGradient id="ax-orb" cx="36%" cy="28%" r="72%"><stop offset="0%" stop-color="#0e1840"/><stop offset="50%" stop-color="#05081a"/><stop offset="100%" stop-color="#020308"/></radialGradient>
+        <radialGradient id="ax-tint" cx="45%" cy="42%" r="62%"><stop offset="0%" stop-color="#2050e0" stop-opacity="0.48"/><stop offset="100%" stop-color="#0825a8" stop-opacity="0.07"/></radialGradient>
+        <radialGradient id="ax-hl" cx="30%" cy="20%" r="44%"><stop offset="0%" stop-color="white" stop-opacity="0.50"/><stop offset="100%" stop-color="white" stop-opacity="0"/></radialGradient>
+        <radialGradient id="ax-rim" cx="50%" cy="96%" r="58%"><stop offset="0%" stop-color="#4070ff" stop-opacity="0.40"/><stop offset="100%" stop-color="#1840ee" stop-opacity="0"/></radialGradient>
+        <filter id="ax-blur"><feGaussianBlur stdDeviation="1.8"/></filter>
+        <filter id="ax-glow"><feGaussianBlur stdDeviation="2.8"/></filter>
         <clipPath id="ax-clip"><circle cx="40" cy="40" r="33"/></clipPath>
       </defs>
-      <circle cx="40" cy="40" r="40" fill="url(#ax-glow)"/>
-      <circle cx="14" cy="32" r="3.5" fill="rgba(60,100,230,0.25)" filter="url(#ax-f)"/>
-      <circle cx="9" cy="44" r="2.5" fill="rgba(60,100,230,0.20)" filter="url(#ax-f)"/>
-      <circle cx="68" cy="38" r="2.8" fill="rgba(60,100,230,0.22)" filter="url(#ax-f)"/>
-      <circle cx="66" cy="52" r="2" fill="rgba(60,100,230,0.18)" filter="url(#ax-f)"/>
-      <ellipse cx="40" cy="75" rx="18" ry="3.5" fill="rgba(40,80,220,0.28)" filter="url(#ax-f)"/>
+      <circle cx="40" cy="40" r="40" fill="url(#ax-atm)"/>
+      <!-- Outside bubbles -->
+      <circle cx="9" cy="28" r="4.5" fill="none" stroke="rgba(80,135,255,0.40)" stroke-width="1"/>
+      <circle cx="9" cy="28" r="4.5" fill="rgba(60,105,220,0.08)"/>
+      <circle cx="8" cy="27" r="1.5" fill="rgba(255,255,255,0.28)"/>
+      <circle cx="6" cy="44" r="3" fill="none" stroke="rgba(80,130,250,0.35)" stroke-width="0.8"/>
+      <circle cx="6" cy="44" r="3" fill="rgba(55,100,210,0.08)"/>
+      <circle cx="5.5" cy="43" r="1" fill="rgba(255,255,255,0.25)"/>
+      <circle cx="72" cy="32" r="3.8" fill="none" stroke="rgba(75,128,248,0.38)" stroke-width="0.8"/>
+      <circle cx="72" cy="32" r="3.8" fill="rgba(55,100,210,0.08)"/>
+      <circle cx="75" cy="50" r="2.5" fill="none" stroke="rgba(70,122,245,0.32)" stroke-width="0.8"/>
+      <ellipse cx="40" cy="76" rx="18" ry="3" fill="rgba(40,70,220,0.25)" filter="url(#ax-blur)"/>
       <circle cx="40" cy="40" r="33" fill="url(#ax-orb)"/>
       <circle cx="40" cy="40" r="33" fill="url(#ax-tint)"/>
       <g clip-path="url(#ax-clip)">
-        <path d="M14 33 Q22 27 30 33 Q38 39 46 33 Q54 27 66 33" stroke="rgba(100,150,255,0.60)" stroke-width="2.5" fill="none" stroke-linecap="round" filter="url(#ax-wf)"/>
-        <path d="M14 33 Q22 27 30 33 Q38 39 46 33 Q54 27 66 33" stroke="rgba(150,190,255,0.85)" stroke-width="2" fill="none" stroke-linecap="round"/>
-        <path d="M14 42 Q22 36 30 42 Q38 48 46 42 Q54 36 66 42" stroke="rgba(80,130,245,0.55)" stroke-width="2" fill="none" stroke-linecap="round" filter="url(#ax-wf)"/>
-        <path d="M14 42 Q22 36 30 42 Q38 48 46 42 Q54 36 66 42" stroke="rgba(130,175,255,0.80)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-        <path d="M14 51 Q22 45 30 51 Q38 57 46 51 Q54 45 66 51" stroke="rgba(60,110,235,0.50)" stroke-width="2" fill="none" stroke-linecap="round" filter="url(#ax-wf)"/>
-        <path d="M14 51 Q22 45 30 51 Q38 57 46 51 Q54 45 66 51" stroke="rgba(110,160,248,0.72)" stroke-width="2" fill="none" stroke-linecap="round"/>
-        <circle cx="22" cy="22" r="2.2" fill="rgba(130,180,255,0.70)"/>
-        <circle cx="55" cy="20" r="1.5" fill="rgba(120,175,255,0.60)"/>
-        <circle cx="60" cy="28" r="1.0" fill="rgba(110,165,250,0.50)"/>
+        <!-- Face glow -->
+        <circle cx="40" cy="40" r="20" fill="rgba(40,90,230,0.20)" filter="url(#ax-glow)"/>
+        <!-- Worried eyes (wave lines) -->
+        <path d="M26 32 Q29 29 32 32 Q29 35 26 32Z" fill="rgba(120,175,255,0.90)" stroke="rgba(80,140,255,0.50)" stroke-width="0.6"/>
+        <path d="M48 32 Q51 29 54 32 Q51 35 48 32Z" fill="rgba(120,175,255,0.90)" stroke="rgba(80,140,255,0.50)" stroke-width="0.6"/>
+        <!-- Eye shine -->
+        <circle cx="29" cy="31" r="1.2" fill="rgba(200,225,255,0.85)"/>
+        <circle cx="51" cy="31" r="1.2" fill="rgba(200,225,255,0.85)"/>
+        <!-- Worried brow left (angled inward) -->
+        <path d="M24 27 Q28 24.5 32 26.5" stroke="rgba(100,155,255,0.75)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <!-- Worried brow right -->
+        <path d="M48 26.5 Q52 24.5 56 27" stroke="rgba(100,155,255,0.75)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <!-- Wavy distressed mouth -->
+        <path d="M30 48 Q34 44.5 37 48 Q40 51.5 43 48 Q46 44.5 50 48" stroke="rgba(110,165,255,0.82)" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <!-- Ripple lines on face -->
+        <path d="M18 38 Q40 34 62 38" stroke="rgba(80,135,255,0.22)" stroke-width="1.2" fill="none"/>
+        <path d="M18 42 Q40 46 62 42" stroke="rgba(80,135,255,0.18)" stroke-width="1.0" fill="none"/>
       </g>
-      <circle cx="40" cy="40" r="33" fill="none" stroke="rgba(80,130,255,0.25)" stroke-width="1"/>
+      <circle cx="40" cy="40" r="33" fill="none" stroke="rgba(80,135,255,0.28)" stroke-width="1"/>
       <circle cx="40" cy="40" r="33" fill="url(#ax-rim)"/>
       <circle cx="40" cy="40" r="33" fill="url(#ax-hl)"/>
-      <ellipse cx="28" cy="25" rx="9" ry="5.5" fill="rgba(255,255,255,0.22)" transform="rotate(-35,28,25)"/>
+      <ellipse cx="27" cy="24" rx="10" ry="6" fill="rgba(255,255,255,0.22)" transform="rotate(-38,27,24)"/>
     </svg>`,
 
     grinding: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <radialGradient id="gd-glow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#6020cc" stop-opacity="0.55"/><stop offset="100%" stop-color="#280880" stop-opacity="0"/></radialGradient>
-        <radialGradient id="gd-orb" cx="38%" cy="30%" r="68%"><stop offset="0%" stop-color="#1a0838"/><stop offset="55%" stop-color="#080315"/><stop offset="100%" stop-color="#030108"/></radialGradient>
-        <radialGradient id="gd-tint" cx="42%" cy="42%" r="62%"><stop offset="0%" stop-color="#5018b0" stop-opacity="0.42"/><stop offset="100%" stop-color="#2a0870" stop-opacity="0.08"/></radialGradient>
-        <radialGradient id="gd-hl" cx="32%" cy="22%" r="42%"><stop offset="0%" stop-color="white" stop-opacity="0.36"/><stop offset="100%" stop-color="white" stop-opacity="0"/></radialGradient>
-        <radialGradient id="gd-rim" cx="50%" cy="95%" r="55%"><stop offset="0%" stop-color="#8030e0" stop-opacity="0.32"/><stop offset="100%" stop-color="#5010b0" stop-opacity="0"/></radialGradient>
-        <filter id="gd-f"><feGaussianBlur stdDeviation="2"/></filter>
-        <filter id="gd-gf"><feGaussianBlur stdDeviation="2.5"/></filter>
+        <radialGradient id="gd-atm" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#8020d0" stop-opacity="0.62"/><stop offset="100%" stop-color="#380888" stop-opacity="0"/></radialGradient>
+        <radialGradient id="gd-orb" cx="36%" cy="28%" r="72%"><stop offset="0%" stop-color="#1e0840"/><stop offset="50%" stop-color="#0a0318"/><stop offset="100%" stop-color="#040110"/></radialGradient>
+        <radialGradient id="gd-tint" cx="45%" cy="42%" r="62%"><stop offset="0%" stop-color="#6818c0" stop-opacity="0.50"/><stop offset="100%" stop-color="#300885" stop-opacity="0.08"/></radialGradient>
+        <radialGradient id="gd-hl" cx="30%" cy="20%" r="44%"><stop offset="0%" stop-color="white" stop-opacity="0.48"/><stop offset="100%" stop-color="white" stop-opacity="0"/></radialGradient>
+        <radialGradient id="gd-rim" cx="50%" cy="96%" r="58%"><stop offset="0%" stop-color="#a030e8" stop-opacity="0.42"/><stop offset="100%" stop-color="#6010bb" stop-opacity="0"/></radialGradient>
+        <radialGradient id="gd-core" cx="40%" cy="36%" r="62%"><stop offset="0%" stop-color="#c880ff"/><stop offset="50%" stop-color="#8028cc"/><stop offset="100%" stop-color="#40089a"/></radialGradient>
+        <filter id="gd-blur"><feGaussianBlur stdDeviation="1.8"/></filter>
+        <filter id="gd-glow"><feGaussianBlur stdDeviation="3.0"/></filter>
         <clipPath id="gd-clip"><circle cx="40" cy="40" r="33"/></clipPath>
       </defs>
-      <circle cx="40" cy="40" r="40" fill="url(#gd-glow)"/>
-      <ellipse cx="40" cy="75" rx="18" ry="3.5" fill="rgba(90,20,180,0.28)" filter="url(#gd-f)"/>
+      <circle cx="40" cy="40" r="40" fill="url(#gd-atm)"/>
+      <ellipse cx="40" cy="76" rx="20" ry="3.5" fill="rgba(110,25,200,0.28)" filter="url(#gd-blur)"/>
       <circle cx="40" cy="40" r="33" fill="url(#gd-orb)"/>
       <circle cx="40" cy="40" r="33" fill="url(#gd-tint)"/>
       <g clip-path="url(#gd-clip)">
-        <circle cx="40" cy="40" r="18" fill="rgba(80,25,140,0.70)"/>
-        <circle cx="40" cy="40" r="18" fill="none" stroke="rgba(140,60,220,0.55)" stroke-width="2"/>
-        <circle cx="40" cy="40" r="10" fill="rgba(50,15,95,0.80)"/>
-        <circle cx="40" cy="40" r="10" fill="none" stroke="rgba(160,80,240,0.60)" stroke-width="1.5"/>
-        <circle cx="40" cy="40" r="5" fill="rgba(120,50,190,0.75)"/>
-        <g stroke="rgba(155,70,235,0.70)" stroke-width="2.2" stroke-linecap="round">
-          <line x1="40" y1="22" x2="40" y2="17"/><line x1="40" y1="58" x2="40" y2="63"/>
-          <line x1="22" y1="40" x2="17" y2="40"/><line x1="58" y1="40" x2="63" y2="40"/>
-          <line x1="27.3" y1="27.3" x2="23.7" y2="23.7"/><line x1="52.7" y1="52.7" x2="56.3" y2="56.3"/>
-          <line x1="52.7" y1="27.3" x2="56.3" y2="23.7"/><line x1="27.3" y1="52.7" x2="23.7" y2="56.3"/>
-        </g>
-        <path d="M55 52 L62 60 L58 64 L50 58Z" fill="rgba(130,55,210,0.65)"/>
-        <path d="M58 55 L65 62" stroke="rgba(180,100,255,0.50)" stroke-width="1.5"/>
-        <circle cx="57" cy="26" r="2" fill="rgba(180,100,255,0.65)"/>
-        <circle cx="24" cy="56" r="1.5" fill="rgba(160,80,240,0.55)"/>
-        <circle cx="62" cy="35" r="1.2" fill="rgba(170,90,248,0.50)"/>
+        <!-- Gear glow -->
+        <circle cx="40" cy="40" r="22" fill="rgba(105,28,200,0.28)" filter="url(#gd-glow)"/>
+        <!-- Gear outer ring -->
+        <circle cx="40" cy="40" r="20" fill="none" stroke="rgba(148,58,228,0.75)" stroke-width="3.5"/>
+        <!-- Gear teeth (12 teeth) -->
+        <circle cx="40" cy="16" r="3.2" fill="rgba(138,50,218,0.82)"/>
+        <circle cx="52.4" cy="19.4" r="3.2" fill="rgba(138,50,218,0.82)"/>
+        <circle cx="61.6" cy="28.8" r="3.2" fill="rgba(138,50,218,0.82)"/>
+        <circle cx="64.8" cy="40" r="3.2" fill="rgba(138,50,218,0.82)"/>
+        <circle cx="61.6" cy="51.2" r="3.2" fill="rgba(138,50,218,0.82)"/>
+        <circle cx="52.4" cy="60.6" r="3.2" fill="rgba(138,50,218,0.82)"/>
+        <circle cx="40" cy="64" r="3.2" fill="rgba(138,50,218,0.82)"/>
+        <circle cx="27.6" cy="60.6" r="3.2" fill="rgba(138,50,218,0.82)"/>
+        <circle cx="18.4" cy="51.2" r="3.2" fill="rgba(138,50,218,0.82)"/>
+        <circle cx="15.2" cy="40" r="3.2" fill="rgba(138,50,218,0.82)"/>
+        <circle cx="18.4" cy="28.8" r="3.2" fill="rgba(138,50,218,0.82)"/>
+        <circle cx="27.6" cy="19.4" r="3.2" fill="rgba(138,50,218,0.82)"/>
+        <!-- Inner gear ring -->
+        <circle cx="40" cy="40" r="12" fill="none" stroke="rgba(165,80,245,0.65)" stroke-width="2.5"/>
+        <!-- Gear spokes -->
+        <line x1="40" y1="28" x2="40" y2="52" stroke="rgba(155,68,235,0.55)" stroke-width="2"/>
+        <line x1="29.6" y1="34" x2="50.4" y2="46" stroke="rgba(155,68,235,0.55)" stroke-width="2"/>
+        <line x1="29.6" y1="46" x2="50.4" y2="34" stroke="rgba(155,68,235,0.55)" stroke-width="2"/>
+        <!-- Center bolt -->
+        <circle cx="40" cy="40" r="6" fill="url(#gd-core)"/>
+        <circle cx="38" cy="38" r="2.2" fill="rgba(220,165,255,0.55)"/>
+        <!-- Breaking fragment lower right -->
+        <path d="M54 56 L62 60 L58 68 L50 64Z" fill="rgba(118,42,205,0.68)"/>
+        <path d="M60 54 L68 56 L67 63 L59 60Z" fill="rgba(105,35,188,0.58)"/>
+        <!-- Energy sparks -->
+        <circle cx="60" cy="20" r="2.5" fill="rgba(180,100,255,0.72)" filter="url(#gd-blur)"/>
+        <circle cx="22" cy="62" r="2" fill="rgba(165,85,248,0.65)" filter="url(#gd-blur)"/>
+        <circle cx="65" cy="42" r="1.8" fill="rgba(172,92,252,0.60)"/>
       </g>
-      <circle cx="40" cy="40" r="33" fill="none" stroke="rgba(120,50,210,0.22)" stroke-width="1"/>
+      <circle cx="40" cy="40" r="33" fill="none" stroke="rgba(130,45,215,0.28)" stroke-width="1"/>
       <circle cx="40" cy="40" r="33" fill="url(#gd-rim)"/>
       <circle cx="40" cy="40" r="33" fill="url(#gd-hl)"/>
-      <ellipse cx="28" cy="25" rx="9" ry="5.5" fill="rgba(255,255,255,0.20)" transform="rotate(-35,28,25)"/>
+      <ellipse cx="27" cy="24" rx="10" ry="6" fill="rgba(255,255,255,0.22)" transform="rotate(-38,27,24)"/>
     </svg>`,
 
     calm: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <radialGradient id="cl-glow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#10d8e8" stop-opacity="0.65"/><stop offset="100%" stop-color="#008098" stop-opacity="0"/></radialGradient>
-        <radialGradient id="cl-orb" cx="38%" cy="30%" r="68%"><stop offset="0%" stop-color="#082830"/><stop offset="55%" stop-color="#031015"/><stop offset="100%" stop-color="#010608"/></radialGradient>
-        <radialGradient id="cl-tint" cx="42%" cy="42%" r="62%"><stop offset="0%" stop-color="#10b8cc" stop-opacity="0.40"/><stop offset="100%" stop-color="#087888" stop-opacity="0.08"/></radialGradient>
-        <radialGradient id="cl-hl" cx="32%" cy="22%" r="42%"><stop offset="0%" stop-color="white" stop-opacity="0.46"/><stop offset="100%" stop-color="white" stop-opacity="0"/></radialGradient>
-        <radialGradient id="cl-rim" cx="50%" cy="95%" r="55%"><stop offset="0%" stop-color="#20e0f0" stop-opacity="0.38"/><stop offset="100%" stop-color="#10a0b8" stop-opacity="0"/></radialGradient>
-        <filter id="cl-f"><feGaussianBlur stdDeviation="2"/></filter>
-        <filter id="cl-wf"><feGaussianBlur stdDeviation="2"/></filter>
+        <radialGradient id="cl-atm" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#18d8f0" stop-opacity="0.62"/><stop offset="100%" stop-color="#007090" stop-opacity="0"/></radialGradient>
+        <radialGradient id="cl-orb" cx="36%" cy="28%" r="72%"><stop offset="0%" stop-color="#082830"/><stop offset="50%" stop-color="#031015"/><stop offset="100%" stop-color="#010608"/></radialGradient>
+        <radialGradient id="cl-tint" cx="45%" cy="42%" r="62%"><stop offset="0%" stop-color="#10c8e0" stop-opacity="0.45"/><stop offset="100%" stop-color="#007090" stop-opacity="0.07"/></radialGradient>
+        <radialGradient id="cl-hl" cx="30%" cy="20%" r="44%"><stop offset="0%" stop-color="white" stop-opacity="0.55"/><stop offset="100%" stop-color="white" stop-opacity="0"/></radialGradient>
+        <radialGradient id="cl-rim" cx="50%" cy="96%" r="58%"><stop offset="0%" stop-color="#22e8ff" stop-opacity="0.42"/><stop offset="100%" stop-color="#00b0cc" stop-opacity="0"/></radialGradient>
+        <linearGradient id="cl-wv1" x1="7" y1="0" x2="73" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="rgba(40,232,252,0)"/><stop offset="15%" stop-color="rgba(45,235,255,0.88)"/><stop offset="85%" stop-color="rgba(32,215,238,0.88)"/><stop offset="100%" stop-color="rgba(32,215,238,0)"/></linearGradient>
+        <linearGradient id="cl-wv2" x1="7" y1="0" x2="73" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="rgba(35,228,250,0)"/><stop offset="15%" stop-color="rgba(38,228,250,0.68)"/><stop offset="85%" stop-color="rgba(28,210,232,0.68)"/><stop offset="100%" stop-color="rgba(28,210,232,0)"/></linearGradient>
+        <filter id="cl-blur"><feGaussianBlur stdDeviation="1.8"/></filter>
+        <filter id="cl-glow"><feGaussianBlur stdDeviation="2.5"/></filter>
         <clipPath id="cl-clip"><circle cx="40" cy="40" r="33"/></clipPath>
       </defs>
-      <circle cx="40" cy="40" r="40" fill="url(#cl-glow)"/>
-      <ellipse cx="40" cy="75" rx="18" ry="3.5" fill="rgba(20,200,215,0.32)" filter="url(#cl-f)"/>
+      <circle cx="40" cy="40" r="40" fill="url(#cl-atm)"/>
+      <ellipse cx="40" cy="76" rx="20" ry="3.5" fill="rgba(20,208,228,0.28)" filter="url(#cl-blur)"/>
       <circle cx="40" cy="40" r="33" fill="url(#cl-orb)"/>
       <circle cx="40" cy="40" r="33" fill="url(#cl-tint)"/>
       <g clip-path="url(#cl-clip)">
-        <path d="M12 37 Q22 29 32 37 Q42 45 52 37 Q62 29 70 37" stroke="rgba(30,210,228,0.55)" stroke-width="3" fill="none" stroke-linecap="round" filter="url(#cl-wf)"/>
-        <path d="M12 37 Q22 29 32 37 Q42 45 52 37 Q62 29 70 37" stroke="rgba(50,230,245,0.92)" stroke-width="2.8" fill="none" stroke-linecap="round"/>
-        <path d="M12 45 Q22 37 32 45 Q42 53 52 45 Q62 37 70 45" stroke="rgba(20,195,215,0.50)" stroke-width="2.5" fill="none" stroke-linecap="round" filter="url(#cl-wf)"/>
-        <path d="M12 45 Q22 37 32 45 Q42 53 52 45 Q62 37 70 45" stroke="rgba(40,220,238,0.82)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-        <path d="M12 29 Q22 21 32 29 Q42 37 52 29 Q62 21 70 29" stroke="rgba(18,188,205,0.38)" stroke-width="2" fill="none" stroke-linecap="round" filter="url(#cl-wf)"/>
-        <path d="M12 29 Q22 21 32 29 Q42 37 52 29 Q62 21 70 29" stroke="rgba(35,210,228,0.65)" stroke-width="2" fill="none" stroke-linecap="round"/>
-        <path d="M40 23 L41 26.5 L44.5 27.5 L41 28.5 L40 32 L39 28.5 L35.5 27.5 L39 26.5Z" fill="rgba(80,240,255,0.90)"/>
-        <circle cx="24" cy="24" r="1.4" fill="rgba(80,235,250,0.75)"/>
-        <circle cx="57" cy="22" r="1.0" fill="rgba(70,228,245,0.65)"/>
-        <path d="M55 52 Q57 49 60 51 Q57 51 55 52Z" fill="rgba(40,218,235,0.60)"/>
+        <!-- Wave glow -->
+        <ellipse cx="40" cy="40" rx="30" ry="12" fill="rgba(22,218,238,0.18)" filter="url(#cl-glow)"/>
+        <!-- Top wave (fainter) -->
+        <path d="M10 32 Q21 24 32 32 Q43 40 54 32 Q65 24 70 32" stroke="url(#cl-wv2)" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <!-- Middle wave (primary, bright) -->
+        <path d="M10 40 Q21 32 32 40 Q43 48 54 40 Q65 32 70 40" stroke="url(#cl-wv1)" stroke-width="4.5" fill="none" stroke-linecap="round" filter="url(#cl-blur)"/>
+        <path d="M10 40 Q21 32 32 40 Q43 48 54 40 Q65 32 70 40" stroke="url(#cl-wv1)" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <!-- Bottom wave (fainter) -->
+        <path d="M10 48 Q21 40 32 48 Q43 56 54 48 Q65 40 70 48" stroke="url(#cl-wv2)" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <!-- 4-point star sparkle -->
+        <path d="M40 18 L41.4 23.6 L40 22 L38.6 23.6Z" fill="rgba(60,240,255,0.95)"/>
+        <path d="M40 18 L34.4 19.4 L36 20.5 L34.4 21.4Z" fill="rgba(55,238,255,0.82)"/>
+        <path d="M40 30 L41.4 24.4 L40 26 L38.6 24.4Z" fill="rgba(55,238,255,0.82)"/>
+        <path d="M46 24 L41.2 22.6 L40 24 L41.2 25.4Z" fill="rgba(50,232,252,0.78)"/>
+        <circle cx="40" cy="24" r="2.5" fill="rgba(75,245,255,0.95)" filter="url(#cl-blur)"/>
+        <!-- Small star accents -->
+        <circle cx="20" cy="26" r="1.5" fill="rgba(55,235,252,0.72)"/>
+        <circle cx="60" cy="28" r="1.2" fill="rgba(50,230,248,0.68)"/>
+        <circle cx="62" cy="52" r="1.0" fill="rgba(45,225,245,0.62)"/>
+        <!-- Leaf -->
+        <path d="M55 58 Q60 52 64 56 Q60 62 55 58Z" fill="rgba(28,208,228,0.62)"/>
       </g>
-      <circle cx="40" cy="40" r="33" fill="none" stroke="rgba(30,210,228,0.28)" stroke-width="1"/>
+      <circle cx="40" cy="40" r="33" fill="none" stroke="rgba(28,215,235,0.32)" stroke-width="1"/>
       <circle cx="40" cy="40" r="33" fill="url(#cl-rim)"/>
       <circle cx="40" cy="40" r="33" fill="url(#cl-hl)"/>
-      <ellipse cx="28" cy="25" rx="9" ry="5.5" fill="rgba(255,255,255,0.25)" transform="rotate(-35,28,25)"/>
+      <ellipse cx="27" cy="24" rx="10" ry="6" fill="rgba(255,255,255,0.26)" transform="rotate(-38,27,24)"/>
     </svg>`,
 
     overthinking: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <radialGradient id="ot-glow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#8020e0" stop-opacity="0.60"/><stop offset="100%" stop-color="#3008a0" stop-opacity="0"/></radialGradient>
-        <radialGradient id="ot-orb" cx="38%" cy="30%" r="68%"><stop offset="0%" stop-color="#1a0835"/><stop offset="55%" stop-color="#080315"/><stop offset="100%" stop-color="#030108"/></radialGradient>
-        <radialGradient id="ot-tint" cx="42%" cy="42%" r="62%"><stop offset="0%" stop-color="#6818c0" stop-opacity="0.42"/><stop offset="100%" stop-color="#380a80" stop-opacity="0.08"/></radialGradient>
-        <radialGradient id="ot-hl" cx="32%" cy="22%" r="42%"><stop offset="0%" stop-color="white" stop-opacity="0.40"/><stop offset="100%" stop-color="white" stop-opacity="0"/></radialGradient>
-        <radialGradient id="ot-rim" cx="50%" cy="95%" r="55%"><stop offset="0%" stop-color="#a030f0" stop-opacity="0.35"/><stop offset="100%" stop-color="#6010c0" stop-opacity="0"/></radialGradient>
-        <filter id="ot-f"><feGaussianBlur stdDeviation="2"/></filter>
-        <filter id="ot-gf"><feGaussianBlur stdDeviation="2.5"/></filter>
+        <radialGradient id="ot-atm" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#9828e8" stop-opacity="0.65"/><stop offset="100%" stop-color="#380898" stop-opacity="0"/></radialGradient>
+        <radialGradient id="ot-orb" cx="36%" cy="28%" r="72%"><stop offset="0%" stop-color="#1e0838"/><stop offset="50%" stop-color="#090318"/><stop offset="100%" stop-color="#040110"/></radialGradient>
+        <radialGradient id="ot-tint" cx="45%" cy="42%" r="62%"><stop offset="0%" stop-color="#7020c0" stop-opacity="0.52"/><stop offset="100%" stop-color="#320888" stop-opacity="0.08"/></radialGradient>
+        <radialGradient id="ot-hl" cx="30%" cy="20%" r="44%"><stop offset="0%" stop-color="white" stop-opacity="0.50"/><stop offset="100%" stop-color="white" stop-opacity="0"/></radialGradient>
+        <radialGradient id="ot-rim" cx="50%" cy="96%" r="58%"><stop offset="0%" stop-color="#b040ff" stop-opacity="0.45"/><stop offset="100%" stop-color="#6810cc" stop-opacity="0"/></radialGradient>
+        <radialGradient id="ot-brain" cx="38%" cy="32%" r="66%"><stop offset="0%" stop-color="#c880ff"/><stop offset="55%" stop-color="#8030c8"/><stop offset="100%" stop-color="#4010a0"/></radialGradient>
+        <filter id="ot-blur"><feGaussianBlur stdDeviation="1.8"/></filter>
+        <filter id="ot-glow"><feGaussianBlur stdDeviation="3.2"/></filter>
+        <filter id="ot-soft"><feGaussianBlur stdDeviation="1.0"/></filter>
         <clipPath id="ot-clip"><circle cx="40" cy="40" r="33"/></clipPath>
       </defs>
-      <circle cx="40" cy="40" r="40" fill="url(#ot-glow)"/>
-      <ellipse cx="40" cy="75" rx="18" ry="3.5" fill="rgba(100,20,200,0.28)" filter="url(#ot-f)"/>
+      <circle cx="40" cy="40" r="40" fill="url(#ot-atm)"/>
+      <ellipse cx="40" cy="76" rx="20" ry="3.5" fill="rgba(130,30,220,0.28)" filter="url(#ot-blur)"/>
       <circle cx="40" cy="40" r="33" fill="url(#ot-orb)"/>
       <circle cx="40" cy="40" r="33" fill="url(#ot-tint)"/>
       <g clip-path="url(#ot-clip)">
-        <circle cx="40" cy="40" r="16" fill="rgba(90,25,160,0.55)" filter="url(#ot-gf)"/>
-        <path d="M28 44 Q28 36 33 33 Q37 30 40 31 Q43 30 47 33 Q52 36 52 44 Q52 50 48 52 Q46 54 46 57 L34 57 Q34 54 32 52 Q28 50 28 44Z" fill="rgba(110,40,185,0.80)" stroke="rgba(170,90,255,0.60)" stroke-width="1.2"/>
-        <path d="M33 40 Q34 36 37 35 Q39 34.5 40 35" stroke="rgba(190,120,255,0.65)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-        <path d="M37 38 Q39 35.5 42 36 Q45 36.5 46 39 Q47 41.5 45 43" stroke="rgba(190,120,255,0.65)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-        <path d="M42 41 Q44 39 46 40 Q48 41 48 43 Q48 46 45 47" stroke="rgba(180,110,252,0.55)" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-        <path d="M31 43 Q30 46 31 49 Q32 51 33 52" stroke="rgba(175,105,250,0.55)" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-        <rect x="34" y="57" width="12" height="3" rx="1.5" fill="rgba(155,75,240,0.65)"/>
-        <rect x="35" y="60" width="10" height="2.5" rx="1.2" fill="rgba(145,65,230,0.60)"/>
-        <circle cx="22" cy="30" r="1.5" fill="rgba(185,110,255,0.65)"/>
-        <circle cx="58" cy="28" r="1.2" fill="rgba(180,105,252,0.60)"/>
-        <circle cx="60" cy="48" r="1.0" fill="rgba(175,100,248,0.55)"/>
+        <!-- Brain glow aura -->
+        <ellipse cx="40" cy="39" rx="18" ry="16" fill="rgba(105,25,190,0.35)" filter="url(#ot-glow)"/>
+        <!-- Brain body left lobe -->
+        <ellipse cx="34" cy="38" rx="11" ry="13" fill="url(#ot-brain)"/>
+        <!-- Brain body right lobe -->
+        <ellipse cx="46" cy="38" rx="11" ry="13" fill="url(#ot-brain)"/>
+        <!-- Brain center indent -->
+        <path d="M40 25 Q38 32 40 36 Q42 32 40 25Z" fill="rgba(15,5,35,0.65)"/>
+        <path d="M40 52 Q38 46 40 43 Q42 46 40 52Z" fill="rgba(15,5,35,0.55)"/>
+        <!-- Left lobe folds (highlight strokes) -->
+        <path d="M24 34 Q27 29 32 31" stroke="rgba(185,110,255,0.72)" stroke-width="1.8" fill="none" stroke-linecap="round" filter="url(#ot-soft)"/>
+        <path d="M23 40 Q26 36 31 38" stroke="rgba(178,105,252,0.65)" stroke-width="1.6" fill="none" stroke-linecap="round" filter="url(#ot-soft)"/>
+        <path d="M25 46 Q28 42 33 44" stroke="rgba(172,100,248,0.60)" stroke-width="1.4" fill="none" stroke-linecap="round" filter="url(#ot-soft)"/>
+        <path d="M26 52 Q30 48 35 50" stroke="rgba(165,95,245,0.55)" stroke-width="1.3" fill="none" stroke-linecap="round" filter="url(#ot-soft)"/>
+        <!-- Right lobe folds -->
+        <path d="M56 34 Q53 29 48 31" stroke="rgba(185,110,255,0.72)" stroke-width="1.8" fill="none" stroke-linecap="round" filter="url(#ot-soft)"/>
+        <path d="M57 40 Q54 36 49 38" stroke="rgba(178,105,252,0.65)" stroke-width="1.6" fill="none" stroke-linecap="round" filter="url(#ot-soft)"/>
+        <path d="M55 46 Q52 42 47 44" stroke="rgba(172,100,248,0.60)" stroke-width="1.4" fill="none" stroke-linecap="round" filter="url(#ot-soft)"/>
+        <path d="M54 52 Q50 48 45 50" stroke="rgba(165,95,245,0.55)" stroke-width="1.3" fill="none" stroke-linecap="round" filter="url(#ot-soft)"/>
+        <!-- Stem -->
+        <rect x="37.5" y="51" width="5" height="6" rx="2" fill="rgba(80,18,155,0.75)"/>
       </g>
-      <ellipse cx="40" cy="40" rx="38" ry="10" fill="none" stroke="rgba(170,80,255,0.45)" stroke-width="2" transform="rotate(-20,40,40)"/>
-      <ellipse cx="40" cy="40" rx="38" ry="10" fill="none" stroke="rgba(190,100,255,0.18)" stroke-width="4" filter="url(#ot-f)" transform="rotate(-20,40,40)"/>
-      <circle cx="40" cy="40" r="33" fill="none" stroke="rgba(145,55,225,0.22)" stroke-width="1"/>
+      <!-- Orbital ring around sphere -->
+      <ellipse cx="40" cy="40" rx="38" ry="9" fill="none" stroke="rgba(170,75,255,0.52)" stroke-width="2.2" transform="rotate(-22,40,40)"/>
+      <ellipse cx="40" cy="40" rx="38" ry="9" fill="none" stroke="rgba(185,95,255,0.18)" stroke-width="5" transform="rotate(-22,40,40)" filter="url(#ot-blur)"/>
+      <!-- Glass rim -->
+      <circle cx="40" cy="40" r="33" fill="none" stroke="rgba(148,52,228,0.28)" stroke-width="1"/>
       <circle cx="40" cy="40" r="33" fill="url(#ot-rim)"/>
       <circle cx="40" cy="40" r="33" fill="url(#ot-hl)"/>
-      <ellipse cx="28" cy="25" rx="9" ry="5.5" fill="rgba(255,255,255,0.22)" transform="rotate(-35,28,25)"/>
+      <ellipse cx="27" cy="24" rx="10" ry="6" fill="rgba(255,255,255,0.22)" transform="rotate(-38,27,24)"/>
     </svg>`,
 };
+
 /* ── CANVAS GLASS ORB RENDERER ──
- * Draws matching glass orb symbols on canvas for download/share.
+ * Draws premium glass orb symbols on canvas for download/share.
  * Mirrors MOOD_SVG visuals using Canvas 2D API.
  */
 
-/* Shared glass orb base — call first, then draw inner content, then call glassOrbTop */
-function glassOrbBase(ctx, cx, cy, r, orbColor, tintColor, glowColor) {
+function glassOrbBase(ctx, cx, cy, r, orbColors, tintColor, glowColor) {
     // Outer atmospheric glow
     const og = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 1.22);
-    og.addColorStop(0, glowColor.replace(/[\d.]+\)$/, '0.58)')); og.addColorStop(1, 'rgba(0,0,0,0)');
+    og.addColorStop(0, glowColor.replace(/[\d.]+\)$/, '0.60)'));
+    og.addColorStop(0.7, glowColor.replace(/[\d.]+\)$/, '0.18)'));
+    og.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = og; ctx.beginPath(); ctx.arc(cx, cy, r * 1.22, 0, Math.PI*2); ctx.fill();
     // Ground shadow
-    ctx.save(); ctx.scale(1, 0.25); ctx.translate(0, cy * 3 + r * 1.9 / 0.25 - cy / 0.25);
-    const gs = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 0.55);
+    ctx.save(); ctx.scale(1, 0.22);
+    const gs = ctx.createRadialGradient(cx, (cy + r*1.10)/0.22, 0, cx, (cy + r*1.10)/0.22, r*0.55);
     gs.addColorStop(0, glowColor.replace(/[\d.]+\)$/, '0.28)')); gs.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = gs; ctx.beginPath(); ctx.arc(cx, cy, r * 0.55, 0, Math.PI*2); ctx.fill(); ctx.restore();
+    ctx.fillStyle = gs; ctx.beginPath(); ctx.arc(cx, (cy + r*1.10)/0.22, r*0.55, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
     // Orb body
-    const ob = ctx.createRadialGradient(cx - r*0.12, cy - r*0.16, 0, cx, cy, r);
-    ob.addColorStop(0, orbColor[0]); ob.addColorStop(0.55, orbColor[1]); ob.addColorStop(1, orbColor[2]);
+    const ob = ctx.createRadialGradient(cx - r*0.14, cy - r*0.18, 0, cx, cy, r);
+    ob.addColorStop(0, orbColors[0]); ob.addColorStop(0.5, orbColors[1]); ob.addColorStop(1, orbColors[2]);
     ctx.fillStyle = ob; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
     // Color tint
     const ct = ctx.createRadialGradient(cx + r*0.05, cy + r*0.05, 0, cx, cy, r);
-    ct.addColorStop(0, tintColor.replace(/[\d.]+\)$/, '0.40)')); ct.addColorStop(1, tintColor.replace(/[\d.]+\)$/, '0.06)'));
+    ct.addColorStop(0, tintColor.replace(/[\d.]+\)$/, '0.45)')); ct.addColorStop(1, tintColor.replace(/[\d.]+\)$/, '0.06)'));
     ctx.fillStyle = ct; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
 }
 
 function glassOrbTop(ctx, cx, cy, r, rimColor) {
     // Rim stroke
-    ctx.strokeStyle = rimColor.replace(/[\d.]+\)$/, '0.25)'); ctx.lineWidth = r * 0.028;
+    ctx.strokeStyle = rimColor.replace(/[\d.]+\)$/, '0.28)'); ctx.lineWidth = r * 0.025;
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.stroke();
     // Bottom rim glow
-    const rg = ctx.createRadialGradient(cx, cy + r * 0.80, 0, cx, cy + r * 0.80, r * 0.80);
-    rg.addColorStop(0, rimColor.replace(/[\d.]+\)$/, '0.32)')); rg.addColorStop(1, 'rgba(0,0,0,0)');
+    const rg = ctx.createRadialGradient(cx, cy + r * 0.82, 0, cx, cy + r * 0.82, r * 0.78);
+    rg.addColorStop(0, rimColor.replace(/[\d.]+\)$/, '0.35)')); rg.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
-    // Top-left glass highlight
-    const hl = ctx.createRadialGradient(cx - r*0.22, cy - r*0.22, 0, cx - r*0.22, cy - r*0.22, r * 0.55);
-    hl.addColorStop(0, 'rgba(255,255,255,0.42)'); hl.addColorStop(1, 'rgba(255,255,255,0)');
+    // Top-left specular highlight
+    const hl = ctx.createRadialGradient(cx - r*0.22, cy - r*0.22, 0, cx - r*0.22, cy - r*0.22, r * 0.58);
+    hl.addColorStop(0, 'rgba(255,255,255,0.50)'); hl.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = hl; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
     // Specular ellipse
-    ctx.save(); ctx.translate(cx - r*0.22, cy - r*0.22); ctx.rotate(-0.6);
-    const sl = ctx.createRadialGradient(0, 0, 0, 0, 0, r * 0.28);
-    sl.addColorStop(0, 'rgba(255,255,255,0.20)'); sl.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = sl; ctx.scale(1.6, 1); ctx.beginPath(); ctx.arc(0, 0, r * 0.28, 0, Math.PI*2); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.translate(cx - r*0.22, cy - r*0.22); ctx.rotate(-0.62);
+    const sl = ctx.createRadialGradient(0, 0, 0, 0, 0, r * 0.30);
+    sl.addColorStop(0, 'rgba(255,255,255,0.22)'); sl.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = sl; ctx.scale(1.6, 1); ctx.beginPath(); ctx.arc(0, 0, r * 0.30, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
 }
 
 function drawMoodSymbolCanvas(ctx, mood, cx, cy, r, glow) {
@@ -1948,233 +2080,283 @@ function drawMoodSymbolCanvas(ctx, mood, cx, cy, r, glow) {
     switch (mood) {
 
         case 'tired': {
-            glassOrbBase(ctx, cx, cy, r, ['#18224a','#06091e','#02030c'], 'rgba(56,85,224,0.40)', 'rgba(56,100,255,0.55)');
+            glassOrbBase(ctx, cx, cy, r, ['#1a2560','#07091c','#020310'], 'rgba(56,85,224,0.45)', 'rgba(56,100,255,0.60)');
             ctx.save(); clip();
-            // Crescent moon
-            ctx.fillStyle = 'rgba(185,210,255,0.92)'; ctx.beginPath(); ctx.arc(cx + r*0.10, cy - r*0.08, r*0.40, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = 'rgba(6,10,28,0.96)'; ctx.beginPath(); ctx.arc(cx + r*0.28, cy - r*0.20, r*0.36, 0, Math.PI*2); ctx.fill();
-            // Moon face
-            ctx.fillStyle = 'rgba(170,205,255,0.60)'; ctx.beginPath(); ctx.arc(cx, cy + r*0.02, r*0.040, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = 'rgba(160,200,255,0.48)'; ctx.beginPath(); ctx.arc(cx - r*0.10, cy + r*0.14, r*0.026, 0, Math.PI*2); ctx.fill();
-            // Stars
-            ctx.fillStyle = 'rgba(140,188,255,0.90)'; ctx.beginPath(); ctx.arc(cx - r*0.42, cy - r*0.40, r*0.052, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = 'rgba(180,218,255,0.75)'; ctx.beginPath(); ctx.arc(cx + r*0.44, cy - r*0.44, r*0.032, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = 'rgba(150,195,255,0.60)'; ctx.beginPath(); ctx.arc(cx - r*0.30, cy + r*0.36, r*0.024, 0, Math.PI*2); ctx.fill();
-            // Clouds
-            ctx.fillStyle = 'rgba(135,168,218,0.40)';
-            [[cx - r*0.58, cy + r*0.54, r*0.26, r*0.15],[cx - r*0.35, cy + r*0.46, r*0.22, r*0.13],[cx - r*0.70, cy + r*0.60, r*0.18, r*0.11]].forEach(([ex,ey,erx,ery]) => {
-                ctx.beginPath(); ctx.ellipse(ex, ey, erx, ery, 0, 0, Math.PI*2); ctx.fill();
-            });
-            ctx.restore();
-            glassOrbTop(ctx, cx, cy, r, 'rgba(90,145,255,0.30)');
-            break;
-        }
-
-        case 'motivated': {
-            glassOrbBase(ctx, cx, cy, r, ['#2a1a08','#0e0802','#050400'], 'rgba(212,128,16,0.42)', 'rgba(255,175,25,0.60)');
-            ctx.save(); clip();
-            // Star glow core
-            const sg = ctx.createRadialGradient(cx, cy, 0, cx, cy, r*0.48);
-            sg.addColorStop(0, 'rgba(255,185,20,0.18)'); sg.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = sg; ctx.beginPath(); ctx.arc(cx, cy, r*0.48, 0, Math.PI*2); ctx.fill();
-            // 4-pointed star
-            ctx.shadowColor = 'rgba(255,200,50,0.80)'; ctx.shadowBlur = r*0.30;
-            ctx.fillStyle = 'rgba(255,215,75,0.95)';
-            const drawStar = (sx, sy, sr) => {
+            // Moon glow
+            const moonG = ctx.createRadialGradient(cx + r*0.06, cy - r*0.06, 0, cx + r*0.06, cy - r*0.06, r*0.52);
+            moonG.addColorStop(0, 'rgba(185,210,255,0.92)'); moonG.addColorStop(0.7, 'rgba(145,178,248,0.88)'); moonG.addColorStop(1, 'rgba(100,140,220,0.75)');
+            ctx.fillStyle = moonG; ctx.beginPath(); ctx.arc(cx + r*0.06, cy - r*0.04, r*0.42, 0, Math.PI*2); ctx.fill();
+            // Shadow bite
+            ctx.fillStyle = 'rgba(7,9,22,0.97)'; ctx.beginPath(); ctx.arc(cx + r*0.28, cy - r*0.18, r*0.38, 0, Math.PI*2); ctx.fill();
+            // Face — closed eyes
+            ctx.strokeStyle = 'rgba(80,110,200,0.88)'; ctx.lineWidth = r*0.038; ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.arc(cx - r*0.10, cy - r*0.06, r*0.08, Math.PI*0.2, Math.PI*0.8, false); ctx.stroke();
+            ctx.beginPath(); ctx.arc(cx - r*0.28, cy - r*0.06, r*0.08, Math.PI*0.2, Math.PI*0.8, false); ctx.stroke();
+            // Open mouth
+            ctx.strokeStyle = 'rgba(80,110,200,0.80)';
+            ctx.beginPath(); ctx.arc(cx - r*0.19, cy + r*0.10, r*0.10, 0, Math.PI, false); ctx.stroke();
+            // Sparkle star
+            ctx.shadowColor = 'rgba(160,210,255,0.90)'; ctx.shadowBlur = r*0.22;
+            const drawStar4 = (sx, sy, sr) => {
                 ctx.beginPath();
-                ctx.moveTo(sx, sy - sr);
-                ctx.quadraticCurveTo(sx + sr*0.12, sy - sr*0.12, sx + sr, sy);
+                ctx.moveTo(sx, sy - sr); ctx.quadraticCurveTo(sx + sr*0.12, sy - sr*0.12, sx + sr, sy);
                 ctx.quadraticCurveTo(sx + sr*0.12, sy + sr*0.12, sx, sy + sr);
                 ctx.quadraticCurveTo(sx - sr*0.12, sy + sr*0.12, sx - sr, sy);
                 ctx.quadraticCurveTo(sx - sr*0.12, sy - sr*0.12, sx, sy - sr);
                 ctx.closePath(); ctx.fill();
             };
-            drawStar(cx, cy, r * 0.50);
+            ctx.fillStyle = 'rgba(175,215,255,0.95)'; drawStar4(cx - r*0.52, cy - r*0.52, r*0.10);
             ctx.shadowBlur = 0;
-            ctx.fillStyle = 'rgba(255,248,180,0.85)'; drawStar(cx, cy, r * 0.22);
+            // Stars
+            [[cx + r*0.46, cy - r*0.50, r*0.030],[cx - r*0.55, cy - r*0.05, r*0.024],[cx + r*0.50, cy - r*0.06, r*0.022],[cx - r*0.28, cy + r*0.54, r*0.022]].forEach(([sx,sy,sr]) => {
+                ctx.fillStyle = 'rgba(180,215,255,0.82)'; ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI*2); ctx.fill();
+            });
+            // Clouds
+            ctx.fillStyle = 'rgba(130,165,220,0.42)';
+            [[cx - r*0.58, cy + r*0.58, r*0.28, r*0.14],[cx - r*0.32, cy + r*0.52, r*0.22, r*0.12],[cx - r*0.70, cy + r*0.64, r*0.18, r*0.10],[cx - r*0.05, cy + r*0.56, r*0.20, r*0.12]].forEach(([ex,ey,erx,ery]) => {
+                ctx.beginPath(); ctx.ellipse(ex, ey, erx, ery, 0, 0, Math.PI*2); ctx.fill();
+            });
+            ctx.restore();
+            glassOrbTop(ctx, cx, cy, r, 'rgba(90,148,255,0.30)');
+            break;
+        }
+
+        case 'motivated': {
+            glassOrbBase(ctx, cx, cy, r, ['#2e1c08','#100803','#050300'], 'rgba(212,128,16,0.45)', 'rgba(255,178,25,0.62)');
+            ctx.save(); clip();
+            // Core radial glow
+            const cg = ctx.createRadialGradient(cx, cy, 0, cx, cy, r*0.55);
+            cg.addColorStop(0, 'rgba(255,190,20,0.22)'); cg.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = cg; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+            ctx.shadowColor = 'rgba(255,200,50,0.85)'; ctx.shadowBlur = r*0.32;
+            const sg = ctx.createRadialGradient(cx - r*0.08, cy - r*0.10, 0, cx, cy, r*0.55);
+            sg.addColorStop(0, '#fff8d0'); sg.addColorStop(0.4, '#ffcc30'); sg.addColorStop(1, '#e07000');
+            ctx.fillStyle = sg;
+            // 4-pointed star
+            const drawStar = (sx, sy, sr) => {
+                ctx.beginPath();
+                ctx.moveTo(sx, sy - sr); ctx.quadraticCurveTo(sx + sr*0.14, sy - sr*0.14, sx + sr, sy);
+                ctx.quadraticCurveTo(sx + sr*0.14, sy + sr*0.14, sx, sy + sr);
+                ctx.quadraticCurveTo(sx - sr*0.14, sy + sr*0.14, sx - sr, sy);
+                ctx.quadraticCurveTo(sx - sr*0.14, sy - sr*0.14, sx, sy - sr);
+                ctx.closePath(); ctx.fill();
+            };
+            drawStar(cx, cy, r * 0.52);
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = 'rgba(255,248,185,0.92)'; drawStar(cx, cy, r * 0.22);
             // Sparkles
-            ctx.fillStyle = 'rgba(255,210,80,0.80)';
-            [[cx - r*0.48, cy - r*0.48, r*0.032],[cx + r*0.46, cy - r*0.46, r*0.026],[cx + r*0.50, cy + r*0.40, r*0.028],[cx - r*0.42, cy + r*0.42, r*0.022]].forEach(([px,py,pr]) => {
+            ctx.fillStyle = 'rgba(255,215,80,0.85)';
+            [[cx - r*0.52, cy - r*0.52, r*0.042],[cx + r*0.50, cy - r*0.50, r*0.032],[cx + r*0.56, cy + r*0.44, r*0.036],[cx - r*0.48, cy + r*0.48, r*0.028]].forEach(([px,py,pr]) => {
                 ctx.beginPath(); ctx.arc(px, py, pr, 0, Math.PI*2); ctx.fill();
             });
             ctx.restore();
             // Orbital ring
-            ctx.save();
-            ctx.translate(cx, cy); ctx.rotate(-0.22);
-            ctx.strokeStyle = 'rgba(255,178,28,0.50)'; ctx.lineWidth = r * 0.050;
-            ctx.beginPath(); ctx.ellipse(0, 0, r * 0.95, r * 0.18, 0, 0, Math.PI*2); ctx.stroke();
-            ctx.strokeStyle = 'rgba(255,200,60,0.18)'; ctx.lineWidth = r * 0.10;
-            ctx.filter = `blur(${r*0.06}px)`;
-            ctx.beginPath(); ctx.ellipse(0, 0, r * 0.95, r * 0.18, 0, 0, Math.PI*2); ctx.stroke();
-            ctx.restore(); ctx.filter = 'none';
-            glassOrbTop(ctx, cx, cy, r, 'rgba(255,165,28,0.25)');
+            ctx.save(); ctx.translate(cx, cy); ctx.rotate(-0.32);
+            ctx.strokeStyle = 'rgba(255,178,28,0.58)'; ctx.lineWidth = r*0.058;
+            ctx.beginPath(); ctx.ellipse(0, 0, r*0.98, r*0.20, 0, 0, Math.PI*2); ctx.stroke();
+            ctx.strokeStyle = 'rgba(255,200,60,0.20)'; ctx.lineWidth = r*0.12;
+            ctx.shadowColor = 'rgba(255,185,30,0.42)'; ctx.shadowBlur = r*0.12;
+            ctx.beginPath(); ctx.ellipse(0, 0, r*0.98, r*0.20, 0, 0, Math.PI*2); ctx.stroke();
+            ctx.restore(); ctx.shadowBlur = 0;
+            glassOrbTop(ctx, cx, cy, r, 'rgba(255,168,28,0.28)');
             break;
         }
 
         case 'lost': {
-            glassOrbBase(ctx, cx, cy, r, ['#181820','#07080e','#020205'], 'rgba(60,65,82,0.35)', 'rgba(55,58,75,0.40)');
+            glassOrbBase(ctx, cx, cy, r, ['#1a1e28','#080a10','#020305'], 'rgba(58,64,90,0.32)', 'rgba(55,60,80,0.42)');
             ctx.save(); clip();
-            // Mist layers
-            const m1 = ctx.createRadialGradient(cx, cy + r*0.15, 0, cx, cy + r*0.15, r*0.75);
-            m1.addColorStop(0, 'rgba(55,62,85,0.60)'); m1.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = m1; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
-            // Road/path perspective
-            ctx.strokeStyle = 'rgba(165,172,205,0.28)'; ctx.lineWidth = r*0.030;
-            [[cx, cy + r*0.62, cx - r*0.38, cy + r*0.65],[cx, cy + r*0.62, cx + r*0.38, cy + r*0.65]].forEach(pts => {
-                ctx.beginPath(); ctx.moveTo(pts[0],pts[1]); ctx.lineTo(pts[2],pts[3]); ctx.stroke();
-            });
-            ctx.strokeStyle = 'rgba(155,162,195,0.18)'; ctx.lineWidth = r*0.020;
-            [[cx, cy - r*0.10, cx - r*0.60, cy + r*0.65],[cx, cy - r*0.10, cx + r*0.60, cy + r*0.65]].forEach(pts => {
-                ctx.beginPath(); ctx.moveTo(pts[0],pts[1]); ctx.lineTo(pts[2],pts[3]); ctx.stroke();
-            });
-            // Silhouette
-            ctx.fillStyle = 'rgba(155,162,198,0.55)';
-            ctx.fillRect(cx - r*0.042, cy - r*0.24, r*0.084, r*0.20);
-            ctx.beginPath(); ctx.arc(cx, cy - r*0.26, r*0.065, 0, Math.PI*2); ctx.fill();
-            // Upper mist
-            const m2 = ctx.createRadialGradient(cx, cy - r*0.30, 0, cx, cy - r*0.30, r*0.60);
-            m2.addColorStop(0, 'rgba(65,72,100,0.30)'); m2.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = m2; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+            // Sky fog
+            const fog1 = ctx.createRadialGradient(cx, cy - r*0.15, 0, cx, cy - r*0.15, r*0.85);
+            fog1.addColorStop(0, 'rgba(38,44,65,0.55)'); fog1.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = fog1; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+            // Floating island
+            ctx.fillStyle = 'rgba(88,92,115,0.90)';
+            ctx.beginPath(); ctx.ellipse(cx, cy - r*0.35, r*0.38, r*0.16, 0, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = 'rgba(102,108,132,0.92)';
+            ctx.beginPath(); ctx.ellipse(cx, cy - r*0.38, r*0.35, r*0.13, 0, 0, Math.PI*2); ctx.fill();
+            // Island top terrain bumps
+            ctx.fillStyle = 'rgba(70,76,100,0.92)';
+            ctx.beginPath(); ctx.ellipse(cx - r*0.08, cy - r*0.46, r*0.16, r*0.08, 0, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(cx + r*0.10, cy - r*0.44, r*0.12, r*0.07, 0, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(cx - r*0.22, cy - r*0.42, r*0.10, r*0.06, 0, 0, Math.PI*2); ctx.fill();
+            // Winding path
+            ctx.strokeStyle = 'rgba(155,162,200,0.30)'; ctx.lineWidth = r*0.038; ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.moveTo(cx, cy + r*0.80); ctx.bezierCurveTo(cx - r*0.18, cy + r*0.50, cx + r*0.18, cy + r*0.20, cx, cy - r*0.02); ctx.bezierCurveTo(cx - r*0.12, cy - r*0.20, cx + r*0.10, cy - r*0.32, cx, cy - r*0.44); ctx.stroke();
+            // Figure
+            ctx.fillStyle = 'rgba(172,178,210,0.68)';
+            ctx.fillRect(cx - r*0.048, cy + r*0.08, r*0.095, r*0.24); ctx.beginPath(); ctx.arc(cx, cy + r*0.06, r*0.072, 0, Math.PI*2); ctx.fill();
+            // Bottom mist
+            const fog2 = ctx.createRadialGradient(cx, cy + r*0.70, 0, cx, cy + r*0.70, r*0.75);
+            fog2.addColorStop(0, 'rgba(40,46,68,0.60)'); fog2.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = fog2; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
             ctx.restore();
-            glassOrbTop(ctx, cx, cy, r, 'rgba(90,95,120,0.22)');
+            glassOrbTop(ctx, cx, cy, r, 'rgba(85,92,118,0.22)');
             break;
         }
 
         case 'angry': {
-            glassOrbBase(ctx, cx, cy, r, ['#2a0808','#0d0205','#050002'], 'rgba(205,16,26,0.44)', 'rgba(225,20,35,0.62)');
+            glassOrbBase(ctx, cx, cy, r, ['#2a0608','#0c0203','#050002'], 'rgba(205,16,26,0.45)', 'rgba(228,22,38,0.65)');
             ctx.save(); clip();
-            // Cracked lava fill
+            // Lava surface fill
             const lf = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-            lf.addColorStop(0, 'rgba(110,8,14,0.80)'); lf.addColorStop(1, 'rgba(40,2,5,0.60)');
+            lf.addColorStop(0, 'rgba(110,8,14,0.82)'); lf.addColorStop(1, 'rgba(40,2,5,0.62)');
             ctx.fillStyle = lf; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
-            // Crack lines with glow
-            const cracks = [
-                [[cx,cy-r*0.05],[cx-r*0.22,cy-r*0.38],[cx-r*0.10,cy-r*0.65]],
-                [[cx,cy-r*0.05],[cx+r*0.28,cy-r*0.32],[cx+r*0.15,cy-r*0.68]],
-                [[cx,cy-r*0.05],[cx-r*0.40,cy+r*0.15],[cx-r*0.60,cy+r*0.48]],
-                [[cx,cy-r*0.05],[cx+r*0.42,cy+r*0.18],[cx+r*0.58,cy+r*0.52]],
-                [[cx,cy-r*0.05],[cx+r*0.05,cy+r*0.50],[cx-r*0.08,cy+r*0.75]],
+            // Cracks with glow
+            ctx.shadowColor = 'rgba(255,85,20,0.85)'; ctx.shadowBlur = r*0.14;
+            const crackPaths = [
+                [[cx, cy - r*0.05],[cx - r*0.22, cy - r*0.38],[cx - r*0.10, cy - r*0.68]],
+                [[cx, cy - r*0.05],[cx + r*0.28, cy - r*0.34],[cx + r*0.14, cy - r*0.70]],
+                [[cx, cy - r*0.05],[cx - r*0.40, cy + r*0.16],[cx - r*0.62, cy + r*0.50]],
+                [[cx, cy - r*0.05],[cx + r*0.42, cy + r*0.18],[cx + r*0.60, cy + r*0.54]],
+                [[cx, cy - r*0.05],[cx + r*0.05, cy + r*0.50],[cx - r*0.08, cy + r*0.78]],
+                [[cx - r*0.22, cy - r*0.38],[cx - r*0.42, cy - r*0.22]],
+                [[cx + r*0.28, cy - r*0.34],[cx + r*0.50, cy - r*0.18]],
             ];
-            cracks.forEach(pts => {
-                ctx.shadowColor = 'rgba(255,80,20,0.80)'; ctx.shadowBlur = r*0.12;
-                ctx.strokeStyle = 'rgba(255,90,30,0.75)'; ctx.lineWidth = r*0.025;
-                ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
-                pts.slice(1).forEach(p => ctx.lineTo(p[0],p[1])); ctx.stroke();
-                ctx.shadowBlur = 0;
+            crackPaths.forEach(pts => {
+                ctx.strokeStyle = 'rgba(255,90,30,0.78)'; ctx.lineWidth = r*0.026; ctx.lineCap = 'round';
+                ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+                pts.slice(1).forEach(p => ctx.lineTo(p[0], p[1])); ctx.stroke();
             });
-            // Angry eye slits
-            ctx.shadowColor = 'rgba(255,140,30,0.90)'; ctx.shadowBlur = r*0.18;
-            ctx.fillStyle = 'rgba(255,160,50,0.92)';
-            // Left eye
-            ctx.beginPath(); ctx.moveTo(cx - r*0.32, cy - r*0.04); ctx.quadraticCurveTo(cx - r*0.14, cy - r*0.18, cx + r*0.02, cy - r*0.04); ctx.quadraticCurveTo(cx - r*0.14, cy + r*0.04, cx - r*0.32, cy - r*0.04); ctx.fill();
-            // Right eye
-            ctx.beginPath(); ctx.moveTo(cx + r*0.10, cy - r*0.04); ctx.quadraticCurveTo(cx + r*0.28, cy - r*0.18, ctx.x = cx + r*0.46, cy - r*0.04); ctx.quadraticCurveTo(cx + r*0.28, cy + r*0.04, cx + r*0.10, cy - r*0.04); ctx.fill();
             ctx.shadowBlur = 0;
-            // Lava gem fragments
-            ctx.fillStyle = 'rgba(215,55,38,0.78)';
-            [[cx - r*0.60, cy - r*0.18, r*0.055],[cx + r*0.58, cy - r*0.22, r*0.048],[cx + r*0.64, cy + r*0.30, r*0.042]].forEach(([px,py,pr]) => {
+            // Evil eyes
+            ctx.shadowColor = 'rgba(255,145,30,0.92)'; ctx.shadowBlur = r*0.20;
+            ctx.fillStyle = 'rgba(255,155,45,0.96)';
+            // Left eye
+            ctx.beginPath(); ctx.moveTo(cx - r*0.38, cy - r*0.02); ctx.quadraticCurveTo(cx - r*0.22, cy - r*0.22, cx - r*0.02, cy - r*0.02); ctx.quadraticCurveTo(cx - r*0.22, cy + r*0.08, cx - r*0.38, cy - r*0.02); ctx.fill();
+            // Right eye
+            ctx.beginPath(); ctx.moveTo(cx + r*0.02, cy - r*0.02); ctx.quadraticCurveTo(cx + r*0.22, cy - r*0.22, cx + r*0.38, cy - r*0.02); ctx.quadraticCurveTo(cx + r*0.22, cy + r*0.08, cx + r*0.02, cy - r*0.02); ctx.fill();
+            ctx.shadowBlur = 0;
+            // Eye dark pupils
+            ctx.fillStyle = 'rgba(55,3,7,0.92)';
+            ctx.beginPath(); ctx.ellipse(cx - r*0.20, cy - r*0.04, r*0.10, r*0.06, 0, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(cx + r*0.20, cy - r*0.04, r*0.10, r*0.06, 0, 0, Math.PI*2); ctx.fill();
+            ctx.restore();
+            // Floating crystal fragments outside
+            ctx.fillStyle = 'rgba(212,35,45,0.82)';
+            [[cx + r*1.42, cy - r*0.52, r*0.075],[cx + r*1.30, cy - r*0.82, r*0.055],[cx + r*1.52, cy - r*0.08, r*0.048],[cx - r*1.18, cy - r*0.48, r*0.060]].forEach(([px,py,pr]) => {
                 ctx.beginPath(); ctx.arc(px, py, pr, 0, Math.PI*2); ctx.fill();
             });
-            ctx.restore();
-            glassOrbTop(ctx, cx, cy, r, 'rgba(225,40,50,0.28)');
+            glassOrbTop(ctx, cx, cy, r, 'rgba(228,45,55,0.30)');
             break;
         }
 
         case 'anxious': {
-            glassOrbBase(ctx, cx, cy, r, ['#0e1640','#05081a','#02030b'], 'rgba(32,65,210,0.44)', 'rgba(40,78,235,0.62)');
-            // Outside bubbles
-            ctx.save();
-            [[cx - r*1.08, cy - r*0.22, r*0.090],[cx - r*1.20, cy + r*0.10, r*0.065],[cx + r*1.06, cy - r*0.06, r*0.075],[cx + r*1.14, cy + r*0.32, r*0.052]].forEach(([bx,by,br]) => {
-                ctx.strokeStyle = 'rgba(80,130,255,0.35)'; ctx.lineWidth = r*0.020;
+            glassOrbBase(ctx, cx, cy, r, ['#0e1840','#05081a','#020308'], 'rgba(32,65,210,0.45)', 'rgba(40,80,238,0.62)');
+            // Bubbles outside
+            [[cx - r*1.30, cy - r*0.30, r*0.115],[cx - r*1.42, cy + r*0.08, r*0.082],[cx + r*1.28, cy - r*0.10, r*0.095],[cx + r*1.38, cy + r*0.36, r*0.065]].forEach(([bx,by,br]) => {
+                ctx.strokeStyle = 'rgba(80,135,255,0.40)'; ctx.lineWidth = r*0.022;
                 ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI*2); ctx.stroke();
-                const bhl = ctx.createRadialGradient(bx - br*0.30, by - br*0.30, 0, bx, by, br);
-                bhl.addColorStop(0, 'rgba(255,255,255,0.22)'); bhl.addColorStop(1, 'rgba(0,0,0,0)');
+                const bhl = ctx.createRadialGradient(bx - br*0.32, by - br*0.32, 0, bx, by, br);
+                bhl.addColorStop(0, 'rgba(255,255,255,0.25)'); bhl.addColorStop(1, 'rgba(0,0,0,0)');
                 ctx.fillStyle = bhl; ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI*2); ctx.fill();
             });
-            ctx.restore();
             ctx.save(); clip();
-            // Wave lines — 3 sinusoidal
-            const waves = [{y: cy - r*0.18, op: 0.82, lw: r*0.058},{y: cy, op: 1, lw: r*0.072},{y: cy + r*0.18, op: 0.72, lw: r*0.055}];
-            waves.forEach(({y, op, lw}) => {
-                ctx.shadowColor = `rgba(80,140,255,${op*0.55})`; ctx.shadowBlur = r*0.14;
-                const wg = ctx.createLinearGradient(cx - r, 0, cx + r, 0);
-                wg.addColorStop(0, 'rgba(110,165,255,0)');
-                wg.addColorStop(0.18, `rgba(130,180,255,${op})`);
-                wg.addColorStop(0.82, `rgba(100,155,250,${op})`);
-                wg.addColorStop(1, 'rgba(110,165,255,0)');
-                ctx.strokeStyle = wg; ctx.lineWidth = lw;
-                ctx.beginPath(); ctx.moveTo(cx - r*0.85, y);
-                ctx.quadraticCurveTo(cx - r*0.42, y - r*0.22, cx, y);
-                ctx.quadraticCurveTo(cx + r*0.42, y + r*0.22, cx + r*0.85, y); ctx.stroke();
-                ctx.shadowBlur = 0;
-            });
-            // Stars
-            [[cx - r*0.48, cy - r*0.52, r*0.036],[cx + r*0.44, cy - r*0.50, r*0.026],[cx + r*0.54, cy + r*0.12, r*0.028]].forEach(([px,py,pr]) => {
-                ctx.fillStyle = 'rgba(130,185,255,0.72)'; ctx.beginPath(); ctx.arc(px, py, pr, 0, Math.PI*2); ctx.fill();
+            // Face aura
+            const fa = ctx.createRadialGradient(cx, cy, 0, cx, cy, r*0.58);
+            fa.addColorStop(0, 'rgba(40,92,232,0.22)'); fa.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = fa; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+            // Worried eyebrows
+            ctx.strokeStyle = 'rgba(105,160,255,0.78)'; ctx.lineWidth = r*0.050; ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.moveTo(cx - r*0.42, cy - r*0.25); ctx.quadraticCurveTo(cx - r*0.28, cy - r*0.38, cx - r*0.12, cy - r*0.30); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(cx + r*0.12, cy - r*0.30); ctx.quadraticCurveTo(cx + r*0.28, cy - r*0.38, cx + r*0.42, cy - r*0.25); ctx.stroke();
+            // Eyes (almond shapes filled)
+            ctx.shadowColor = 'rgba(120,175,255,0.70)'; ctx.shadowBlur = r*0.12;
+            ctx.fillStyle = 'rgba(120,175,255,0.90)';
+            ctx.beginPath(); ctx.ellipse(cx - r*0.24, cy - r*0.08, r*0.12, r*0.08, 0, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(cx + r*0.24, cy - r*0.08, r*0.12, r*0.08, 0, 0, Math.PI*2); ctx.fill();
+            ctx.shadowBlur = 0;
+            // Eye highlights
+            ctx.fillStyle = 'rgba(200,225,255,0.88)';
+            ctx.beginPath(); ctx.arc(cx - r*0.28, cy - r*0.11, r*0.040, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(cx + r*0.20, cy - r*0.11, r*0.040, 0, Math.PI*2); ctx.fill();
+            // Wavy distressed mouth
+            ctx.strokeStyle = 'rgba(110,168,255,0.85)'; ctx.lineWidth = r*0.055;
+            ctx.beginPath(); ctx.moveTo(cx - r*0.28, cy + r*0.22);
+            ctx.quadraticCurveTo(cx - r*0.14, cy + r*0.14, cx, cy + r*0.22);
+            ctx.quadraticCurveTo(cx + r*0.14, cy + r*0.30, cx + r*0.28, cy + r*0.22); ctx.stroke();
+            // Subtle ripple lines
+            ctx.strokeStyle = 'rgba(80,135,255,0.22)'; ctx.lineWidth = r*0.025;
+            [cy - r*0.42, cy + r*0.50].forEach(ry2 => {
+                ctx.beginPath(); ctx.moveTo(cx - r*0.85, ry2); ctx.quadraticCurveTo(cx, ry2 + r*0.10, cx + r*0.85, ry2); ctx.stroke();
             });
             ctx.restore();
-            glassOrbTop(ctx, cx, cy, r, 'rgba(80,130,255,0.28)');
+            glassOrbTop(ctx, cx, cy, r, 'rgba(80,135,255,0.30)');
             break;
         }
 
         case 'grinding': {
-            glassOrbBase(ctx, cx, cy, r, ['#1a0838','#080315','#030108'], 'rgba(88,24,180,0.44)', 'rgba(100,30,200,0.58)');
+            glassOrbBase(ctx, cx, cy, r, ['#1e0840','#0a0318','#040110'], 'rgba(100,22,198,0.50)', 'rgba(125,32,218,0.65)');
             ctx.save(); clip();
-            // Gear ring outer
-            ctx.shadowColor = 'rgba(155,70,240,0.55)'; ctx.shadowBlur = r*0.18;
-            ctx.strokeStyle = 'rgba(148,62,228,0.72)'; ctx.lineWidth = r*0.055;
-            ctx.beginPath(); ctx.arc(cx, cy, r*0.50, 0, Math.PI*2); ctx.stroke();
-            // Gear teeth
-            for (let i = 0; i < 10; i++) {
-                const a = (i/10)*Math.PI*2;
-                const ix = cx + Math.cos(a)*r*0.50, iy = cy + Math.sin(a)*r*0.50;
-                const ox = cx + Math.cos(a)*r*0.64, oy = cy + Math.sin(a)*r*0.64;
-                ctx.strokeStyle = 'rgba(155,68,235,0.68)'; ctx.lineWidth = r*0.068;
-                ctx.beginPath(); ctx.moveTo(ix, iy); ctx.lineTo(ox, oy); ctx.stroke();
+            // Gear glow
+            const gg = ctx.createRadialGradient(cx, cy, 0, cx, cy, r*0.65);
+            gg.addColorStop(0, 'rgba(105,28,200,0.30)'); gg.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = gg; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+            // Gear outer ring
+            ctx.shadowColor = 'rgba(158,70,245,0.62)'; ctx.shadowBlur = r*0.20;
+            ctx.strokeStyle = 'rgba(148,60,228,0.78)'; ctx.lineWidth = r*0.070;
+            ctx.beginPath(); ctx.arc(cx, cy, r*0.52, 0, Math.PI*2); ctx.stroke();
+            ctx.shadowBlur = 0;
+            // 12 gear teeth
+            for (let i = 0; i < 12; i++) {
+                const a = (i/12)*Math.PI*2;
+                const tx = cx + Math.cos(a)*r*0.76, ty = cy + Math.sin(a)*r*0.76;
+                ctx.fillStyle = 'rgba(140,52,220,0.85)';
+                ctx.beginPath(); ctx.arc(tx, ty, r*0.072, 0, Math.PI*2); ctx.fill();
             }
             // Inner ring
-            ctx.strokeStyle = 'rgba(165,82,245,0.62)'; ctx.lineWidth = r*0.040;
+            ctx.strokeStyle = 'rgba(165,82,245,0.65)'; ctx.lineWidth = r*0.042;
             ctx.beginPath(); ctx.arc(cx, cy, r*0.30, 0, Math.PI*2); ctx.stroke();
-            ctx.shadowBlur = 0;
-            // Center bolt
-            const cg = ctx.createRadialGradient(cx, cy, 0, cx, cy, r*0.15);
-            cg.addColorStop(0, 'rgba(175,95,252,0.90)'); cg.addColorStop(1, 'rgba(80,20,150,0.60)');
+            // Spokes
+            ctx.strokeStyle = 'rgba(155,68,235,0.58)'; ctx.lineWidth = r*0.040; ctx.lineCap = 'round';
+            for (let i = 0; i < 3; i++) {
+                const a = (i/3)*Math.PI;
+                ctx.beginPath(); ctx.moveTo(cx + Math.cos(a)*r*0.30, cy + Math.sin(a)*r*0.30);
+                ctx.lineTo(cx - Math.cos(a)*r*0.30, cy - Math.sin(a)*r*0.30); ctx.stroke();
+            }
+            // Center core
+            const cg = ctx.createRadialGradient(cx - r*0.06, cy - r*0.06, 0, cx, cy, r*0.15);
+            cg.addColorStop(0, 'rgba(205,145,255,0.95)'); cg.addColorStop(1, 'rgba(80,20,155,0.75)');
+            ctx.shadowColor = 'rgba(175,100,255,0.70)'; ctx.shadowBlur = r*0.18;
             ctx.fillStyle = cg; ctx.beginPath(); ctx.arc(cx, cy, r*0.15, 0, Math.PI*2); ctx.fill();
-            // Breaking fragment
-            ctx.fillStyle = 'rgba(128,52,215,0.65)';
-            ctx.beginPath(); ctx.moveTo(cx+r*0.42,cy+r*0.42); ctx.lineTo(cx+r*0.62,cy+r*0.62); ctx.lineTo(cx+r*0.52,cy+r*0.68); ctx.lineTo(cx+r*0.36,cy+r*0.50); ctx.closePath(); ctx.fill();
-            ctx.beginPath(); ctx.moveTo(cx+r*0.55,cy+r*0.48); ctx.lineTo(cx+r*0.70,cy+r*0.55); ctx.lineTo(cx+r*0.65,cy+r*0.62); ctx.lineTo(cx+r*0.52,cy+r*0.54); ctx.closePath(); ctx.fill();
+            ctx.shadowBlur = 0;
+            // Breaking fragment lower right
+            ctx.fillStyle = 'rgba(115,40,200,0.70)';
+            ctx.beginPath(); ctx.moveTo(cx+r*0.48,cy+r*0.48); ctx.lineTo(cx+r*0.70,cy+r*0.62); ctx.lineTo(cx+r*0.60,cy+r*0.72); ctx.lineTo(cx+r*0.40,cy+r*0.60); ctx.closePath(); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(cx+r*0.62,cy+r*0.44); ctx.lineTo(cx+r*0.78,cy+r*0.54); ctx.lineTo(cx+r*0.72,cy+r*0.64); ctx.lineTo(cx+r*0.58,cy+r*0.52); ctx.closePath(); ctx.fill();
             // Sparks
-            [[cx+r*0.58, cy-r*0.12, r*0.042],[cx-r*0.24, cy+r*0.60, r*0.032],[cx+r*0.64, cy+r*0.28, r*0.030]].forEach(([px,py,pr]) => {
-                ctx.fillStyle = 'rgba(178,100,255,0.62)'; ctx.beginPath(); ctx.arc(px, py, pr, 0, Math.PI*2); ctx.fill();
+            ctx.shadowColor = 'rgba(180,100,255,0.75)'; ctx.shadowBlur = r*0.14;
+            [[cx+r*0.62, cy-r*0.14, r*0.048],[cx-r*0.26, cy+r*0.64, r*0.038],[cx+r*0.68, cy+r*0.28, r*0.034]].forEach(([px,py,pr]) => {
+                ctx.fillStyle = 'rgba(185,105,255,0.72)'; ctx.beginPath(); ctx.arc(px, py, pr, 0, Math.PI*2); ctx.fill();
             });
+            ctx.shadowBlur = 0;
             ctx.restore();
-            glassOrbTop(ctx, cx, cy, r, 'rgba(125,45,215,0.26)');
+            glassOrbTop(ctx, cx, cy, r, 'rgba(125,45,215,0.28)');
             break;
         }
 
         case 'calm': {
-            glassOrbBase(ctx, cx, cy, r, ['#082830','#031015','#010608'], 'rgba(16,185,200,0.42)', 'rgba(20,215,228,0.65)');
+            glassOrbBase(ctx, cx, cy, r, ['#082830','#031015','#010608'], 'rgba(16,185,200,0.42)', 'rgba(22,218,235,0.68)');
             ctx.save(); clip();
-            // Three wave lines
-            const calWaves = [{y: cy - r*0.22, op: 0.68, lw: r*0.052},{y: cy, op: 1, lw: r*0.068},{y: cy + r*0.22, op: 0.72, lw: r*0.055}];
+            // Wave glow
+            const wg2 = ctx.createRadialGradient(cx, cy, 0, cx, cy, r*0.60);
+            wg2.addColorStop(0, 'rgba(22,218,238,0.20)'); wg2.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = wg2; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+            // 3 wave paths
+            const calWaves = [{y: cy - r*0.22, op: 0.68, lw: r*0.050},{y: cy, op: 1.00, lw: r*0.070},{y: cy + r*0.22, op: 0.72, lw: r*0.055}];
             calWaves.forEach(({y, op, lw}) => {
-                ctx.shadowColor = `rgba(30,215,232,${op*0.55})`; ctx.shadowBlur = r*0.16;
-                const wg = ctx.createLinearGradient(cx - r, 0, cx + r, 0);
-                wg.addColorStop(0, 'rgba(40,230,248,0)');
-                wg.addColorStop(0.18, `rgba(50,232,250,${op})`);
-                wg.addColorStop(0.82, `rgba(35,215,235,${op})`);
-                wg.addColorStop(1, 'rgba(35,215,235,0)');
-                ctx.strokeStyle = wg; ctx.lineWidth = lw;
-                // S-curve wave
-                ctx.beginPath(); ctx.moveTo(cx - r*0.80, y);
-                ctx.quadraticCurveTo(cx - r*0.40, y - r*0.20, cx, y);
-                ctx.quadraticCurveTo(cx + r*0.40, y + r*0.20, cx + r*0.80, y); ctx.stroke();
+                const wlg = ctx.createLinearGradient(cx - r, 0, cx + r, 0);
+                wlg.addColorStop(0, 'rgba(40,232,252,0)'); wlg.addColorStop(0.15, `rgba(48,235,255,${op})`);
+                wlg.addColorStop(0.85, `rgba(32,215,238,${op})`); wlg.addColorStop(1, 'rgba(32,215,238,0)');
+                ctx.shadowColor = `rgba(30,215,235,${op*0.55})`; ctx.shadowBlur = r*0.18;
+                ctx.strokeStyle = wlg; ctx.lineWidth = lw; ctx.lineCap = 'round';
+                ctx.beginPath(); ctx.moveTo(cx - r*0.82, y);
+                ctx.quadraticCurveTo(cx - r*0.41, y - r*0.22, cx, y);
+                ctx.quadraticCurveTo(cx + r*0.41, y + r*0.22, cx + r*0.82, y); ctx.stroke();
                 ctx.shadowBlur = 0;
             });
-            // Star sparkle
-            ctx.shadowColor = 'rgba(80,245,255,0.90)'; ctx.shadowBlur = r*0.18;
-            ctx.fillStyle = 'rgba(90,245,255,0.92)';
+            // 4-point sparkle
+            ctx.shadowColor = 'rgba(80,248,255,0.95)'; ctx.shadowBlur = r*0.22;
+            ctx.fillStyle = 'rgba(82,248,255,0.95)';
             const sp = (sx, sy, sr) => {
                 ctx.beginPath(); ctx.moveTo(sx, sy - sr);
                 ctx.quadraticCurveTo(sx + sr*0.14, sy - sr*0.14, sx + sr, sy);
@@ -2183,59 +2365,62 @@ function drawMoodSymbolCanvas(ctx, mood, cx, cy, r, glow) {
                 ctx.quadraticCurveTo(sx - sr*0.14, sy - sr*0.14, sx, sy - sr);
                 ctx.closePath(); ctx.fill();
             };
-            sp(cx, cy - r*0.50, r*0.10);
+            sp(cx, cy - r*0.52, r*0.10);
             ctx.shadowBlur = 0;
-            ctx.fillStyle = 'rgba(60,228,245,0.72)'; ctx.beginPath(); ctx.arc(cx - r*0.44, cy - r*0.46, r*0.030, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = 'rgba(50,220,238,0.62)'; ctx.beginPath(); ctx.arc(cx + r*0.48, cy - r*0.44, r*0.024, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = 'rgba(55,232,248,0.72)'; ctx.beginPath(); ctx.arc(cx - r*0.45, cy - r*0.48, r*0.030, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = 'rgba(50,225,242,0.65)'; ctx.beginPath(); ctx.arc(cx + r*0.50, cy - r*0.46, r*0.024, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = 'rgba(45,220,238,0.60)'; ctx.beginPath(); ctx.arc(cx + r*0.56, cy + r*0.44, r*0.022, 0, Math.PI*2); ctx.fill();
             // Leaf
-            ctx.fillStyle = 'rgba(35,205,222,0.58)';
-            ctx.beginPath(); ctx.moveTo(cx + r*0.42, cy + r*0.48); ctx.quadraticCurveTo(cx + r*0.50, cy + r*0.40, cx + r*0.55, cy + r*0.48); ctx.quadraticCurveTo(cx + r*0.50, cy + r*0.56, cx + r*0.42, cy + r*0.48); ctx.fill();
+            ctx.fillStyle = 'rgba(32,208,225,0.62)';
+            ctx.beginPath(); ctx.moveTo(cx + r*0.42, cy + r*0.50); ctx.quadraticCurveTo(cx + r*0.52, cy + r*0.40, cx + r*0.58, cy + r*0.50); ctx.quadraticCurveTo(cx + r*0.52, cy + r*0.60, cx + r*0.42, cy + r*0.50); ctx.fill();
             ctx.restore();
-            glassOrbTop(ctx, cx, cy, r, 'rgba(28,215,232,0.30)');
+            glassOrbTop(ctx, cx, cy, r, 'rgba(28,218,235,0.32)');
             break;
         }
 
         case 'overthinking': {
-            glassOrbBase(ctx, cx, cy, r, ['#1a0835','#080315','#030108'], 'rgba(104,24,198,0.44)', 'rgba(128,32,225,0.62)');
+            glassOrbBase(ctx, cx, cy, r, ['#1e0838','#090318','#040110'], 'rgba(104,24,198,0.48)', 'rgba(130,35,228,0.65)');
             ctx.save(); clip();
-            // Neural ring glow
-            ctx.shadowColor = 'rgba(165,88,252,0.55)'; ctx.shadowBlur = r*0.20;
-            const bgg = ctx.createRadialGradient(cx, cy, 0, cx, cy, r*0.52);
-            bgg.addColorStop(0, 'rgba(92,28,162,0.58)'); bgg.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = bgg; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
-            ctx.shadowBlur = 0;
-            // Brain folds — series of overlapping arcs
-            const brainColor = 'rgba(115,42,195,0.82)';
-            const brainStroke = 'rgba(175,100,252,0.70)';
-            ctx.fillStyle = brainColor;
-            ctx.beginPath(); ctx.ellipse(cx, cy, r*0.42, r*0.36, 0, 0, Math.PI*2); ctx.fill();
-            ctx.strokeStyle = brainStroke; ctx.lineWidth = r*0.040; ctx.shadowColor = 'rgba(175,100,252,0.40)'; ctx.shadowBlur = r*0.10;
-            // Left lobe folds
+            // Brain glow
+            const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, r*0.58);
+            bg.addColorStop(0, 'rgba(108,28,195,0.38)'); bg.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = bg; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+            // Brain body (two lobes)
+            const brG = ctx.createRadialGradient(cx - r*0.10, cy - r*0.10, 0, cx, cy, r*0.48);
+            brG.addColorStop(0, 'rgba(200,132,255,0.95)'); brG.addColorStop(0.55, 'rgba(125,42,200,0.92)'); brG.addColorStop(1, 'rgba(65,14,155,0.88)');
+            ctx.fillStyle = brG;
+            ctx.beginPath(); ctx.ellipse(cx - r*0.08, cy - r*0.02, r*0.28, r*0.33, 0, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(cx + r*0.08, cy - r*0.02, r*0.28, r*0.33, 0, 0, Math.PI*2); ctx.fill();
+            // Center crease
+            ctx.strokeStyle = 'rgba(18,6,48,0.72)'; ctx.lineWidth = r*0.032;
+            ctx.beginPath(); ctx.moveTo(cx, cy - r*0.32); ctx.lineTo(cx, cy + r*0.30); ctx.stroke();
+            // Brain fold highlights
+            ctx.strokeStyle = 'rgba(188,118,255,0.75)'; ctx.lineWidth = r*0.038; ctx.lineCap = 'round';
             const folds = [
-                [cx - r*0.20, cy - r*0.05, r*0.24, 0.2, Math.PI*1.1],
-                [cx - r*0.06, cy - r*0.18, r*0.20, 3.4, Math.PI*2 + 0.8],
-                [cx - r*0.24, cy + r*0.12, r*0.22, -0.1, Math.PI*0.9],
-                [cx + r*0.18, cy - r*0.05, r*0.22, Math.PI*0.1, Math.PI*1.2],
-                [cx + r*0.10, cy + r*0.12, r*0.20, Math.PI*0.9, Math.PI*2],
+                [cx - r*0.24, cy - r*0.12, r*0.20, 0.28, Math.PI*1.08],
+                [cx - r*0.10, cy - r*0.24, r*0.18, 3.40, Math.PI*2 + 0.78],
+                [cx - r*0.26, cy + r*0.10, r*0.20, 0.0, Math.PI*0.88],
+                [cx + r*0.24, cy - r*0.12, r*0.20, Math.PI - 0.28, Math.PI*2.0 - 0.28],
+                [cx + r*0.10, cy + r*0.10, r*0.18, Math.PI*0.92, Math.PI*2.0],
+                [cx - r*0.14, cy + r*0.22, r*0.16, 0.1, Math.PI*0.82],
             ];
             folds.forEach(([fx, fy, fr, sa, ea]) => {
                 ctx.beginPath(); ctx.arc(fx, fy, fr, sa, ea); ctx.stroke();
             });
-            ctx.shadowBlur = 0;
-            // Dividing line
-            ctx.strokeStyle = 'rgba(155,75,240,0.55)'; ctx.lineWidth = r*0.028;
-            ctx.beginPath(); ctx.moveTo(cx, cy - r*0.32); ctx.lineTo(cx, cy + r*0.32); ctx.stroke();
+            // Stem
+            ctx.fillStyle = 'rgba(80,18,158,0.78)';
+            ctx.beginPath(); ctx.roundRect ? ctx.roundRect(cx - r*0.058, cy + r*0.30, r*0.116, r*0.15, r*0.038) : ctx.rect(cx - r*0.058, cy + r*0.30, r*0.116, r*0.15);
+            ctx.fill();
             ctx.restore();
-            // Orbital ring around orb
-            ctx.save();
-            ctx.translate(cx, cy); ctx.rotate(-0.36);
-            ctx.strokeStyle = 'rgba(170,82,255,0.50)'; ctx.lineWidth = r*0.048;
-            ctx.beginPath(); ctx.ellipse(0, 0, r * 0.98, r * 0.20, 0, 0, Math.PI*2); ctx.stroke();
-            ctx.strokeStyle = 'rgba(185,100,255,0.15)'; ctx.lineWidth = r * 0.10;
-            ctx.filter = `blur(${r*0.055}px)`;
-            ctx.beginPath(); ctx.ellipse(0, 0, r * 0.98, r * 0.20, 0, 0, Math.PI*2); ctx.stroke();
-            ctx.restore(); ctx.filter = 'none';
-            glassOrbTop(ctx, cx, cy, r, 'rgba(148,55,228,0.28)');
+            // Orbital ring
+            ctx.save(); ctx.translate(cx, cy); ctx.rotate(-0.38);
+            ctx.strokeStyle = 'rgba(172,80,255,0.55)'; ctx.lineWidth = r*0.052;
+            ctx.beginPath(); ctx.ellipse(0, 0, r*0.98, r*0.22, 0, 0, Math.PI*2); ctx.stroke();
+            ctx.strokeStyle = 'rgba(188,100,255,0.18)'; ctx.lineWidth = r*0.11;
+            ctx.shadowColor = 'rgba(172,80,255,0.40)'; ctx.shadowBlur = r*0.12;
+            ctx.beginPath(); ctx.ellipse(0, 0, r*0.98, r*0.22, 0, 0, Math.PI*2); ctx.stroke();
+            ctx.restore(); ctx.shadowBlur = 0;
+            glassOrbTop(ctx, cx, cy, r, 'rgba(148,55,230,0.28)');
             break;
         }
 

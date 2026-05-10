@@ -174,6 +174,16 @@
             pointer-events: none; z-index: 1;
             border-radius: inherit;
             mix-blend-mode: color;
+            opacity: 0.85;
+            transition: background 900ms cubic-bezier(0.16,1,0.3,1);
+        }
+        /* Darken layer — mirrors canvas multiply pass */
+        .sc-grade-dark {
+            position: absolute; inset: 0;
+            pointer-events: none; z-index: 1;
+            border-radius: inherit;
+            mix-blend-mode: multiply;
+            background: rgba(10,6,22,0.35);
             transition: background 900ms cubic-bezier(0.16,1,0.3,1);
         }
         /* ── BOKEH / FLOATING LIGHT ORBS ── */
@@ -469,8 +479,8 @@
             position: relative; z-index: 5;
             width: 100%; height: 100%;
             display: flex; flex-direction: column;
-            align-items: center; justify-content: space-between;
-            padding: 1.5rem 1.2rem 1.1rem; box-sizing: border-box;
+            align-items: center; justify-content: flex-start;
+            padding: 1.2rem 1.2rem 1.1rem; box-sizing: border-box;
         }
 
         /* Cinematic light rays from top — three overlapping beams */
@@ -577,9 +587,10 @@
 
         /* BODY */
         .sc-body {
-            flex: 1; display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            gap: 0.75rem; text-align: center; padding: 0 0.3rem;
+            flex: 0 0 auto; display: flex; flex-direction: column;
+            align-items: center;
+            gap: 0.40rem; text-align: center; padding: 0 0.3rem;
+            margin-top: 0.6rem;
         }
         .sc-rule {
             width: 30px; height: 2px;
@@ -588,7 +599,7 @@
         }
         .sc-title {
             font-family: 'Cormorant Garant', 'Playfair Display', Georgia, serif;
-            font-size: clamp(24px, 6.8vw, 36px);
+            font-size: clamp(26px, 7.5vw, 40px);
             font-weight: 700;
             letter-spacing: 0.08em;
             text-transform: uppercase;
@@ -604,23 +615,26 @@
                 drop-shadow(0 5px 20px rgba(0,0,0,0.65));
         }
         .sc-text {
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.82rem;
-            line-height: 2;
-            color: rgba(255,255,255,0.85);
+            font-family: Georgia, serif;
+            font-style: italic;
+            font-size: clamp(13px, 3.6vw, 18px);
+            line-height: 1.65;
+            color: rgba(255,255,255,0.88);
             white-space: pre-line;
-            max-width: 84%;
+            max-width: 88%;
             text-shadow:
                 0 1px 6px rgba(0,0,0,0.75),
                 0 3px 14px rgba(0,0,0,0.45);
-            font-weight: 300;
-            letter-spacing: 0.02em;
+            font-weight: 400;
+            letter-spacing: 0.01em;
         }
 
         /* FOOTER */
         .sc-foot {
+            margin-top: auto;
             flex: 0 0 auto; width: 100%;
             display: flex; flex-direction: column; align-items: center; gap: 0.45rem;
+            padding-bottom: 0.3rem;
         }
         .sc-divider {
             width: 38%; height: 1px;
@@ -1547,6 +1561,7 @@
                     <div class="sc-inner">
                         <div class="sc-mesh" id="scMesh"></div>
                         <div class="sc-grade" id="scGrade"></div>
+                        <div class="sc-grade-dark" id="scGradeDark"></div>
                         <div class="sc-bokeh" id="scBokeh">
                             <div class="bokeh-dot bd1" id="bokeh1"></div>
                             <div class="bokeh-dot bd2" id="bokeh2"></div>
@@ -2559,7 +2574,8 @@ function processGeneration() {
     currentStatus = generated.text;
     
     const displayText = generated.text.replace('{streak}', addXP(1).streak);
-    statusTextEl.textContent     = displayText;
+    const moodEmoji2 = MOOD_EMOJIS[selectedMood] || '';
+    statusTextEl.textContent = displayText + (moodEmoji2 ? ' ' + moodEmoji2 : '');
     const moodSrc = MOOD_SVG[selectedMood];
     moodEmoji.innerHTML = moodSrc
         ? `<div class="symbol-3d"><div class="sym-layer sym-shadow"></div><div class="sym-layer sym-bg"></div><div class="sym-layer sym-mid"><img src="${moodSrc}" style="width:128px;height:128px;object-fit:contain;display:block;filter:drop-shadow(0 0 22px var(--mood-glow, rgba(255,255,255,0.28)))"/></div><div class="sym-layer sym-top"></div></div>`
@@ -2906,13 +2922,17 @@ function buildStatusCanvas() {
                     const emojiY  = CY + Math.round(CH * 0.195);
                     const cachedImg = MOOD_IMG_CACHE[selectedMood];
                     if (cachedImg && cachedImg.complete && cachedImg.naturalWidth) {
+                        const ox = CX + CW/2 - emojiPx/2;
+                        const oy = emojiY - emojiPx/2;
+                        // Pass 1: mood glow shadow
                         ctx.save();
                         ctx.shadowColor = moodGlow;
-                        ctx.shadowBlur  = Math.round(emojiPx * 0.42);
-                        ctx.drawImage(cachedImg, CX + CW/2 - emojiPx/2, emojiY - emojiPx/2, emojiPx, emojiPx);
+                        ctx.shadowBlur  = Math.round(emojiPx * 0.45);
+                        ctx.drawImage(cachedImg, ox, oy, emojiPx, emojiPx);
+                        // Pass 2: white specular highlight
                         ctx.shadowBlur  = Math.round(emojiPx * 0.22);
-                        ctx.shadowColor = 'rgba(255,255,255,0.20)';
-                        ctx.drawImage(cachedImg, CX + CW/2 - emojiPx/2, emojiY - emojiPx/2, emojiPx, emojiPx);
+                        ctx.shadowColor = 'rgba(255,255,255,0.22)';
+                        ctx.drawImage(cachedImg, ox, oy, emojiPx, emojiPx);
                         ctx.restore();
                     } else {
                         ctx.shadowColor = 'rgba(0,0,0,0.72)'; ctx.shadowBlur = 32; ctx.shadowOffsetY = 10;
@@ -2986,7 +3006,13 @@ function buildStatusCanvas() {
                     const bodyPx   = Math.round(CW * 0.058);
                     const lineH    = Math.round(bodyPx * 1.60);
                     const bodyMaxW = Math.round(CW * 0.82);
-                    const actualText = (statusTextEl.textContent || currentStatus || '').trim();
+                    const rawText  = (statusTextEl.textContent || currentStatus || '').trim();
+                    // Strip already-appended emoji from in-app text (it ends with the emoji)
+                    // then re-append cleanly for canvas
+                    const moodEmojiChar = MOOD_EMOJIS[selectedMood] || '';
+                    const actualText = rawText.endsWith(moodEmojiChar)
+                        ? rawText
+                        : rawText + (moodEmojiChar ? ' ' + moodEmojiChar : '');
 
                     ctx.font = 'italic 400 ' + bodyPx + 'px Georgia, serif';
                     const bodyWords = actualText.split(/\s+/);

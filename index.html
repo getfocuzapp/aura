@@ -718,26 +718,59 @@
         /* Atmospheric backdrop */
         .lo-backdrop {
             position: absolute; inset: 0;
-            background: rgba(6,4,14,0.88);
-            backdrop-filter: blur(32px);
-            -webkit-backdrop-filter: blur(32px);
+            background: rgba(5,3,12,0.92);
+            backdrop-filter: blur(36px);
+            -webkit-backdrop-filter: blur(36px);
+            transition: opacity 800ms ease;
         }
-        /* Mood-reactive atmosphere orb behind content */
+        /* Mood-reactive atmosphere */
         .lo-atmosphere {
             position: absolute; inset: 0;
             display: flex; align-items: center; justify-content: center;
             pointer-events: none;
         }
         .lo-atm-orb {
-            width: 320px; height: 320px; border-radius: 50%;
-            background: radial-gradient(circle, var(--lo-glow, rgba(148,62,195,0.22)) 0%, transparent 70%);
-            filter: blur(40px);
-            animation: loAtmBreath 3s ease-in-out infinite;
-            opacity: 0.75;
+            width: 380px; height: 380px; border-radius: 50%;
+            background: radial-gradient(circle, var(--lo-glow, rgba(148,62,195,0.22)) 0%, transparent 68%);
+            filter: blur(48px);
+            animation: loAtmBreath 3.6s ease-in-out infinite;
+            opacity: 0.70;
+            transition: transform 900ms cubic-bezier(0.16,1,0.3,1),
+                        opacity   900ms ease,
+                        width     900ms ease,
+                        height    900ms ease;
+        }
+        .lo-atm-orb.expanding {
+            transform: scale(3.2);
+            opacity: 0.18;
         }
         @keyframes loAtmBreath {
-            0%,100% { transform: scale(1);    opacity: 0.65; }
-            50%      { transform: scale(1.18); opacity: 0.90; }
+            0%,100% { transform: scale(1);    opacity: 0.60; }
+            50%      { transform: scale(1.14); opacity: 0.85; }
+        }
+
+        /* Floating particles — CSS only, 6 dots */
+        .lo-particles {
+            position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+        }
+        .lo-particle {
+            position: absolute; border-radius: 50%;
+            background: var(--lo-glow, rgba(148,62,195,0.70));
+            filter: blur(3px);
+            opacity: 0;
+            animation: loParticleDrift var(--pd, 5s) ease-in-out var(--pdelay, 0s) infinite;
+        }
+        .lo-particle:nth-child(1)  { width:4px;  height:4px;  left:22%;  top:72%; --pd:5.2s; --pdelay:0s;    }
+        .lo-particle:nth-child(2)  { width:3px;  height:3px;  left:68%;  top:65%; --pd:6.8s; --pdelay:-1.4s; }
+        .lo-particle:nth-child(3)  { width:5px;  height:5px;  left:38%;  top:78%; --pd:4.8s; --pdelay:-2.1s; }
+        .lo-particle:nth-child(4)  { width:3px;  height:3px;  left:78%;  top:40%; --pd:7.2s; --pdelay:-0.8s; }
+        .lo-particle:nth-child(5)  { width:4px;  height:4px;  left:14%;  top:45%; --pd:5.6s; --pdelay:-3.2s; }
+        .lo-particle:nth-child(6)  { width:3px;  height:3px;  left:55%;  top:82%; --pd:6.2s; --pdelay:-1.8s; }
+        @keyframes loParticleDrift {
+            0%   { opacity: 0;    transform: translateY(0)     scale(0.8); }
+            20%  { opacity: 0.55; }
+            60%  { opacity: 0.38; transform: translateY(-38px) scale(1.1); }
+            100% { opacity: 0;    transform: translateY(-68px) scale(0.6); }
         }
 
         /* Inner content */
@@ -745,6 +778,10 @@
             position: relative; z-index: 2;
             display: flex; flex-direction: column;
             align-items: center; gap: 0;
+            transition: opacity 500ms ease, transform 500ms ease;
+        }
+        .loading-inner.dissolving {
+            opacity: 0; transform: scale(1.06) translateY(-8px);
         }
 
         /* Orb container */
@@ -753,125 +790,162 @@
             display: flex; align-items: center; justify-content: center;
             position: relative;
             margin-bottom: 2.2rem;
+            transition: transform 700ms cubic-bezier(0.16,1,0.3,1),
+                        opacity   700ms ease;
+        }
+        .lo-orb-wrap.launch {
+            transform: scale(0.55) translateY(18px);
+            opacity: 0;
         }
         .lo-orb-wrap img {
             width: 130px; height: 130px;
             object-fit: contain;
-            animation: loOrbFloat 3.5s ease-in-out infinite, loOrbReveal 600ms cubic-bezier(0.34,1.56,0.64,1) both;
-            filter: drop-shadow(0 0 28px var(--lo-glow, rgba(148,62,195,0.60)))
-                    drop-shadow(0 0 12px rgba(255,255,255,0.18));
+            animation: loOrbFloat 4s ease-in-out infinite, loOrbReveal 700ms cubic-bezier(0.22,1,0.36,1) both;
+            filter: drop-shadow(0 0 32px var(--lo-glow, rgba(148,62,195,0.65)))
+                    drop-shadow(0 0 14px rgba(255,255,255,0.18));
         }
         @keyframes loOrbReveal {
-            0%   { opacity: 0; transform: scale(0.60) translateY(12px); filter: blur(10px); }
-            100% { opacity: 1; transform: scale(1)    translateY(0);    filter: blur(0); }
+            0%   { opacity: 0; transform: scale(0.55) translateY(16px); filter: blur(12px); }
+            65%  { opacity: 1; filter: blur(0); }
+            100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
         }
         @keyframes loOrbFloat {
-            0%,100% { transform: translateY(0)    scale(1); }
-            50%      { transform: translateY(-10px) scale(1.03); }
+            0%,100% { transform: translateY(0)   scale(1);    }
+            50%      { transform: translateY(-9px) scale(1.02); }
         }
-        /* Orb glow ring */
+        /* Orb glow rings */
         .lo-orb-ring {
-            position: absolute; inset: -12px; border-radius: 50%;
-            border: 1px solid var(--lo-glow, rgba(148,62,195,0.30));
-            animation: loRingPulse 2.8s ease-in-out infinite;
+            position: absolute; inset: -14px; border-radius: 50%;
+            border: 1px solid var(--lo-glow, rgba(148,62,195,0.28));
+            animation: loRingPulse 3.2s ease-in-out infinite;
         }
         .lo-orb-ring2 {
-            position: absolute; inset: -24px; border-radius: 50%;
-            border: 1px solid var(--lo-glow, rgba(148,62,195,0.15));
-            animation: loRingPulse 2.8s ease-in-out infinite 0.5s;
+            position: absolute; inset: -28px; border-radius: 50%;
+            border: 1px solid var(--lo-glow, rgba(148,62,195,0.14));
+            animation: loRingPulse 3.2s ease-in-out infinite 0.6s;
+        }
+        .lo-orb-ring3 {
+            position: absolute; inset: -44px; border-radius: 50%;
+            border: 1px solid var(--lo-glow, rgba(148,62,195,0.07));
+            animation: loRingPulse 3.2s ease-in-out infinite 1.1s;
         }
         @keyframes loRingPulse {
-            0%,100% { opacity: 0.35; transform: scale(1); }
-            50%      { opacity: 0.75; transform: scale(1.06); }
+            0%,100% { opacity: 0.30; transform: scale(1);    }
+            50%      { opacity: 0.72; transform: scale(1.05); }
         }
 
         /* Brand label */
         .loading-brand {
             font-family: 'DM Sans', sans-serif;
-            font-size: 0.52rem; font-weight: 600;
-            color: var(--gold); letter-spacing: 0.28em;
-            text-transform: uppercase; opacity: 0.45;
-            margin-bottom: 1.0rem;
+            font-size: 0.50rem; font-weight: 600;
+            color: var(--gold); letter-spacing: 0.30em;
+            text-transform: uppercase; opacity: 0.40;
+            margin-bottom: 1.1rem;
         }
 
         /* Dynamic generation text */
         .lo-gen-text {
             font-family: 'Cormorant Garant', Georgia, serif;
             font-size: 1.0rem; font-weight: 600;
-            color: rgba(232,213,176,0.82);
-            letter-spacing: 0.04em;
-            text-align: center; max-width: 220px;
-            min-height: 1.4em;
-            transition: opacity 400ms ease, transform 400ms ease;
+            color: rgba(232,213,176,0.78);
+            letter-spacing: 0.05em;
+            text-align: center; max-width: 230px;
+            min-height: 1.5em; line-height: 1.5;
+            opacity: 1;
+            transition: opacity 500ms cubic-bezier(0.4,0,0.2,1),
+                        transform 500ms cubic-bezier(0.4,0,0.2,1);
         }
-        .lo-gen-text.fade-out { opacity: 0; transform: translateY(-6px); }
-        .lo-gen-text.fade-in  { opacity: 1; transform: translateY(0); }
+        .lo-gen-text.fade-out { opacity: 0; transform: translateY(-8px); }
+        .lo-gen-text.fade-in  { opacity: 1; transform: translateY(0);    }
 
         /* Subtle progress line */
         .lo-progress {
-            width: 80px; height: 1px;
-            background: rgba(232,213,176,0.12);
-            margin-top: 1.4rem; border-radius: 1px;
+            width: 88px; height: 1px;
+            background: rgba(232,213,176,0.10);
+            margin-top: 1.6rem; border-radius: 1px;
             overflow: hidden;
         }
         .lo-progress-fill {
             height: 100%; width: 0%;
-            background: linear-gradient(90deg, transparent, var(--lo-glow, rgba(148,62,195,0.80)), transparent);
-            animation: loProgress 1.4s cubic-bezier(0.4,0,0.6,1) forwards;
+            background: linear-gradient(90deg, transparent, var(--lo-glow, rgba(148,62,195,0.85)), transparent);
+            animation: loProgress 1.8s cubic-bezier(0.4,0,0.6,1) forwards;
         }
         @keyframes loProgress {
-            0%  { width: 0%;   opacity: 0.5; }
-            60% { width: 85%;  opacity: 1;   }
-            100%{ width: 100%; opacity: 0.6; }
+            0%   { width: 0%;   opacity: 0.4; }
+            55%  { width: 78%;  opacity: 1;   }
+            100% { width: 100%; opacity: 0.5; }
         }
 
-        /* ── FOCUS MODE — dims surrounding UI when mood tapped ── */
+        /* ── FOCUS MODE ── */
         .focus-mode-active .mood-group,
-        .focus-mode-active .gen-btn { opacity: 0.38; transition: opacity 600ms ease; }
-        .focus-mode-active .mood-btn:not(.active) { opacity: 0.28; }
+        .focus-mode-active .gen-btn { opacity: 0.32; transition: opacity 700ms ease; }
+        .focus-mode-active .mood-btn:not(.active) { opacity: 0.24; }
         .focus-mode-active .mood-btn.active {
             opacity: 1;
-            box-shadow: 0 0 24px var(--lo-glow, rgba(148,62,195,0.45));
+            box-shadow: 0 0 28px var(--lo-glow, rgba(148,62,195,0.48));
+            border-left-color: var(--lo-glow, rgba(148,62,195,0.80));
         }
 
         /* ── CINEMATIC MODAL REVEAL ── */
-        .modal-overlay {
-            opacity: 0; transition: opacity 0ms;
-        }
-        .modal-overlay.reveal-start {
-            display: flex !important;
-            opacity: 0;
-        }
+        .modal-overlay { opacity: 0; transition: opacity 0ms; }
+        .modal-overlay.reveal-start  { display: flex !important; opacity: 0; }
         .modal-overlay.reveal-active {
-            opacity: 1; transition: opacity 600ms cubic-bezier(0.16,1,0.3,1);
+            opacity: 1;
+            transition: opacity 700ms cubic-bezier(0.16,1,0.3,1);
         }
-        /* Card slides up */
+
+        /* Card: glass surface first */
         .modal-box {
-            transform: translateY(28px); opacity: 0;
-            transition: transform 0ms, opacity 0ms;
+            transform: translateY(36px) scale(0.97);
+            opacity: 0;
+            transition: transform 0ms, opacity 0ms, box-shadow 0ms;
         }
         .modal-overlay.reveal-active .modal-box {
-            transform: translateY(0); opacity: 1;
-            transition: transform 700ms cubic-bezier(0.16,1,0.3,1) 120ms,
-                        opacity   700ms cubic-bezier(0.16,1,0.3,1) 120ms;
+            transform: translateY(0) scale(1);
+            opacity: 1;
+            transition: transform  820ms cubic-bezier(0.16,1,0.3,1) 80ms,
+                        opacity    820ms cubic-bezier(0.16,1,0.3,1) 80ms,
+                        box-shadow 820ms ease 80ms;
         }
-        /* Title fades in after card */
+
+        /* Orb on card settles in after glass */
+        .sc-halo-wrap {
+            opacity: 0; transform: translateY(10px) scale(0.90);
+            transition: opacity 0ms, transform 0ms;
+        }
+        .modal-overlay.reveal-text .sc-halo-wrap {
+            opacity: 1; transform: translateY(0) scale(1);
+            transition: opacity  600ms cubic-bezier(0.16,1,0.3,1) 80ms,
+                        transform 600ms cubic-bezier(0.16,1,0.3,1) 80ms;
+        }
+
+        /* Title slides up */
         .sc-title {
-            opacity: 0; transform: translateY(8px);
+            opacity: 0; transform: translateY(10px);
             transition: opacity 0ms, transform 0ms;
         }
         .modal-overlay.reveal-text .sc-title {
             opacity: 1; transform: translateY(0);
-            transition: opacity 550ms ease 280ms, transform 550ms cubic-bezier(0.16,1,0.3,1) 280ms;
+            transition: opacity  580ms ease 260ms,
+                        transform 580ms cubic-bezier(0.16,1,0.3,1) 260ms;
         }
-        /* Body text types in last */
+
+        /* Body fades in after title */
         .sc-text {
-            opacity: 0;
-            transition: opacity 0ms;
+            opacity: 0; transition: opacity 0ms;
         }
         .modal-overlay.reveal-text .sc-text {
             opacity: 1;
-            transition: opacity 600ms ease 520ms;
+            transition: opacity 620ms ease 480ms;
+        }
+
+        /* Footer appears last */
+        .sc-foot {
+            opacity: 0; transition: opacity 0ms;
+        }
+        .modal-overlay.reveal-text .sc-foot {
+            opacity: 1;
+            transition: opacity 550ms ease 680ms;
         }
 
         /* ── MISC ── */
@@ -1673,10 +1747,16 @@
     <div id="loadingOverlay" class="loading-overlay hidden">
         <div class="lo-backdrop"></div>
         <div class="lo-atmosphere"><div class="lo-atm-orb" id="loAtmOrb"></div></div>
-        <div class="loading-inner">
-            <div class="lo-orb-wrap">
+        <div class="lo-particles">
+            <div class="lo-particle"></div><div class="lo-particle"></div>
+            <div class="lo-particle"></div><div class="lo-particle"></div>
+            <div class="lo-particle"></div><div class="lo-particle"></div>
+        </div>
+        <div class="loading-inner" id="loadingInner">
+            <div class="lo-orb-wrap" id="loOrbWrap">
                 <div class="lo-orb-ring"></div>
                 <div class="lo-orb-ring2"></div>
+                <div class="lo-orb-ring3"></div>
                 <img id="loOrbImg" src="" alt=""/>
             </div>
             <div class="loading-brand">AURA · Identity Status</div>
@@ -2861,11 +2941,17 @@ function startCinematicLoading(mood) {
     // Reset progress bar animation
     if (loProg) { loProg.style.animation = 'none'; void loProg.offsetWidth; loProg.style.animation = ''; }
 
+    // Reset dissolving state from previous run
+    const prevInner = document.getElementById('loadingInner');
+    if (prevInner) prevInner.classList.remove('dissolving');
+    const prevAtm = document.getElementById('loAtmOrb');
+    if (prevAtm) prevAtm.classList.remove('expanding');
+
     // Show overlay with fade
     loOverlay.classList.remove('hidden');
     requestAnimationFrame(() => { requestAnimationFrame(() => { loOverlay.classList.add('active'); }); });
 
-    // Rotating generation text
+    // Rotating generation text — 2.4s cycle, softer
     let idx = 0;
     if (loText) loText.textContent = texts[0];
     clearInterval(loGenInterval);
@@ -2877,28 +2963,40 @@ function startCinematicLoading(mood) {
             loText.textContent = texts[idx];
             loText.classList.remove('fade-out');
             loText.classList.add('fade-in');
-            setTimeout(() => loText.classList.remove('fade-in'), 400);
-        }, 400);
-    }, 1800);
+            setTimeout(() => loText.classList.remove('fade-in'), 500);
+        }, 500);
+    }, 2400);
 }
 
-function stopCinematicLoading() {
+function stopCinematicLoading(onBridgeComplete) {
     clearInterval(loGenInterval);
-    loadingOverlay.classList.remove('active');
-    setTimeout(() => loadingOverlay.classList.add('hidden'), 500);
+    // Bridge: dissolve inner content, expand atmosphere orb outward
+    const inner  = document.getElementById('loadingInner');
+    const atmOrb = document.getElementById('loAtmOrb');
+    if (inner)  inner.classList.add('dissolving');
+    if (atmOrb) atmOrb.classList.add('expanding');
+    // After bridge, fade out overlay
+    setTimeout(() => {
+        loadingOverlay.classList.remove('active');
+        setTimeout(() => {
+            loadingOverlay.classList.add('hidden');
+            // Clean up classes for next use
+            if (inner)  inner.classList.remove('dissolving');
+            if (atmOrb) atmOrb.classList.remove('expanding');
+            if (onBridgeComplete) onBridgeComplete();
+        }, 650);
+    }, 480);
 }
 
 function cinematicReveal() {
-    // Step A: show modal, start reveal
     modalOverlay.classList.remove('hidden');
     modalOverlay.classList.add('reveal-start');
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {
+            // Step A+B: card glass + orb settle
             modalOverlay.classList.add('reveal-active');
-            // Step B: text reveal after card lands
-            setTimeout(() => {
-                modalOverlay.classList.add('reveal-text');
-            }, 350);
+            // Step C–F: title, text, footer cascade
+            setTimeout(() => modalOverlay.classList.add('reveal-text'), 320);
         });
     });
 }
@@ -2915,10 +3013,12 @@ generateBtn.addEventListener('click', () => {
     setTimeout(() => {
         processGeneration();
         isLoading = false;
-        stopCinematicLoading();
         document.body.classList.remove('focus-mode-active');
-        setTimeout(() => { cinematicReveal(); generateBtn.disabled = false; }, 520);
-    }, 1800);
+        stopCinematicLoading(() => {
+            cinematicReveal();
+            generateBtn.disabled = false;
+        });
+    }, 1900);
 });
 generateAgainBtn.addEventListener('click', () => {
     if (!selectedMood || isLoading || isDownloading || isSharing) return;
@@ -2929,9 +3029,8 @@ generateAgainBtn.addEventListener('click', () => {
     setTimeout(() => {
         processGeneration();
         isLoading = false;
-        stopCinematicLoading();
-        setTimeout(() => { cinematicReveal(); }, 520);
-    }, 1800);
+        stopCinematicLoading(() => cinematicReveal());
+    }, 1900);
 });
 
 /* ── COPY ── */

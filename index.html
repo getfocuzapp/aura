@@ -702,23 +702,177 @@
         .reward-sub  { color: rgba(232,213,176,0.30); font-size: 0.63rem; margin-top: 1px; }
 
         /* ── LOADING ── */
+        /* ── CINEMATIC LOADING OVERLAY ── */
         .loading-overlay {
-            position: fixed; inset: 0; background: rgba(12,12,15,0.92);
-            backdrop-filter: blur(28px);
-            display: flex; align-items: center; justify-content: center; z-index: 60;
+            position: fixed; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 60;
+            opacity: 0; pointer-events: none;
+            transition: opacity 500ms cubic-bezier(0.16,1,0.3,1);
+        }
+        .loading-overlay.active {
+            opacity: 1; pointer-events: all;
         }
         .loading-overlay.hidden { display: none; }
-        .loading-inner { display: flex; flex-direction: column; align-items: center; gap: 1.2rem; }
-        .loading-brand {
-            font-family: 'Playfair Display', Georgia, serif;
-            font-size: 1.1rem; font-weight: 900; color: var(--gold);
-            letter-spacing: 0.04em; opacity: 0.55;
+
+        /* Atmospheric backdrop */
+        .lo-backdrop {
+            position: absolute; inset: 0;
+            background: rgba(6,4,14,0.88);
+            backdrop-filter: blur(32px);
+            -webkit-backdrop-filter: blur(32px);
         }
-        .dots { display: flex; gap: 0.4rem; }
-        .dot { width: 0.42rem; height: 0.42rem; background: var(--gold); border-radius: 50%; animation: pulse 1.1s ease-in-out infinite; opacity: 0.7; }
-        .dot:nth-child(2) { animation-delay: 0.18s; }
-        .dot:nth-child(3) { animation-delay: 0.36s; }
-        .loading-txt { color: rgba(232,213,176,0.28); font-size: 0.60rem; letter-spacing: 0.22em; text-transform: uppercase; font-family: 'DM Sans', sans-serif; }
+        /* Mood-reactive atmosphere orb behind content */
+        .lo-atmosphere {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            pointer-events: none;
+        }
+        .lo-atm-orb {
+            width: 320px; height: 320px; border-radius: 50%;
+            background: radial-gradient(circle, var(--lo-glow, rgba(148,62,195,0.22)) 0%, transparent 70%);
+            filter: blur(40px);
+            animation: loAtmBreath 3s ease-in-out infinite;
+            opacity: 0.75;
+        }
+        @keyframes loAtmBreath {
+            0%,100% { transform: scale(1);    opacity: 0.65; }
+            50%      { transform: scale(1.18); opacity: 0.90; }
+        }
+
+        /* Inner content */
+        .loading-inner {
+            position: relative; z-index: 2;
+            display: flex; flex-direction: column;
+            align-items: center; gap: 0;
+        }
+
+        /* Orb container */
+        .lo-orb-wrap {
+            width: 140px; height: 140px;
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+            margin-bottom: 2.2rem;
+        }
+        .lo-orb-wrap img {
+            width: 130px; height: 130px;
+            object-fit: contain;
+            animation: loOrbFloat 3.5s ease-in-out infinite, loOrbReveal 600ms cubic-bezier(0.34,1.56,0.64,1) both;
+            filter: drop-shadow(0 0 28px var(--lo-glow, rgba(148,62,195,0.60)))
+                    drop-shadow(0 0 12px rgba(255,255,255,0.18));
+        }
+        @keyframes loOrbReveal {
+            0%   { opacity: 0; transform: scale(0.60) translateY(12px); filter: blur(10px); }
+            100% { opacity: 1; transform: scale(1)    translateY(0);    filter: blur(0); }
+        }
+        @keyframes loOrbFloat {
+            0%,100% { transform: translateY(0)    scale(1); }
+            50%      { transform: translateY(-10px) scale(1.03); }
+        }
+        /* Orb glow ring */
+        .lo-orb-ring {
+            position: absolute; inset: -12px; border-radius: 50%;
+            border: 1px solid var(--lo-glow, rgba(148,62,195,0.30));
+            animation: loRingPulse 2.8s ease-in-out infinite;
+        }
+        .lo-orb-ring2 {
+            position: absolute; inset: -24px; border-radius: 50%;
+            border: 1px solid var(--lo-glow, rgba(148,62,195,0.15));
+            animation: loRingPulse 2.8s ease-in-out infinite 0.5s;
+        }
+        @keyframes loRingPulse {
+            0%,100% { opacity: 0.35; transform: scale(1); }
+            50%      { opacity: 0.75; transform: scale(1.06); }
+        }
+
+        /* Brand label */
+        .loading-brand {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.52rem; font-weight: 600;
+            color: var(--gold); letter-spacing: 0.28em;
+            text-transform: uppercase; opacity: 0.45;
+            margin-bottom: 1.0rem;
+        }
+
+        /* Dynamic generation text */
+        .lo-gen-text {
+            font-family: 'Cormorant Garant', Georgia, serif;
+            font-size: 1.0rem; font-weight: 600;
+            color: rgba(232,213,176,0.82);
+            letter-spacing: 0.04em;
+            text-align: center; max-width: 220px;
+            min-height: 1.4em;
+            transition: opacity 400ms ease, transform 400ms ease;
+        }
+        .lo-gen-text.fade-out { opacity: 0; transform: translateY(-6px); }
+        .lo-gen-text.fade-in  { opacity: 1; transform: translateY(0); }
+
+        /* Subtle progress line */
+        .lo-progress {
+            width: 80px; height: 1px;
+            background: rgba(232,213,176,0.12);
+            margin-top: 1.4rem; border-radius: 1px;
+            overflow: hidden;
+        }
+        .lo-progress-fill {
+            height: 100%; width: 0%;
+            background: linear-gradient(90deg, transparent, var(--lo-glow, rgba(148,62,195,0.80)), transparent);
+            animation: loProgress 1.4s cubic-bezier(0.4,0,0.6,1) forwards;
+        }
+        @keyframes loProgress {
+            0%  { width: 0%;   opacity: 0.5; }
+            60% { width: 85%;  opacity: 1;   }
+            100%{ width: 100%; opacity: 0.6; }
+        }
+
+        /* ── FOCUS MODE — dims surrounding UI when mood tapped ── */
+        .focus-mode-active .mood-group,
+        .focus-mode-active .gen-btn { opacity: 0.38; transition: opacity 600ms ease; }
+        .focus-mode-active .mood-btn:not(.active) { opacity: 0.28; }
+        .focus-mode-active .mood-btn.active {
+            opacity: 1;
+            box-shadow: 0 0 24px var(--lo-glow, rgba(148,62,195,0.45));
+        }
+
+        /* ── CINEMATIC MODAL REVEAL ── */
+        .modal-overlay {
+            opacity: 0; transition: opacity 0ms;
+        }
+        .modal-overlay.reveal-start {
+            display: flex !important;
+            opacity: 0;
+        }
+        .modal-overlay.reveal-active {
+            opacity: 1; transition: opacity 600ms cubic-bezier(0.16,1,0.3,1);
+        }
+        /* Card slides up */
+        .modal-box {
+            transform: translateY(28px); opacity: 0;
+            transition: transform 0ms, opacity 0ms;
+        }
+        .modal-overlay.reveal-active .modal-box {
+            transform: translateY(0); opacity: 1;
+            transition: transform 700ms cubic-bezier(0.16,1,0.3,1) 120ms,
+                        opacity   700ms cubic-bezier(0.16,1,0.3,1) 120ms;
+        }
+        /* Title fades in after card */
+        .sc-title {
+            opacity: 0; transform: translateY(8px);
+            transition: opacity 0ms, transform 0ms;
+        }
+        .modal-overlay.reveal-text .sc-title {
+            opacity: 1; transform: translateY(0);
+            transition: opacity 550ms ease 280ms, transform 550ms cubic-bezier(0.16,1,0.3,1) 280ms;
+        }
+        /* Body text types in last */
+        .sc-text {
+            opacity: 0;
+            transition: opacity 0ms;
+        }
+        .modal-overlay.reveal-text .sc-text {
+            opacity: 1;
+            transition: opacity 600ms ease 520ms;
+        }
 
         /* ── MISC ── */
         .checkin { text-align: center; font-size: 0.65rem; color: rgba(232,213,176,0.25); letter-spacing: 0.06em; font-family: 'DM Sans', sans-serif; }
@@ -1517,10 +1671,17 @@
     </div>
 
     <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="lo-backdrop"></div>
+        <div class="lo-atmosphere"><div class="lo-atm-orb" id="loAtmOrb"></div></div>
         <div class="loading-inner">
-            <div class="loading-brand">Identity Status</div>
-            <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-            <p class="loading-txt">Generating…</p>
+            <div class="lo-orb-wrap">
+                <div class="lo-orb-ring"></div>
+                <div class="lo-orb-ring2"></div>
+                <img id="loOrbImg" src="" alt=""/>
+            </div>
+            <div class="loading-brand">AURA · Identity Status</div>
+            <div class="lo-gen-text" id="loGenText">Reading your emotional state...</div>
+            <div class="lo-progress"><div class="lo-progress-fill" id="loProgressFill"></div></div>
         </div>
     </div>
 
@@ -2512,19 +2673,22 @@ moodBtns.forEach(btn => btn.addEventListener('click', e => {
         openPaywall();
         return;
     }
-    
     selectedMood = e.currentTarget.dataset.mood;
     currentStatus = null;
     modalOverlay.classList.add('hidden');
     rewardMessage.classList.add('hidden');
     moodBtns.forEach(b => b.classList.toggle('active', b.dataset.mood === selectedMood));
     generateBtn.disabled = false;
+    // Focus mode — set mood glow + activate atmosphere
+    const glow = MOOD_GLOW_VARS[selectedMood] || 'rgba(148,62,195,0.55)';
+    document.body.style.setProperty('--lo-glow', glow);
+    document.body.classList.add('focus-mode-active');
 }));
 
 /* ── MODAL CLOSE ── */
-closeModalBtn.addEventListener('click', () => modalOverlay.classList.add('hidden'));
-closeBtn.addEventListener('click',      () => modalOverlay.classList.add('hidden'));
-modalOverlay.addEventListener('click',  e  => { if (e.target === modalOverlay) modalOverlay.classList.add('hidden'); });
+closeModalBtn.addEventListener('click', () => { modalOverlay.classList.add('hidden'); resetRevealClasses(); });
+closeBtn.addEventListener('click',      () => { modalOverlay.classList.add('hidden'); resetRevealClasses(); });
+modalOverlay.addEventListener('click',  e  => { if (e.target === modalOverlay) { modalOverlay.classList.add('hidden'); resetRevealClasses(); } });
 
 /* ── PAYWALL CLOSE ── */
 closePaywallBtn.addEventListener('click', () => paywallOverlay.classList.add('hidden'));
@@ -2649,23 +2813,125 @@ function checkAndIncrementDailyLimit() {
     return true;
 }
 
+/* ── CINEMATIC REVEAL SYSTEM ── */
+const MOOD_GLOW_VARS = {
+    tired:        'rgba(148,62,195,0.55)',  motivated:    'rgba(255,178,25,0.62)',
+    lost:         'rgba(55,100,225,0.50)',  angry:        'rgba(228,22,38,0.62)',
+    anxious:      'rgba(40,80,238,0.55)',   grinding:     'rgba(125,32,218,0.58)',
+    calm:         'rgba(22,218,235,0.60)',  overthinking: 'rgba(130,35,228,0.58)',
+    sad:          'rgba(52,82,165,0.50)',   celebrating:  'rgba(200,38,130,0.55)',
+    numb:         'rgba(80,82,105,0.45)',   recovering:   'rgba(18,155,80,0.50)',
+    growing:      'rgba(42,170,52,0.48)',
+};
+const MOOD_GEN_TEXTS = {
+    tired:        ['Reading emotional patterns...','Low battery state detected...','Restoring emotional balance...','Processing rest signals...'],
+    motivated:    ['Amplifying ambition signals...','Channeling drive energy...','Aligning focus frequency...','Unlocking peak state...'],
+    lost:         ['Mapping emotional coordinates...','Searching internal compass...','Locating your signal...','Navigating the quiet...'],
+    angry:        ['Stabilizing emotional intensity...','Processing emotional pressure...','Channeling inner fire...','Translating raw energy...'],
+    anxious:      ['Reducing emotional turbulence...','Restoring internal stability...','Calming the frequency...','Grounding the signal...'],
+    grinding:     ['Measuring work energy...','Tracking momentum signal...','Calculating grind frequency...','Processing relentless output...'],
+    calm:         ['Aligning emotional state...','Slowing internal noise...','Reading peaceful frequency...','Tuning into stillness...'],
+    overthinking: ['Organizing thought loops...','Reducing mental noise...','Mapping neural patterns...','Processing layered thoughts...'],
+    sad:          ['Holding emotional space...','Reading inner weather...','Processing quiet feelings...','Acknowledging the weight...'],
+    celebrating:  ['Amplifying joy signals...','Reading peak energy...','Capturing this moment...','Locking in the feeling...'],
+    numb:         ['Detecting subtle signals...','Reading quiet frequency...','Processing stillness...','Finding the current...'],
+    recovering:   ['Reading resilience patterns...','Tracking healing signal...','Measuring comeback energy...','Processing inner strength...'],
+    growing:      ['Tracking evolution signal...','Reading growth frequency...','Mapping transformation...','Processing expansion...'],
+};
+
+let loGenInterval = null;
+
+function startCinematicLoading(mood) {
+    const glow      = MOOD_GLOW_VARS[mood] || 'rgba(148,62,195,0.55)';
+    const orbSrc    = MOOD_SVG[mood] || '';
+    const texts     = MOOD_GEN_TEXTS[mood] || ['Reading your emotional state...','Processing...','Almost ready...'];
+    const loOverlay = loadingOverlay;
+    const loOrb     = document.getElementById('loOrbImg');
+    const loAtm     = document.getElementById('loAtmOrb');
+    const loText    = document.getElementById('loGenText');
+    const loProg    = document.getElementById('loProgressFill');
+
+    // Set mood glow CSS var
+    loOverlay.style.setProperty('--lo-glow', glow);
+    loAtm.style.background = `radial-gradient(circle, ${glow.replace(/[\d.]+\)$/, '0.25)')} 0%, transparent 70%)`;
+
+    // Set orb image
+    if (loOrb) { loOrb.src = orbSrc; loOrb.style.display = orbSrc ? 'block' : 'none'; }
+
+    // Reset progress bar animation
+    if (loProg) { loProg.style.animation = 'none'; void loProg.offsetWidth; loProg.style.animation = ''; }
+
+    // Show overlay with fade
+    loOverlay.classList.remove('hidden');
+    requestAnimationFrame(() => { requestAnimationFrame(() => { loOverlay.classList.add('active'); }); });
+
+    // Rotating generation text
+    let idx = 0;
+    if (loText) loText.textContent = texts[0];
+    clearInterval(loGenInterval);
+    loGenInterval = setInterval(() => {
+        if (!loText) return;
+        loText.classList.add('fade-out');
+        setTimeout(() => {
+            idx = (idx + 1) % texts.length;
+            loText.textContent = texts[idx];
+            loText.classList.remove('fade-out');
+            loText.classList.add('fade-in');
+            setTimeout(() => loText.classList.remove('fade-in'), 400);
+        }, 400);
+    }, 1800);
+}
+
+function stopCinematicLoading() {
+    clearInterval(loGenInterval);
+    loadingOverlay.classList.remove('active');
+    setTimeout(() => loadingOverlay.classList.add('hidden'), 500);
+}
+
+function cinematicReveal() {
+    // Step A: show modal, start reveal
+    modalOverlay.classList.remove('hidden');
+    modalOverlay.classList.add('reveal-start');
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            modalOverlay.classList.add('reveal-active');
+            // Step B: text reveal after card lands
+            setTimeout(() => {
+                modalOverlay.classList.add('reveal-text');
+            }, 350);
+        });
+    });
+}
+
+function resetRevealClasses() {
+    modalOverlay.classList.remove('reveal-start','reveal-active','reveal-text');
+}
+
 generateBtn.addEventListener('click', () => {
     if (!selectedMood || isLoading || isDownloading || isSharing) return;
-    isLoading = true; generateBtn.disabled = true; loadingOverlay.classList.remove('hidden');
+    isLoading = true; generateBtn.disabled = true;
+    resetRevealClasses();
+    startCinematicLoading(selectedMood);
     setTimeout(() => {
         processGeneration();
-        isLoading = false; loadingOverlay.classList.add('hidden');
-        modalOverlay.classList.remove('hidden'); generateBtn.disabled = false;
-    }, 1200);
+        isLoading = false;
+        stopCinematicLoading();
+        document.body.classList.remove('focus-mode-active');
+        setTimeout(() => { cinematicReveal(); generateBtn.disabled = false; }, 520);
+    }, 1800);
 });
 generateAgainBtn.addEventListener('click', () => {
     if (!selectedMood || isLoading || isDownloading || isSharing) return;
-    isLoading = true; modalOverlay.classList.add('hidden'); loadingOverlay.classList.remove('hidden');
+    isLoading = true;
+    resetRevealClasses();
+    modalOverlay.classList.add('hidden');
+    startCinematicLoading(selectedMood);
     setTimeout(() => {
         processGeneration();
-        isLoading = false; loadingOverlay.classList.add('hidden');
-        modalOverlay.classList.remove('hidden');
-    }, 1200);
+        isLoading = false;
+        stopCinematicLoading();
+        setTimeout(() => { cinematicReveal(); }, 520);
+    }, 1800);
 });
 
 /* ── COPY ── */

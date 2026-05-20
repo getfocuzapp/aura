@@ -88,9 +88,11 @@
             font-family: 'DM Sans', sans-serif;
             background: #0c0c0f;
             min-height: 100vh;
-            display: flex; align-items: center; justify-content: center;
-            padding: 1rem;
+            display: flex; flex-direction: column;
+            align-items: center;
+            padding: 0 0 4.5rem 0; /* bottom nav clearance */
             color: #e8d5b0;
+            overflow-y: auto; overflow-x: hidden;
             transition: background 1200ms ease;
         }
         body::after {
@@ -214,50 +216,230 @@
         }
 
         /* ── APP SHELL ── */
+        /* ── LAYOUT ── */
         .container {
             width: 100%; max-width: 26rem;
             position: relative; z-index: 1;
             animation: fadeUp var(--anim) cubic-bezier(0.16,1,0.3,1) both;
+            padding: 0 0 0.5rem;
         }
         .app-card {
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 1.5rem;
+            border-radius: 1.4rem;
             box-shadow:
                 0 0 0 1px rgba(232,213,176,0.04),
-                0 32px 80px rgba(0,0,0,0.85),
-                0 8px 32px rgba(0,0,0,0.60),
-                inset 0 1px 0 rgba(232,213,176,0.07);
-            padding: 2rem 1.75rem;
-            display: flex; flex-direction: column; gap: 1.6rem;
+                0 24px 60px rgba(0,0,0,0.80),
+                0 6px 24px rgba(0,0,0,0.55),
+                inset 0 1px 0 rgba(232,213,176,0.06);
+            padding: 1.4rem 1.4rem 1.2rem;
+            display: flex; flex-direction: column; gap: 1.1rem;
+            margin: 0.5rem 0.75rem;
         }
-        .app-header { text-align: center; padding-bottom: 0.25rem; }
+        .app-header { text-align: center; padding-bottom: 0.1rem; }
         .app-header-eyebrow {
-            font-size: 0.56rem; color: rgba(232,213,176,0.30);
+            font-size: 0.52rem; color: rgba(232,213,176,0.28);
             letter-spacing: 0.28em; text-transform: uppercase;
             font-family: 'DM Sans', sans-serif; font-weight: 500;
-            margin-bottom: 0.6rem;
+            margin-bottom: 0.45rem;
         }
         .app-title  {
-            font-family: 'Playfair Display', Georgia, serif;
-            font-size: 2.1rem; font-weight: 900; color: var(--gold);
-            letter-spacing: -0.02em; line-height: 1.05;
+            font-family: 'Cormorant Garant', Georgia, serif;
+            font-size: 1.8rem; font-weight: 700; color: var(--gold);
+            letter-spacing: 0.04em; line-height: 1.05;
         }
         .app-title-rule {
-            width: 32px; height: 1px; margin: 0.75rem auto 0.6rem;
-            background: linear-gradient(90deg, transparent, rgba(232,213,176,0.35), transparent);
+            width: 28px; height: 1px; margin: 0.55rem auto 0.45rem;
+            background: linear-gradient(90deg, transparent, rgba(232,213,176,0.30), transparent);
         }
         .app-sub    {
-            font-size: 0.59rem; color: rgba(232,213,176,0.25);
+            font-size: 0.55rem; color: rgba(232,213,176,0.22);
             letter-spacing: 0.20em; text-transform: uppercase;
             font-weight: 500; font-family: 'DM Sans', sans-serif;
         }
 
-        .mood-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        /* ── MOOD GRID ── */
+        .mood-group {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
         .mood-btn {
-            width: 100%; padding: 1.05rem 1.2rem;
-            border-radius: 0.75rem; font-weight: 500; font-size: 0.82rem;
-            text-transform: uppercase; letter-spacing: 0.10em;
+            width: 100%; padding: 0.75rem 0.5rem 0.65rem;
+            border-radius: 0.85rem; font-weight: 500; font-size: 0.60rem;
+            text-transform: uppercase; letter-spacing: 0.06em;
+            background: rgba(232,213,176,0.04);
+            border: 1px solid rgba(232,213,176,0.10);
+            color: rgba(232,213,176,0.65); cursor: pointer;
+            transition: background 220ms, border-color 220ms, color 220ms, transform 120ms;
+            display: flex; flex-direction: column; align-items: center;
+            gap: 0.38rem; text-align: center;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .mood-btn-icon {
+            width: 38px; height: 38px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0.82; transition: opacity 260ms ease;
+        }
+        .mood-btn-icon img { width: 38px; height: 38px; object-fit: contain; display: block; }
+        .mood-btn:hover:not(:disabled) .mood-btn-icon,
+        .mood-btn.active .mood-btn-icon { opacity: 1; }
+        .mood-btn:hover:not(:disabled) {
+            background: rgba(232,213,176,0.08);
+            border-color: rgba(232,213,176,0.22);
+            color: var(--gold);
+            transform: translateY(-1px);
+        }
+        .mood-btn.active {
+            background: rgba(232,213,176,0.10);
+            border-color: var(--border-bright);
+            color: var(--gold);
+            box-shadow: 0 0 18px rgba(232,213,176,0.10);
+        }
+        .mood-btn.locked {
+            opacity: 0.50;
+            border-style: dashed;
+        }
+        .mood-btn.locked:hover {
+            opacity: 0.70;
+        }
+        .pro-badge {
+            display: none;
+        }
+        .mood-btn.locked .pro-badge {
+            display: inline-block;
+            font-size: 0.36rem; letter-spacing: 0.10em;
+            color: rgba(232,213,176,0.35);
+            background: rgba(232,213,176,0.05);
+            border: 1px solid rgba(232,213,176,0.12);
+            border-radius: 3px; padding: 1px 4px;
+        }
+        .app-footer { text-align: center; font-size: 0.55rem; color: rgba(232,213,176,0.12); letter-spacing: 0.10em; text-transform: uppercase; }
+
+        /* ── GENERATE BUTTON ── */
+        .gen-btn {
+            width: 100%; padding: 0.95rem;
+            border-radius: 1rem;
+            background: linear-gradient(135deg, rgba(232,213,176,0.16) 0%, rgba(232,213,176,0.08) 100%);
+            border: 1px solid rgba(232,213,176,0.22);
+            color: var(--gold); font-weight: 700;
+            font-size: 0.82rem; letter-spacing: 0.10em; text-transform: uppercase;
+            cursor: pointer; font-family: 'DM Sans', sans-serif;
+            transition: background 220ms, box-shadow 220ms, transform 120ms;
+            position: relative; overflow: hidden;
+        }
+        .gen-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, rgba(232,213,176,0.22) 0%, rgba(232,213,176,0.14) 100%);
+            box-shadow: 0 0 32px rgba(232,213,176,0.18);
+            transform: translateY(-1px);
+        }
+        .gen-btn:disabled { opacity: 0.30; cursor: not-allowed; }
+
+        /* ── MODAL (result) — internally scrollable ── */
+        .modal-box {
+            background: rgba(12,10,18,0.97);
+            border: 1px solid rgba(232,213,176,0.10);
+            border-radius: 1.4rem;
+            width: 100%; max-width: 24rem;
+            max-height: 92dvh; max-height: 92vh;
+            overflow-y: auto; overflow-x: hidden;
+            overscroll-behavior: contain;
+            display: flex; flex-direction: column;
+            padding: 1.0rem 1.0rem 1.4rem;
+            gap: 0.85rem;
+            box-shadow:
+                0 0 0 1px rgba(232,213,176,0.06),
+                0 32px 80px rgba(0,0,0,0.92);
+            scrollbar-width: none;
+        }
+        .modal-box::-webkit-scrollbar { display: none; }
+        .modal-top { display: flex; justify-content: space-between; align-items: center; width: 100%; flex-shrink: 0; }
+
+        /* ── ACTION STACK ── */
+        .modal-btns {
+            display: flex; flex-direction: column; gap: 0.42rem; width: 100%; flex-shrink: 0;
+        }
+        .mbtn {
+            width: 100%; padding: 0.78rem 1rem;
+            border-radius: 0.75rem; font-weight: 600;
+            font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase;
+            cursor: pointer; font-family: 'DM Sans', sans-serif;
+            transition: background 200ms, box-shadow 200ms, transform 100ms;
+            border: 1px solid transparent;
+            display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+        }
+        .mbtn:active { transform: scale(0.98); }
+        .mbtn-dl    { background: rgba(111,207,151,0.07); color: #6fcf97; border-color: rgba(111,207,151,0.16); }
+        .mbtn-dl:hover { background: rgba(111,207,151,0.13); }
+        .mbtn-dl:disabled { opacity: 0.28; cursor: not-allowed; }
+        .mbtn-sh    { background: rgba(192,132,252,0.07); color: #c084fc; border-color: rgba(192,132,252,0.16); }
+        .mbtn-sh:hover { background: rgba(192,132,252,0.13); }
+        .mbtn-sh:disabled { opacity: 0.28; cursor: not-allowed; }
+        .mbtn-sh.hidden { display: none; }
+        .mbtn-cp    { background: rgba(232,213,176,0.04); color: rgba(232,213,176,0.42); border-color: rgba(232,213,176,0.09); }
+        .mbtn-cp:hover { background: rgba(232,213,176,0.09); color: var(--gold); }
+        .mbtn-cp:disabled { opacity: 0.28; cursor: not-allowed; }
+        .mbtn-again {
+            background: var(--gold); color: #0c0c0f; font-weight: 700;
+            box-shadow: 0 4px 22px rgba(232,213,176,0.18);
+            border-color: transparent;
+        }
+        .mbtn-again:hover { background: #f0dfc0; box-shadow: 0 6px 28px rgba(232,213,176,0.26); }
+        .mbtn-close { background: transparent; color: rgba(232,213,176,0.18); border-color: rgba(232,213,176,0.06); }
+        .mbtn-close:hover { background: rgba(232,213,176,0.04); color: rgba(232,213,176,0.40); }
+
+        /* ── BOTTOM NAVIGATION ── */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            height: 4.2rem;
+            background: rgba(10,8,18,0.96);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-top: 1px solid rgba(232,213,176,0.08);
+            display: flex; align-items: center; justify-content: space-around;
+            z-index: 100; padding: 0 0.5rem 0.3rem;
+            box-shadow: 0 -8px 32px rgba(0,0,0,0.55);
+        }
+        .bottom-nav.hidden { display: none; }
+        .nav-btn {
+            display: flex; flex-direction: column; align-items: center; gap: 0.18rem;
+            background: none; border: none; cursor: pointer;
+            flex: 1; padding: 0.4rem 0;
+            transition: opacity 200ms;
+        }
+        .nav-icon {
+            font-size: 1.0rem; color: rgba(232,213,176,0.30);
+            transition: color 200ms;
+            line-height: 1;
+        }
+        .nav-lbl {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.44rem; font-weight: 500;
+            color: rgba(232,213,176,0.28);
+            letter-spacing: 0.10em; text-transform: uppercase;
+            transition: color 200ms;
+        }
+        .nav-btn.active .nav-icon { color: var(--gold); }
+        .nav-btn.active .nav-lbl  { color: rgba(232,213,176,0.70); }
+        /* Generate center button */
+        .nav-generate {
+            flex: 1.2;
+        }
+        .nav-icon-generate {
+            width: 44px; height: 44px; border-radius: 50%;
+            background: linear-gradient(135deg, rgba(232,213,176,0.18) 0%, rgba(232,213,176,0.08) 100%);
+            border: 1px solid rgba(232,213,176,0.22);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; color: var(--gold);
+            transition: background 200ms, box-shadow 200ms, transform 120ms;
+            box-shadow: 0 0 18px rgba(232,213,176,0.12);
+        }
+        .nav-btn.active .nav-icon-generate,
+        .nav-generate:hover .nav-icon-generate {
+            background: linear-gradient(135deg, rgba(232,213,176,0.26) 0%, rgba(232,213,176,0.14) 100%);
+            box-shadow: 0 0 28px rgba(232,213,176,0.22);
+            transform: scale(1.06);
+        }
             cursor: pointer; border: 1px solid rgba(232,213,176,0.08);
             transition: all 260ms cubic-bezier(0.16,1,0.3,1);
             background: rgba(232,213,176,0.03); color: rgba(232,213,176,0.28);
@@ -307,19 +489,6 @@
             opacity: 0.9;
         }
 
-        .gen-btn {
-            width: 100%; padding: 1.15rem; font-size: 0.90rem; font-weight: 600;
-            background: var(--gold); color: #0c0c0f; border: none; border-radius: 0.85rem;
-            cursor: pointer; transition: all 240ms cubic-bezier(0.16,1,0.3,1);
-            letter-spacing: 0.08em; text-transform: uppercase;
-            font-family: 'DM Sans', sans-serif;
-            animation: btnGlow 3s ease-in-out infinite;
-        }
-        .gen-btn:hover:not(:disabled) { transform: translateY(-2px); background: #f0dfc0; animation: none; box-shadow: 0 12px 40px rgba(232,213,176,0.32); }
-        .gen-btn:active:not(:disabled){ transform: translateY(0); animation: none; box-shadow: 0 4px 16px rgba(232,213,176,0.14); }
-        .gen-btn:disabled { opacity: 0.22; cursor: not-allowed; animation: none; box-shadow: none; }
-        .app-footer { text-align: center; font-size: 0.62rem; color: rgba(232,213,176,0.14); letter-spacing: 0.10em; text-transform: uppercase; }
-
         /* ── MODAL ── */
         .modal-overlay {
             position: fixed; inset: 0;
@@ -329,29 +498,20 @@
             animation: fadeIn var(--modal-anim) ease both;
         }
         .modal-overlay.hidden { display: none; }
-        .modal-box {
-            background: rgba(14,12,18,0.99);
-            border: 1px solid var(--border); border-radius: 1.5rem;
-            box-shadow: 0 48px 100px rgba(0,0,0,0.92), 0 0 0 1px rgba(232,213,176,0.04);
-            max-width: 23rem; width: 100%; padding: 1.4rem;
-            display: flex; flex-direction: column; align-items: center; gap: 1.1rem;
-            max-height: 94vh; overflow-y: auto;
-            animation: modalIn var(--modal-anim) cubic-bezier(0.16,1,0.3,1) both;
-        }
-        .modal-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .modal-top { display: flex; justify-content: space-between; align-items: center; width: 100%; flex-shrink: 0; }
         .modal-label {
-            font-size: 0.60rem; font-weight: 600; color: rgba(232,213,176,0.30);
+            font-size: 0.58rem; font-weight: 600; color: rgba(232,213,176,0.28);
             letter-spacing: 0.20em; text-transform: uppercase;
             font-family: 'DM Sans', sans-serif;
         }
         .close-btn {
-            width: 2rem; height: 2rem; border-radius: 50%;
-            background: rgba(232,213,176,0.05); border: 1px solid rgba(232,213,176,0.12);
-            color: rgba(232,213,176,0.35); cursor: pointer; font-size: 1rem;
+            width: 1.8rem; height: 1.8rem; border-radius: 50%;
+            background: rgba(232,213,176,0.05); border: 1px solid rgba(232,213,176,0.10);
+            color: rgba(232,213,176,0.30); cursor: pointer; font-size: 0.9rem;
             display: flex; align-items: center; justify-content: center;
-            transition: all 180ms ease; line-height: 1;
+            transition: all 180ms ease; line-height: 1; flex-shrink: 0;
         }
-        .close-btn:hover { background: rgba(232,213,176,0.12); color: var(--gold); }
+        .close-btn:hover { background: rgba(232,213,176,0.10); color: var(--gold); }
         
         /* ── PAYWALL MODAL ── */
         .paywall-box {
@@ -670,29 +830,6 @@
             display: none;
         }
 
-        /* ── MODAL BUTTONS ── */
-        .modal-btns { display: flex; flex-direction: column; gap: 0.5rem; width: 100%; }
-        .mbtn {
-            width: 100%; padding: 0.80rem; font-weight: 600; border: none;
-            border-radius: 0.75rem; cursor: pointer; transition: all 190ms ease;
-            font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase;
-            font-family: 'DM Sans', sans-serif;
-        }
-        .mbtn-dl    { background: rgba(134,239,172,0.06); color: #6fcf97; border: 1px solid rgba(134,239,172,0.14); }
-        .mbtn-dl:hover  { background: rgba(134,239,172,0.12); color: #86efac; }
-        .mbtn-dl:disabled { opacity: 0.3; cursor: not-allowed; }
-        .mbtn-sh    { background: rgba(192,132,252,0.06); color: #b98ee8; border: 1px solid rgba(192,132,252,0.14); }
-        .mbtn-sh:hover  { background: rgba(192,132,252,0.12); color: #c084fc; }
-        .mbtn-sh:disabled { opacity: 0.3; cursor: not-allowed; }
-        .mbtn-sh.hidden { display: none; }
-        .mbtn-cp    { background: rgba(232,213,176,0.05); color: rgba(232,213,176,0.45); border: 1px solid rgba(232,213,176,0.10); }
-        .mbtn-cp:hover  { background: rgba(232,213,176,0.10); color: var(--gold); }
-        .mbtn-cp:disabled { opacity: 0.3; cursor: not-allowed; }
-        .mbtn-again { background: var(--gold); color: #0c0c0f; font-weight: 700; box-shadow: 0 4px 20px rgba(232,213,176,0.16); }
-        .mbtn-again:hover { background: #f0dfc0; box-shadow: 0 8px 28px rgba(232,213,176,0.24); }
-        .mbtn-close { background: transparent; color: rgba(232,213,176,0.20); border: 1px solid rgba(232,213,176,0.07); }
-        .mbtn-close:hover { background: rgba(232,213,176,0.05); color: rgba(232,213,176,0.45); }
-
         /* ── REWARD ── */
         .reward {
             text-align: center; line-height: 1.7;
@@ -701,12 +838,12 @@
             background: rgba(111,207,151,0.06);
             border: 1px solid rgba(111,207,151,0.15);
             border-radius: 0.75rem;
-            padding: 0.65rem 1rem;
-            width: 100%;
+            padding: 0.55rem 0.9rem;
+            width: 100%; box-sizing: border-box; flex-shrink: 0;
         }
         .reward.hidden { display: none; }
-        .reward-main { color: #6fcf97; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.70rem; }
-        .reward-sub  { color: rgba(232,213,176,0.30); font-size: 0.63rem; margin-top: 1px; }
+        .reward-main { color: #6fcf97; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.66rem; }
+        .reward-sub  { color: rgba(232,213,176,0.28); font-size: 0.60rem; margin-top: 1px; }
 
         /* ── LOADING ── */
         /* ── CINEMATIC LOADING OVERLAY ── */
@@ -1131,158 +1268,111 @@
             font-size: 0.65rem; color: rgba(232,213,176,0.45);
             letter-spacing: 0.12em; text-transform: uppercase;
         }
-        /* ── EMOTIONAL IDENTITY PROFILE PANEL ── */
+        /* ── COMPACT IDENTITY SNAPSHOT (top area) ── */
         .identity-panel {
-            width: 100%; box-sizing: border-box;
-            padding: 0.70rem 1rem 0.65rem;
-            display: none; flex-direction: column; gap: 0.55rem;
-            background: linear-gradient(180deg, rgba(232,213,176,0.035) 0%, transparent 100%);
-            border-bottom: 1px solid rgba(232,213,176,0.07);
-            position: relative; overflow: hidden;
-            animation: identityPanelIn 600ms cubic-bezier(0.16,1,0.3,1) both;
+            width: 100%; max-width: 26rem; box-sizing: border-box;
+            padding: 0.45rem 1.1rem 0.5rem;
+            display: none; flex-direction: row; align-items: center; gap: 0.55rem;
+            background: linear-gradient(180deg, rgba(232,213,176,0.025) 0%, transparent 100%);
+            border-bottom: 1px solid rgba(232,213,176,0.05);
+            position: relative; z-index: 2;
+            animation: identityPanelIn 500ms cubic-bezier(0.16,1,0.3,1) both;
         }
         .identity-panel.visible { display: flex; }
         @keyframes identityPanelIn {
-            0%   { opacity: 0; transform: translateY(-8px); }
+            0%   { opacity: 0; transform: translateY(-5px); }
             100% { opacity: 1; transform: translateY(0); }
         }
-
-        /* Ambient glow behind panel */
         .identity-panel::before {
-            content: ''; position: absolute; inset: 0;
-            background: radial-gradient(ellipse 80% 60% at 50% 0%, var(--xp-glow, rgba(232,213,176,0.06)) 0%, transparent 70%);
-            pointer-events: none; z-index: 0;
-            animation: identityAura 5s ease-in-out infinite;
+            content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+            background: radial-gradient(ellipse 80% 100% at 50% 0%, var(--xp-glow, rgba(232,213,176,0.03)) 0%, transparent 70%);
         }
-        @keyframes identityAura {
-            0%,100% { opacity: 0.6; }
-            50%      { opacity: 1.0; }
+        .ip-orb {
+            width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%; position: relative; z-index: 1;
+            filter: drop-shadow(0 0 7px var(--dom-glow, rgba(232,213,176,0.22)));
+        }
+        .ip-center {
+            flex: 1; display: flex; flex-direction: column; gap: 0.16rem;
+            position: relative; z-index: 1; min-width: 0;
+        }
+        .ip-rank {
+            font-family: 'Cormorant Garant', Georgia, serif;
+            font-size: 0.78rem; font-weight: 700; color: var(--gold);
+            letter-spacing: 0.04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .ip-bar-wrap { width: 100%; height: 2px; background: rgba(232,213,176,0.07); border-radius: 2px; overflow: hidden; }
+        .ip-bar-fill {
+            height: 100%; border-radius: 2px;
+            background: linear-gradient(90deg, rgba(232,213,176,0.30), var(--gold));
+            transition: width 800ms cubic-bezier(0.16,1,0.3,1);
+        }
+        .ip-stats { display: flex; gap: 0.7rem; flex-shrink: 0; position: relative; z-index: 1; }
+        .ip-stat  { display: flex; flex-direction: column; align-items: center; gap: 0.02rem; }
+        .ip-stat-val {
+            font-family: 'DM Sans', sans-serif; font-size: 0.80rem; font-weight: 700;
+            color: var(--gold); line-height: 1;
+        }
+        .ip-stat-lbl {
+            font-family: 'DM Sans', sans-serif; font-size: 0.36rem; font-weight: 500;
+            color: rgba(232,213,176,0.28); letter-spacing: 0.10em; text-transform: uppercase;
         }
 
-        /* Identity row — rank + XP side by side */
-        .identity-row {
-            display: flex; align-items: center; justify-content: space-between;
+        /* ── DETAILED IDENTITY SECTION (secondary, scrollable) ── */
+        .identity-detail {
+            width: 100%; max-width: 26rem; box-sizing: border-box;
+            padding: 1.0rem 1.1rem;
+            display: none; flex-direction: column; gap: 0.65rem;
             position: relative; z-index: 1;
         }
+        .identity-detail.visible { display: flex; }
+        .identity-section-label {
+            font-family: 'DM Sans', sans-serif; font-size: 0.46rem; font-weight: 600;
+            color: rgba(232,213,176,0.26); letter-spacing: 0.22em; text-transform: uppercase;
+        }
+        /* Detail sub-elements */
+        .identity-row { display: flex; align-items: center; justify-content: space-between; }
         .identity-rank-wrap { display: flex; flex-direction: column; gap: 0.10rem; }
         .identity-rank-label {
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.46rem; font-weight: 600;
-            color: rgba(232,213,176,0.38); letter-spacing: 0.22em;
-            text-transform: uppercase;
+            font-family: 'DM Sans', sans-serif; font-size: 0.42rem; font-weight: 600;
+            color: rgba(232,213,176,0.32); letter-spacing: 0.18em; text-transform: uppercase;
         }
         .identity-rank-title {
             font-family: 'Cormorant Garant', Georgia, serif;
-            font-size: 0.92rem; font-weight: 700;
-            color: var(--gold); letter-spacing: 0.06em;
-            text-shadow: 0 0 18px var(--xp-glow, rgba(232,213,176,0.25));
+            font-size: 0.88rem; font-weight: 700; color: var(--gold); letter-spacing: 0.04em;
         }
-
-        /* XP mini display */
-        .identity-xp-wrap {
-            display: flex; flex-direction: column; align-items: flex-end; gap: 0.12rem;
-        }
-        .identity-xp-num {
-            font-family: 'DM Sans', sans-serif;
-            font-size: 1.1rem; font-weight: 700;
-            color: var(--gold); line-height: 1;
-            text-shadow: 0 0 12px rgba(232,213,176,0.35);
-        }
-        .identity-xp-sub {
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.44rem; font-weight: 500;
-            color: rgba(232,213,176,0.35); letter-spacing: 0.14em;
-            text-transform: uppercase;
-        }
-        .identity-xp-bar {
-            width: 56px; height: 2px;
-            background: rgba(232,213,176,0.08); border-radius: 2px; overflow: hidden;
-        }
+        .identity-xp-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 0.10rem; }
+        .identity-xp-num { font-family: 'DM Sans', sans-serif; font-size: 1.0rem; font-weight: 700; color: var(--gold); line-height: 1; }
+        .identity-xp-bar { width: 52px; height: 2px; background: rgba(232,213,176,0.07); border-radius: 2px; overflow: hidden; }
         .identity-xp-bar-fill {
             height: 100%; border-radius: 2px;
-            background: linear-gradient(90deg, rgba(232,213,176,0.40), var(--gold));
+            background: linear-gradient(90deg, rgba(232,213,176,0.38), var(--gold));
             transition: width 800ms cubic-bezier(0.16,1,0.3,1);
-            box-shadow: 0 0 5px rgba(232,213,176,0.40);
         }
-
-        /* Stats row */
+        .identity-xp-sub {
+            font-family: 'DM Sans', sans-serif; font-size: 0.40rem; font-weight: 500;
+            color: rgba(232,213,176,0.30); letter-spacing: 0.10em; text-transform: uppercase;
+        }
         .identity-stats {
-            display: flex; gap: 0; position: relative; z-index: 1;
-            border-top: 1px solid rgba(232,213,176,0.06);
-            padding-top: 0.45rem;
+            display: flex; gap: 0; border-top: 1px solid rgba(232,213,176,0.05); padding-top: 0.42rem;
         }
         .identity-stat {
-            flex: 1; display: flex; flex-direction: column;
-            align-items: center; gap: 0.08rem;
-            border-right: 1px solid rgba(232,213,176,0.06);
+            flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.06rem;
+            border-right: 1px solid rgba(232,213,176,0.05);
         }
         .identity-stat:last-child { border-right: none; }
-        .identity-stat-val {
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.88rem; font-weight: 700;
-            color: var(--gold); line-height: 1;
-        }
-        .identity-stat-lbl {
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.42rem; font-weight: 500;
-            color: rgba(232,213,176,0.32); letter-spacing: 0.12em;
-            text-transform: uppercase; text-align: center;
-        }
-
-        /* Dominant mood row */
+        .identity-stat-val { font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 700; color: var(--gold); line-height: 1; }
+        .identity-stat-lbl { font-family: 'DM Sans', sans-serif; font-size: 0.38rem; font-weight: 500; color: rgba(232,213,176,0.28); letter-spacing: 0.10em; text-transform: uppercase; text-align: center; }
         .identity-mood {
-            display: flex; align-items: center; gap: 0.55rem;
-            background: rgba(232,213,176,0.03);
-            border: 1px solid rgba(232,213,176,0.07);
-            border-radius: 0.65rem; padding: 0.40rem 0.65rem;
-            position: relative; z-index: 1;
+            display: flex; align-items: center; gap: 0.50rem;
+            background: rgba(232,213,176,0.025); border: 1px solid rgba(232,213,176,0.06);
+            border-radius: 0.60rem; padding: 0.38rem 0.60rem;
         }
-        .identity-mood-orb {
-            width: 26px; height: 26px; flex-shrink: 0;
-            border-radius: 50%;
-            filter: drop-shadow(0 0 6px var(--dom-glow, rgba(232,213,176,0.30)));
-        }
-        .identity-mood-text { display: flex; flex-direction: column; gap: 0.06rem; }
-        .identity-mood-label {
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.44rem; font-weight: 600;
-            color: rgba(232,213,176,0.35); letter-spacing: 0.16em;
-            text-transform: uppercase;
-        }
-        .identity-mood-name {
-            font-family: 'Cormorant Garant', Georgia, serif;
-            font-size: 0.78rem; font-weight: 700;
-            color: var(--gold); letter-spacing: 0.04em;
-        }
-        .identity-mood-desc {
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.42rem; color: rgba(232,213,176,0.32);
-            letter-spacing: 0.04em; font-style: italic;
-        }
-            align-items: center;
-            padding: 16px 16px 0;
-            gap: 10px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        .top-actions {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            flex-shrink: 0;
-        }
-        #logoutBtn,
-        #historyBtn {
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.15);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 10px;
-            font-size: 12px;
-            cursor: pointer;
-            backdrop-filter: blur(10px);
-            white-space: nowrap;
-        }
+        .identity-mood-orb { width: 24px; height: 24px; flex-shrink: 0; border-radius: 50%; filter: drop-shadow(0 0 5px var(--dom-glow, rgba(232,213,176,0.25))); }
+        .identity-mood-text { display: flex; flex-direction: column; gap: 0.05rem; }
+        .identity-mood-label { font-family: 'DM Sans', sans-serif; font-size: 0.40rem; font-weight: 600; color: rgba(232,213,176,0.30); letter-spacing: 0.14em; text-transform: uppercase; }
+        .identity-mood-name { font-family: 'Cormorant Garant', Georgia, serif; font-size: 0.74rem; font-weight: 700; color: var(--gold); letter-spacing: 0.03em; }
+        .identity-mood-desc { font-family: 'DM Sans', sans-serif; font-size: 0.38rem; color: rgba(232,213,176,0.28); font-style: italic; }
+
         /* ══════════════════════════════════════════
            HISTORY MODAL — EMOTIONAL ARCHIVE v3
            Void Canvas · Neon Memory · Gen Z Premium
@@ -2094,39 +2184,25 @@
         </div>
     </div>
 
-    <!-- Emotional Identity Panel -->
+    <!-- Compact Identity Snapshot -->
     <div id="identityPanel" class="identity-panel">
-        <div class="identity-row">
-            <div class="identity-rank-wrap">
-                <div class="identity-rank-label">Emotional Rank</div>
-                <div class="identity-rank-title" id="ipRankTitle">Emotional Explorer</div>
-            </div>
-            <div class="identity-xp-wrap">
-                <div class="identity-xp-num" id="ipXpNum">0</div>
-                <div class="identity-xp-bar"><div class="identity-xp-bar-fill" id="ipXpBar" style="width:0%"></div></div>
-                <div class="identity-xp-sub" id="ipXpSub">XP · Lv 0</div>
-            </div>
+        <img class="ip-orb" id="ipDomOrb" src="" alt=""/>
+        <div class="ip-center">
+            <div class="ip-rank" id="ipRankTitle">Emotional Explorer</div>
+            <div class="ip-bar-wrap"><div class="ip-bar-fill" id="ipXpBar" style="width:0%"></div></div>
         </div>
-        <div class="identity-stats">
-            <div class="identity-stat">
-                <div class="identity-stat-val" id="ipTotalGen">0</div>
-                <div class="identity-stat-lbl">Generated</div>
+        <div class="ip-stats">
+            <div class="ip-stat">
+                <div class="ip-stat-val" id="ipStreak">0</div>
+                <div class="ip-stat-lbl">Streak</div>
             </div>
-            <div class="identity-stat">
-                <div class="identity-stat-val" id="ipStreak">0</div>
-                <div class="identity-stat-lbl">Day Streak</div>
+            <div class="ip-stat">
+                <div class="ip-stat-val" id="ipXpNum">0</div>
+                <div class="ip-stat-lbl">XP</div>
             </div>
-            <div class="identity-stat">
-                <div class="identity-stat-val" id="ipLevel">0</div>
-                <div class="identity-stat-lbl">Level</div>
-            </div>
-        </div>
-        <div class="identity-mood" id="ipDomMood">
-            <img class="identity-mood-orb" id="ipDomOrb" src="" alt=""/>
-            <div class="identity-mood-text">
-                <div class="identity-mood-label">Dominant Mood</div>
-                <div class="identity-mood-name" id="ipDomName">—</div>
-                <div class="identity-mood-desc" id="ipDomDesc">Generating your profile...</div>
+            <div class="ip-stat">
+                <div class="ip-stat-val" id="ipLevel">0</div>
+                <div class="ip-stat-lbl">Level</div>
             </div>
         </div>
     </div>
@@ -2258,6 +2334,44 @@
             </div>
             <button id="generateBtn" class="gen-btn" disabled>Generate My Status</button>
             <p class="app-footer">Download · Share · Feel seen</p>
+        </div>
+    </div>
+
+    <!-- Detailed Identity Section (secondary / scroll to discover) -->
+    <div id="identityDetail" class="identity-detail">
+        <div class="identity-section-label">Your Emotional Profile</div>
+        <div class="identity-row">
+            <div class="identity-rank-wrap">
+                <div class="identity-rank-label">Current Rank</div>
+                <div class="identity-rank-title" id="ipRankTitleDetail">Emotional Explorer</div>
+            </div>
+            <div class="identity-xp-wrap">
+                <div class="identity-xp-num" id="ipXpNumDetail">0</div>
+                <div class="identity-xp-bar"><div class="identity-xp-bar-fill" id="ipXpBarDetail" style="width:0%"></div></div>
+                <div class="identity-xp-sub" id="ipXpSubDetail">XP · Lv 0</div>
+            </div>
+        </div>
+        <div class="identity-stats">
+            <div class="identity-stat">
+                <div class="identity-stat-val" id="ipTotalGen">0</div>
+                <div class="identity-stat-lbl">Generated</div>
+            </div>
+            <div class="identity-stat">
+                <div class="identity-stat-val" id="ipStreakDetail">0</div>
+                <div class="identity-stat-lbl">Streak</div>
+            </div>
+            <div class="identity-stat">
+                <div class="identity-stat-val" id="ipLevelDetail">0</div>
+                <div class="identity-stat-lbl">Level</div>
+            </div>
+        </div>
+        <div class="identity-mood" id="ipDomMood">
+            <img class="identity-mood-orb" id="ipDomOrbDetail" src="" alt=""/>
+            <div class="identity-mood-text">
+                <div class="identity-mood-label">Dominant Mood</div>
+                <div class="identity-mood-name" id="ipDomName">—</div>
+                <div class="identity-mood-desc" id="ipDomDesc">Generate your first status to begin.</div>
+            </div>
         </div>
     </div>
 
@@ -3499,6 +3613,7 @@ function getDominantMood(moodCounts) {
 
 function updateIdentityPanel() {
     const panel = $('identityPanel');
+    const detail = $('identityDetail');
     if (!panel) return;
     const data  = loadData();
     const xp    = data.xp;
@@ -3506,36 +3621,90 @@ function updateIdentityPanel() {
     const next  = getNextRank(xp);
     const level = Math.floor(xp / 100);
     const pct   = next ? Math.round(((xp - rank.min) / (next.min - rank.min)) * 100) : 100;
+    const el    = (id) => document.getElementById(id);
 
-    if (!window.firebaseAuth?.currentUser) { panel.classList.remove('visible'); return; }
+    if (!window.firebaseAuth?.currentUser) {
+        panel.classList.remove('visible');
+        if (detail) detail.classList.remove('visible');
+        return;
+    }
+
+    // ── Compact snapshot ──
     panel.classList.add('visible');
     panel.style.setProperty('--xp-glow', rank.glow);
-
-    const el = (id) => document.getElementById(id);
     if (el('ipRankTitle')) el('ipRankTitle').textContent = rank.title;
-    if (el('ipXpNum'))     el('ipXpNum').textContent     = xp;
     if (el('ipXpBar'))     el('ipXpBar').style.width     = Math.min(pct, 100) + '%';
-    if (el('ipXpSub'))     el('ipXpSub').textContent     = 'XP · Lv ' + level;
-    if (el('ipTotalGen'))  el('ipTotalGen').textContent  = data.totalGenerations || 0;
+    if (el('ipXpNum'))     el('ipXpNum').textContent     = xp;
     if (el('ipStreak'))    el('ipStreak').textContent    = data.streak || 0;
     if (el('ipLevel'))     el('ipLevel').textContent     = level;
 
-    const dom  = getDominantMood(data.moodCounts);
-    const ipOrb  = el('ipDomOrb');
-    const ipName = el('ipDomName');
-    const ipDesc = el('ipDomDesc');
-    if (dom) {
-        if (ipOrb)  { ipOrb.src = MOOD_SVG[dom] || ''; ipOrb.style.setProperty('--dom-glow', MOOD_GLOW_VARS[dom] || 'rgba(232,213,176,0.30)'); }
-        if (ipName) ipName.textContent = dom.charAt(0).toUpperCase() + dom.slice(1);
-        if (ipDesc) ipDesc.textContent = MOOD_IDENTITY_DESC[dom] || '';
-    } else {
-        if (ipOrb)  ipOrb.src = '';
-        if (ipName) ipName.textContent = '—';
-        if (ipDesc) ipDesc.textContent = 'Generate your first status to begin.';
+    // Dominant mood orb in compact snapshot
+    const dom = getDominantMood(data.moodCounts);
+    const ipOrb = el('ipDomOrb');
+    if (ipOrb && dom) {
+        ipOrb.src = MOOD_SVG[dom] || '';
+        ipOrb.style.setProperty('--dom-glow', MOOD_GLOW_VARS[dom] || 'rgba(232,213,176,0.25)');
+    }
+
+    // ── Detail section ──
+    if (detail) {
+        detail.classList.add('visible');
+        if (el('ipRankTitleDetail')) el('ipRankTitleDetail').textContent = rank.title;
+        if (el('ipXpNumDetail'))     el('ipXpNumDetail').textContent     = xp;
+        if (el('ipXpBarDetail'))     el('ipXpBarDetail').style.width     = Math.min(pct, 100) + '%';
+        if (el('ipXpSubDetail'))     el('ipXpSubDetail').textContent     = 'XP · Lv ' + level;
+        if (el('ipTotalGen'))        el('ipTotalGen').textContent        = data.totalGenerations || 0;
+        if (el('ipStreakDetail'))     el('ipStreakDetail').textContent    = data.streak || 0;
+        if (el('ipLevelDetail'))      el('ipLevelDetail').textContent    = level;
+
+        const ipOrbDetail = el('ipDomOrbDetail');
+        const ipName      = el('ipDomName');
+        const ipDesc      = el('ipDomDesc');
+        if (dom) {
+            if (ipOrbDetail) { ipOrbDetail.src = MOOD_SVG[dom] || ''; ipOrbDetail.style.setProperty('--dom-glow', MOOD_GLOW_VARS[dom] || 'rgba(232,213,176,0.25)'); }
+            if (ipName) ipName.textContent = dom.charAt(0).toUpperCase() + dom.slice(1);
+            if (ipDesc) ipDesc.textContent = MOOD_IDENTITY_DESC[dom] || '';
+        } else {
+            if (ipOrbDetail) ipOrbDetail.src = '';
+            if (ipName) ipName.textContent = '—';
+            if (ipDesc) ipDesc.textContent = 'Generate your first status to begin.';
+        }
     }
 }
 
-/* ── APPLY MOOD (preview card) ── */
+/* ── BOTTOM NAV ── */
+function initBottomNav() {
+    const nav = $('bottomNav');
+    if (!nav) return;
+    nav.classList.remove('hidden');
+
+    $('navHistory').addEventListener('click', () => {
+        setNavActive('history');
+        historyBtn.click();
+    });
+    $('navGenerate').addEventListener('click', () => {
+        setNavActive('generate');
+        // Scroll to mood section
+        const card = document.querySelector('.app-card');
+        if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+    $('navHome').addEventListener('click', () => {
+        setNavActive('home');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    $('navProfile').addEventListener('click', () => {
+        setNavActive('profile');
+        const detail = $('identityDetail');
+        if (detail) detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+}
+
+function setNavActive(tab) {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    const map = { home: 'navHome', generate: 'navGenerate', history: 'navHistory', profile: 'navProfile' };
+    const el = $(map[tab]);
+    if (el) el.classList.add('active');
+}
 function applyMoodStyle(mood) {
     const s = MOOD_STYLES[mood]; if (!s) return;
     statusCard.style.backgroundImage    = 'url(' + MOOD_IMAGES[mood] + ')';
@@ -4525,6 +4694,9 @@ function showApp() {
 
     if (app) {
         app.style.visibility = 'visible';
+        const nav = $('bottomNav');
+        if (nav) nav.classList.remove('hidden');
+        initBottomNav();
         app.classList.add('app-fade-in');
         app.style.opacity = '1';
     }
@@ -4856,6 +5028,24 @@ async function saveToHistory(entry) {
 </script>
 
 </div><!-- /appScreen -->
-</div><!-- /appRoot -->
+</div><!-- /appRoot -->    <!-- Bottom Navigation -->
+    <nav id="bottomNav" class="bottom-nav hidden">
+        <button class="nav-btn active" data-nav="home" id="navHome">
+            <span class="nav-icon">◦</span>
+            <span class="nav-lbl">Home</span>
+        </button>
+        <button class="nav-btn nav-generate" data-nav="generate" id="navGenerate">
+            <span class="nav-icon-generate">✦</span>
+        </button>
+        <button class="nav-btn" data-nav="history" id="navHistory">
+            <span class="nav-icon">◈</span>
+            <span class="nav-lbl">History</span>
+        </button>
+        <button class="nav-btn" data-nav="profile" id="navProfile">
+            <span class="nav-icon">◉</span>
+            <span class="nav-lbl">Profile</span>
+        </button>
+    </nav>
+
 </body>
 </html>

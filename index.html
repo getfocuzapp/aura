@@ -221,40 +221,35 @@
             width: 100%; max-width: 26rem;
             position: relative; z-index: 1;
             animation: fadeUp var(--anim) cubic-bezier(0.16,1,0.3,1) both;
-            padding: 0 0 0.5rem;
+            padding: 0;
         }
         .app-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 1.4rem;
-            box-shadow:
-                0 0 0 1px rgba(232,213,176,0.04),
-                0 24px 60px rgba(0,0,0,0.80),
-                0 6px 24px rgba(0,0,0,0.55),
-                inset 0 1px 0 rgba(232,213,176,0.06);
-            padding: 1.4rem 1.4rem 1.2rem;
-            display: flex; flex-direction: column; gap: 1.1rem;
-            margin: 0.5rem 0.75rem;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            padding: 1.0rem 1.2rem 1.2rem;
+            display: flex; flex-direction: column; gap: 1.0rem;
+            margin: 0;
         }
-        .app-header { text-align: center; padding-bottom: 0.1rem; }
+        .app-header { text-align: center; padding: 0.4rem 0 0.2rem; }
         .app-header-eyebrow {
-            font-size: 0.52rem; color: rgba(232,213,176,0.28);
-            letter-spacing: 0.28em; text-transform: uppercase;
-            font-family: 'DM Sans', sans-serif; font-weight: 500;
-            margin-bottom: 0.45rem;
+            font-size: 0.50rem; color: rgba(232,213,176,0.30);
+            letter-spacing: 0.32em; text-transform: uppercase;
+            font-family: 'DM Sans', sans-serif; font-weight: 600;
+            margin-bottom: 0.55rem;
         }
-        .app-title  {
+        .app-title {
             font-family: 'Cormorant Garant', Georgia, serif;
-            font-size: 1.8rem; font-weight: 700; color: var(--gold);
-            letter-spacing: 0.04em; line-height: 1.05;
+            font-size: clamp(1.9rem, 8.5vw, 2.6rem); font-weight: 700;
+            color: var(--gold); letter-spacing: 0.01em; line-height: 1.12;
         }
         .app-title-rule {
-            width: 28px; height: 1px; margin: 0.55rem auto 0.45rem;
-            background: linear-gradient(90deg, transparent, rgba(232,213,176,0.30), transparent);
+            width: 32px; height: 1px; margin: 0.65rem auto 0.50rem;
+            background: linear-gradient(90deg, transparent, rgba(232,213,176,0.35), transparent);
         }
-        .app-sub    {
-            font-size: 0.55rem; color: rgba(232,213,176,0.22);
-            letter-spacing: 0.20em; text-transform: uppercase;
+        .app-sub {
+            font-size: 0.52rem; color: rgba(232,213,176,0.22);
+            letter-spacing: 0.22em; text-transform: uppercase;
             font-weight: 500; font-family: 'DM Sans', sans-serif;
         }
 
@@ -262,78 +257,81 @@
         .mood-group {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 0.5rem;
+            gap: 0.6rem;
         }
         .mood-btn {
-            width: 100%; padding: 0.75rem 0.5rem 0.65rem;
-            border-radius: 0.85rem; font-weight: 500; font-size: 0.60rem;
-            text-transform: uppercase; letter-spacing: 0.06em;
-            background: rgba(232,213,176,0.04);
-            border: 1px solid rgba(232,213,176,0.10);
-            color: rgba(232,213,176,0.65); cursor: pointer;
-            transition: background 220ms, border-color 220ms, color 220ms, transform 120ms;
-            display: flex; flex-direction: column; align-items: center;
-            gap: 0.38rem; text-align: center;
+            aspect-ratio: 1;
+            padding: 0.8rem 0.4rem 0.7rem;
+            border-radius: 1.1rem; font-weight: 600; font-size: 0.58rem;
+            text-transform: uppercase; letter-spacing: 0.09em;
+            background: rgba(16,12,24,0.88);
+            border: 1px solid rgba(232,213,176,0.09);
+            color: rgba(232,213,176,0.50); cursor: pointer;
+            transition: background 200ms, border-color 250ms, color 200ms, box-shadow 250ms, transform 120ms;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 0.50rem; text-align: center;
             font-family: 'DM Sans', sans-serif;
+            position: relative; overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.35);
+        }
+        .mood-btn::after {
+            content: ''; position: absolute; inset: 0; border-radius: inherit;
+            background: radial-gradient(ellipse 85% 65% at 50% 0%, rgba(232,213,176,0.025) 0%, transparent 65%);
+            pointer-events: none;
         }
         .mood-btn-icon {
-            width: 38px; height: 38px; flex-shrink: 0;
+            width: 52px; height: 52px; flex-shrink: 0;
             display: flex; align-items: center; justify-content: center;
-            opacity: 0.82; transition: opacity 260ms ease;
+            transition: transform 280ms cubic-bezier(0.34,1.56,0.64,1), filter 280ms ease;
         }
-        .mood-btn-icon img { width: 38px; height: 38px; object-fit: contain; display: block; }
-        .mood-btn:hover:not(:disabled) .mood-btn-icon,
-        .mood-btn.active .mood-btn-icon { opacity: 1; }
-        .mood-btn:hover:not(:disabled) {
-            background: rgba(232,213,176,0.08);
-            border-color: rgba(232,213,176,0.22);
-            color: var(--gold);
-            transform: translateY(-1px);
+        .mood-btn-icon img { width: 52px; height: 52px; object-fit: contain; display: block; }
+        .mood-btn:hover:not(.locked) {
+            background: rgba(24,18,36,0.95);
+            border-color: rgba(232,213,176,0.20);
+            color: var(--gold); transform: translateY(-2px);
+            box-shadow: 0 6px 22px rgba(0,0,0,0.50);
         }
+        .mood-btn:hover:not(.locked) .mood-btn-icon { transform: scale(1.10); }
         .mood-btn.active {
-            background: rgba(232,213,176,0.10);
-            border-color: var(--border-bright);
+            background: rgba(22,16,34,0.98);
+            border-color: rgba(232,213,176,0.38);
             color: var(--gold);
-            box-shadow: 0 0 18px rgba(232,213,176,0.10);
+            box-shadow:
+                0 0 0 1px rgba(232,213,176,0.14),
+                0 0 24px rgba(232,213,176,0.14),
+                0 8px 28px rgba(0,0,0,0.55);
         }
-        .mood-btn.locked {
-            opacity: 0.50;
-            border-style: dashed;
-        }
-        .mood-btn.locked:hover {
-            opacity: 0.70;
-        }
-        .pro-badge {
-            display: none;
-        }
-        .mood-btn.locked .pro-badge {
-            display: inline-block;
-            font-size: 0.36rem; letter-spacing: 0.10em;
-            color: rgba(232,213,176,0.35);
-            background: rgba(232,213,176,0.05);
-            border: 1px solid rgba(232,213,176,0.12);
-            border-radius: 3px; padding: 1px 4px;
-        }
-        .app-footer { text-align: center; font-size: 0.55rem; color: rgba(232,213,176,0.12); letter-spacing: 0.10em; text-transform: uppercase; }
+        .mood-btn.active .mood-btn-icon { transform: scale(1.08); filter: drop-shadow(0 0 8px var(--lo-glow, rgba(232,213,176,0.40))); }
+        .mood-btn.locked { opacity: 0.52; }
+        .mood-btn.locked:hover { opacity: 0.72; transform: none; }
+        .pro-badge { display: none; }
 
         /* ── GENERATE BUTTON ── */
         .gen-btn {
-            width: 100%; padding: 0.95rem;
-            border-radius: 1rem;
-            background: linear-gradient(135deg, rgba(232,213,176,0.16) 0%, rgba(232,213,176,0.08) 100%);
-            border: 1px solid rgba(232,213,176,0.22);
-            color: var(--gold); font-weight: 700;
-            font-size: 0.82rem; letter-spacing: 0.10em; text-transform: uppercase;
+            width: 100%; padding: 1.1rem 1.5rem;
+            border-radius: 3rem;
+            background: linear-gradient(135deg, #d4b87a 0%, #e8c870 40%, #c8a060 100%);
+            border: none; color: #1a1208; font-weight: 800;
+            font-size: 0.88rem; letter-spacing: 0.18em; text-transform: uppercase;
             cursor: pointer; font-family: 'DM Sans', sans-serif;
-            transition: background 220ms, box-shadow 220ms, transform 120ms;
+            transition: box-shadow 250ms, transform 150ms;
+            display: flex; align-items: center; justify-content: center; gap: 0.65rem;
+            box-shadow: 0 8px 36px rgba(200,168,90,0.38), 0 2px 8px rgba(0,0,0,0.35);
             position: relative; overflow: hidden;
         }
-        .gen-btn:hover:not(:disabled) {
-            background: linear-gradient(135deg, rgba(232,213,176,0.22) 0%, rgba(232,213,176,0.14) 100%);
-            box-shadow: 0 0 32px rgba(232,213,176,0.18);
-            transform: translateY(-1px);
+        .gen-btn::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.14) 0%, transparent 55%);
+            pointer-events: none;
         }
-        .gen-btn:disabled { opacity: 0.30; cursor: not-allowed; }
+        .gen-btn-icon { font-size: 1.05rem; transition: transform 350ms cubic-bezier(0.34,1.56,0.64,1); }
+        .gen-btn:hover:not(:disabled) {
+            box-shadow: 0 12px 44px rgba(200,168,90,0.55), 0 4px 12px rgba(0,0,0,0.45);
+            transform: translateY(-2px);
+        }
+        .gen-btn:hover:not(:disabled) .gen-btn-icon { transform: rotate(45deg) scale(1.2); }
+        .gen-btn:active:not(:disabled) { transform: scale(0.97); }
+        .gen-btn:disabled { opacity: 0.25; cursor: not-allowed; box-shadow: none; }
 
         /* ── MODAL (result) — internally scrollable ── */
         .modal-box {
@@ -1093,7 +1091,7 @@
         }
 
         /* ── MISC ── */
-        .checkin { text-align: center; font-size: 0.65rem; color: rgba(232,213,176,0.25); letter-spacing: 0.06em; font-family: 'DM Sans', sans-serif; }
+        .checkin { display: none; }
         /* ── STREAK EVOLUTION SYSTEM ── */
         .streak {
             display: flex; align-items: center; gap: 0.48rem;
@@ -1268,6 +1266,34 @@
             font-size: 0.65rem; color: rgba(232,213,176,0.45);
             letter-spacing: 0.12em; text-transform: uppercase;
         }
+        /* ── TOP BAR ── */
+        .top-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0.85rem 1.1rem 0.5rem;
+            width: 100%; max-width: 26rem; box-sizing: border-box;
+            position: relative; z-index: 2;
+        }
+        .top-brand {
+            display: flex; align-items: center; gap: 0.35rem;
+            position: absolute; left: 50%; transform: translateX(-50%);
+        }
+        .top-brand-star { font-size: 0.65rem; color: var(--gold); opacity: 0.70; line-height: 1; }
+        .top-brand-name {
+            font-family: 'Cormorant Garant', Georgia, serif;
+            font-size: 1.25rem; font-weight: 700;
+            color: var(--gold); letter-spacing: 0.18em;
+        }
+        .top-icon-btn {
+            width: 2.2rem; height: 2.2rem; border-radius: 50%;
+            background: rgba(232,213,176,0.05);
+            border: 1px solid rgba(232,213,176,0.09);
+            color: rgba(232,213,176,0.45); cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 200ms, color 200ms; flex-shrink: 0;
+        }
+        .top-icon-btn:hover { background: rgba(232,213,176,0.10); color: var(--gold); }
+        .top-actions { display: none; }
+
         /* ── COMPACT IDENTITY SNAPSHOT (top area) ── */
         .identity-panel {
             width: 100%; max-width: 26rem; box-sizing: border-box;
@@ -1779,10 +1805,8 @@
         }
 
         /* ── XP AURA SYSTEM ── */
-        .xp-display {
-            display: flex; flex-direction: column; align-items: flex-start;
-            gap: 0.18rem; position: relative; cursor: default;
-        }
+        /* Old XP widget hidden — replaced by identity card */
+        .xp-display { display: none !important; }
         .xp-aura-ring {
             position: absolute; inset: -8px;
             border-radius: 0.75rem;
@@ -2154,7 +2178,154 @@
             color: rgba(230,170,60,0.65);
             font-style: italic;
         }
-    </style>
+    
+        /* ── IDENTITY CARD (reference design) ── */
+        .identity-panel {
+            width: 100%; max-width: 26rem; box-sizing: border-box;
+            padding: 0.6rem 0.9rem 0;
+            display: none; flex-direction: column;
+            position: relative; z-index: 2;
+            animation: identityPanelIn 500ms cubic-bezier(0.16,1,0.3,1) both;
+        }
+        .identity-panel.visible { display: flex; }
+        .icard {
+            background: rgba(18,16,26,0.92);
+            border: 1px solid rgba(232,213,176,0.10);
+            border-radius: 1.1rem;
+            padding: 0.85rem 1.0rem 0.75rem;
+            display: flex; flex-direction: column; gap: 0.65rem;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.55),
+                        0 0 0 1px rgba(232,213,176,0.04),
+                        inset 0 1px 0 rgba(232,213,176,0.06);
+        }
+        .icard-top {
+            display: flex; align-items: center; gap: 0.75rem;
+        }
+        .icard-orb {
+            width: 60px; height: 60px; flex-shrink: 0; border-radius: 50%;
+            filter: drop-shadow(0 0 12px var(--dom-glow, rgba(232,213,176,0.30)));
+            object-fit: contain;
+        }
+        .icard-info {
+            flex: 1; display: flex; flex-direction: column; gap: 0.28rem; min-width: 0;
+        }
+        .icard-rank-row {
+            display: flex; align-items: center; justify-content: space-between; gap: 0.4rem;
+        }
+        .icard-rank-name {
+            font-family: 'Cormorant Garant', Georgia, serif;
+            font-size: 0.95rem; font-weight: 700; color: var(--gold);
+            letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .icard-level-badge {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.52rem; font-weight: 700;
+            color: rgba(232,213,176,0.70);
+            background: rgba(232,213,176,0.10);
+            border: 1px solid rgba(232,213,176,0.20);
+            border-radius: 0.4rem; padding: 0.12rem 0.42rem;
+            white-space: nowrap; flex-shrink: 0;
+            letter-spacing: 0.08em;
+        }
+        .icard-xp-bar-wrap {
+            width: 100%; height: 4px;
+            background: rgba(232,213,176,0.08); border-radius: 4px; overflow: hidden;
+        }
+        .icard-xp-bar-fill {
+            height: 100%; border-radius: 4px;
+            background: linear-gradient(90deg, rgba(232,168,124,0.60), var(--gold), rgba(232,213,176,0.90));
+            transition: width 900ms cubic-bezier(0.16,1,0.3,1);
+            box-shadow: 0 0 6px rgba(232,213,176,0.40);
+        }
+        .icard-xp-text {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.50rem; color: rgba(232,213,176,0.35);
+            letter-spacing: 0.08em;
+        }
+        .icard-divider {
+            width: 100%; height: 1px;
+            background: rgba(232,213,176,0.07);
+        }
+        .icard-stats {
+            display: flex; align-items: center;
+        }
+        .icard-stat {
+            flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.12rem;
+        }
+        .icard-stat-sep {
+            width: 1px; height: 2rem;
+            background: rgba(232,213,176,0.07); flex-shrink: 0;
+        }
+        .icard-stat-icon {
+            font-size: 0.85rem; line-height: 1;
+        }
+        .aura-icon {
+            color: rgba(148,200,255,0.70); font-size: 0.80rem;
+        }
+        .icard-stat-orb {
+            width: 20px; height: 20px; object-fit: contain; border-radius: 50%;
+            filter: drop-shadow(0 0 4px var(--dom-glow, rgba(232,213,176,0.25)));
+        }
+        .icard-stat-val {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem; font-weight: 700; color: var(--gold); line-height: 1;
+        }
+        .icard-stat-lbl {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.40rem; color: rgba(232,213,176,0.28);
+            letter-spacing: 0.10em; text-transform: uppercase;
+        }
+
+        /* ── MOOD GRID CARDS (reference style) ── */
+        /* ── BOTTOM NAVIGATION ── */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            height: 4.4rem;
+            background: rgba(8,6,16,0.96);
+            backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px);
+            border-top: 1px solid rgba(232,213,176,0.08);
+            display: flex; align-items: center; justify-content: space-around;
+            z-index: 100; padding: 0 0.25rem 0.4rem;
+            box-shadow: 0 -4px 24px rgba(0,0,0,0.60);
+        }
+        .bottom-nav.hidden { display: none; }
+        .nav-btn {
+            display: flex; flex-direction: column; align-items: center; gap: 0.14rem;
+            background: none; border: none; cursor: pointer;
+            flex: 1; padding: 0.35rem 0;
+            transition: opacity 200ms; color: rgba(232,213,176,0.25);
+        }
+        .nav-svg {
+            width: 20px; height: 20px; display: block;
+            transition: color 200ms;
+        }
+        .nav-lbl {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.42rem; font-weight: 500;
+            letter-spacing: 0.10em; text-transform: uppercase;
+            transition: color 200ms;
+        }
+        .nav-btn.active { color: var(--gold); }
+        .nav-btn.active .nav-lbl { color: rgba(232,213,176,0.75); }
+        /* Generate center button */
+        .nav-icon-generate {
+            width: 46px; height: 46px; border-radius: 50%;
+            background: linear-gradient(135deg, rgba(232,213,176,0.18) 0%, rgba(180,150,80,0.15) 100%);
+            border: 1px solid rgba(232,213,176,0.25);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.15rem; color: var(--gold);
+            transition: background 200ms, box-shadow 200ms, transform 120ms;
+            box-shadow: 0 0 18px rgba(232,213,176,0.14);
+            margin-bottom: 0.12rem;
+        }
+        #navGenerate:hover .nav-icon-generate,
+        #navGenerate.active .nav-icon-generate {
+            background: linear-gradient(135deg, rgba(232,213,176,0.28) 0%, rgba(180,150,80,0.22) 100%);
+            box-shadow: 0 0 28px rgba(232,213,176,0.28);
+            transform: scale(1.08);
+        }
+
+</style>
 </head>
 <body>
 
@@ -2171,38 +2342,59 @@
     <div id="appScreen">
 
     <div class="top-bar">
-        <div id="xpDisplay" class="xp-display hidden">
-            <div class="xp-aura-ring"></div>
-            <div class="xp-rank" id="xpRank">Emotional Explorer</div>
-            <div class="xp-number" id="xpNumber">0</div>
-            <div class="xp-bar-wrap"><div class="xp-bar-fill" id="xpBarFill" style="width:0%"></div></div>
-            <div class="xp-label" id="xpLabel">XP · Lv 0</div>
+        <button class="top-icon-btn" id="menuBtn" aria-label="Menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="17" y2="12"/><line x1="3" y1="17" x2="13" y2="17"/></svg>
+        </button>
+        <div class="top-brand">
+            <span class="top-brand-star">✦</span>
+            <span class="top-brand-name">AURA</span>
         </div>
-        <div class="top-actions">
-            <button id="historyBtn" style="display:none;">History</button>
-            <button id="logoutBtn" style="display:none;">Logout</button>
-        </div>
+        <button class="top-icon-btn" id="notifBtn" aria-label="Notifications">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        </button>
+        <!-- Hidden functional buttons for JS wiring -->
+        <button id="historyBtn" style="display:none;">History</button>
+        <button id="logoutBtn" style="display:none;">Logout</button>
     </div>
 
-    <!-- Compact Identity Snapshot -->
-    <div id="identityPanel" class="identity-panel">
-        <img class="ip-orb" id="ipDomOrb" src="" alt=""/>
-        <div class="ip-center">
-            <div class="ip-rank" id="ipRankTitle">Emotional Explorer</div>
-            <div class="ip-bar-wrap"><div class="ip-bar-fill" id="ipXpBar" style="width:0%"></div></div>
-        </div>
-        <div class="ip-stats">
-            <div class="ip-stat">
-                <div class="ip-stat-val" id="ipStreak">0</div>
-                <div class="ip-stat-lbl">Streak</div>
+    <!-- Identity Card Snapshot -->
+    <div id="identityPanel" class="identity-panel hidden">
+        <!-- Hidden functional elements for JS compatibility -->
+        <p id="streakText" class="streak hidden" style="display:none!important"><span class="streak-orb"></span><span class="streak-txt"></span></p>
+        <p id="checkinText" class="checkin" style="display:none!important"></p>
+        <div class="icard">
+            <div class="icard-top">
+                <img class="icard-orb" id="ipDomOrb" src="" alt=""/>
+                <div class="icard-info">
+                    <div class="icard-rank-row">
+                        <span class="icard-rank-name" id="ipRankTitle">Emotional Explorer</span>
+                        <span class="icard-level-badge" id="ipLevel">Lv. 0</span>
+                    </div>
+                    <div class="icard-xp-bar-wrap">
+                        <div class="icard-xp-bar-fill" id="ipXpBar" style="width:0%"></div>
+                    </div>
+                    <div class="icard-xp-text" id="ipXpText">0 / 20 XP</div>
+                </div>
             </div>
-            <div class="ip-stat">
-                <div class="ip-stat-val" id="ipXpNum">0</div>
-                <div class="ip-stat-lbl">XP</div>
-            </div>
-            <div class="ip-stat">
-                <div class="ip-stat-val" id="ipLevel">0</div>
-                <div class="ip-stat-lbl">Level</div>
+            <div class="icard-divider"></div>
+            <div class="icard-stats">
+                <div class="icard-stat">
+                    <span class="icard-stat-icon">🔥</span>
+                    <span class="icard-stat-val" id="ipStreak">0</span>
+                    <span class="icard-stat-lbl">Day Streak</span>
+                </div>
+                <div class="icard-stat-sep"></div>
+                <div class="icard-stat">
+                    <span class="icard-stat-icon aura-icon">◈</span>
+                    <span class="icard-stat-val" id="ipAuraEnergy">0%</span>
+                    <span class="icard-stat-lbl">Aura Energy</span>
+                </div>
+                <div class="icard-stat-sep"></div>
+                <div class="icard-stat">
+                    <img class="icard-stat-orb" id="ipDomOrbSmall" src="" alt=""/>
+                    <span class="icard-stat-val" id="ipDomMoodName">—</span>
+                    <span class="icard-stat-lbl">Dominant Mood</span>
+                </div>
             </div>
         </div>
     </div>
@@ -2309,11 +2501,9 @@
 
     <div class="container">
         <div class="app-card">
-            <p id="checkinText" class="checkin"></p>
-            <p id="streakText" class="streak hidden"><span class="streak-orb"></span><span class="streak-txt"></span></p>
             <div class="app-header">
                 <div class="app-header-eyebrow">Your Daily Ritual</div>
-                <h1 class="app-title">Identity Status</h1>
+                <h1 class="app-title">How are you<br>feeling today?</h1>
                 <div class="app-title-rule"></div>
                 <p class="app-sub">What's your state right now?</p>
             </div>
@@ -2332,8 +2522,8 @@
                 <button class="mood-btn locked" data-mood="recovering"><span class="mood-btn-icon"><img id="btn-icon-recovering" style="width:26px;height:26px;object-fit:contain"/></span>Recovering 🔒 <span class="pro-badge">PRO</span></button>
                 <button class="mood-btn locked" data-mood="growing"><span class="mood-btn-icon"><img id="btn-icon-growing" style="width:26px;height:26px;object-fit:contain"/></span>Growing 🔒 <span class="pro-badge">PRO</span></button>
             </div>
-            <button id="generateBtn" class="gen-btn" disabled>Generate My Status</button>
-            <p class="app-footer">Download · Share · Feel seen</p>
+            <button id="generateBtn" class="gen-btn" disabled><span>Generate My Status</span><span class="gen-btn-icon">✦</span></button>
+            <p class="app-footer">Your journey. Your emotions. Your evolution.</p>
         </div>
     </div>
 
@@ -3624,27 +3814,33 @@ function updateIdentityPanel() {
     const el    = (id) => document.getElementById(id);
 
     if (!window.firebaseAuth?.currentUser) {
+        panel.classList.add('hidden');
         panel.classList.remove('visible');
-        if (detail) detail.classList.remove('visible');
+        if (detail) { detail.classList.remove('visible'); }
         return;
     }
+    panel.classList.remove('hidden');
 
-    // ── Compact snapshot ──
+    // ── Compact identity card ──
     panel.classList.add('visible');
     panel.style.setProperty('--xp-glow', rank.glow);
-    if (el('ipRankTitle')) el('ipRankTitle').textContent = rank.title;
-    if (el('ipXpBar'))     el('ipXpBar').style.width     = Math.min(pct, 100) + '%';
-    if (el('ipXpNum'))     el('ipXpNum').textContent     = xp;
-    if (el('ipStreak'))    el('ipStreak').textContent    = data.streak || 0;
-    if (el('ipLevel'))     el('ipLevel').textContent     = level;
 
-    // Dominant mood orb in compact snapshot
+    if (el('ipRankTitle'))    el('ipRankTitle').textContent    = rank.title;
+    if (el('ipLevel'))        el('ipLevel').textContent        = 'Lv. ' + level;
+    if (el('ipXpBar'))        el('ipXpBar').style.width        = Math.min(pct, 100) + '%';
+    if (el('ipXpText'))       el('ipXpText').textContent       = xp + ' / ' + (next ? next.min : '∞') + ' XP';
+    if (el('ipStreak'))       el('ipStreak').textContent       = data.streak || 0;
+    if (el('ipAuraEnergy'))   el('ipAuraEnergy').textContent   = Math.min(pct, 100) + '%';
+
+    // Dominant mood
     const dom = getDominantMood(data.moodCounts);
-    const ipOrb = el('ipDomOrb');
-    if (ipOrb && dom) {
-        ipOrb.src = MOOD_SVG[dom] || '';
-        ipOrb.style.setProperty('--dom-glow', MOOD_GLOW_VARS[dom] || 'rgba(232,213,176,0.25)');
-    }
+    const ipOrbMain  = el('ipDomOrb');
+    const ipOrbSmall = el('ipDomOrbSmall');
+    const ipMoodName = el('ipDomMoodName');
+    const glow = dom ? (MOOD_GLOW_VARS[dom] || 'rgba(232,213,176,0.28)') : 'rgba(232,213,176,0.18)';
+    if (ipOrbMain)  { ipOrbMain.src = dom ? (MOOD_SVG[dom]||'') : ''; ipOrbMain.style.setProperty('--dom-glow', glow); }
+    if (ipOrbSmall) { ipOrbSmall.src = dom ? (MOOD_SVG[dom]||'') : ''; ipOrbSmall.style.setProperty('--dom-glow', glow); }
+    if (ipMoodName) ipMoodName.textContent = dom ? (dom.charAt(0).toUpperCase() + dom.slice(1)) : '—';
 
     // ── Detail section ──
     if (detail) {
@@ -3678,13 +3874,18 @@ function initBottomNav() {
     if (!nav) return;
     nav.classList.remove('hidden');
 
+    // Wire menu button → logout
+    const menuBtn = $('menuBtn');
+    if (menuBtn) menuBtn.addEventListener('click', () => {
+        if (confirm('Sign out of AURA?')) $('logoutBtn').click();
+    });
+
     $('navHistory').addEventListener('click', () => {
         setNavActive('history');
         historyBtn.click();
     });
     $('navGenerate').addEventListener('click', () => {
         setNavActive('generate');
-        // Scroll to mood section
         const card = document.querySelector('.app-card');
         if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
@@ -5031,18 +5232,19 @@ async function saveToHistory(entry) {
 </div><!-- /appRoot -->    <!-- Bottom Navigation -->
     <nav id="bottomNav" class="bottom-nav hidden">
         <button class="nav-btn active" data-nav="home" id="navHome">
-            <span class="nav-icon">◦</span>
+            <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 4l9 8"/><path d="M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg>
             <span class="nav-lbl">Home</span>
         </button>
-        <button class="nav-btn nav-generate" data-nav="generate" id="navGenerate">
+        <button class="nav-btn" data-nav="generate" id="navGenerate">
             <span class="nav-icon-generate">✦</span>
+            <span class="nav-lbl">Generate</span>
         </button>
         <button class="nav-btn" data-nav="history" id="navHistory">
-            <span class="nav-icon">◈</span>
+            <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/><path d="M8 14h2M11 14h5M8 18h2M11 18h3"/></svg>
             <span class="nav-lbl">History</span>
         </button>
         <button class="nav-btn" data-nav="profile" id="navProfile">
-            <span class="nav-icon">◉</span>
+            <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
             <span class="nav-lbl">Profile</span>
         </button>
     </nav>

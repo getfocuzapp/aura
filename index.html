@@ -68,6 +68,14 @@
             }
         }, 4000);
 
+        // Hard emergency fallback — force appRoot visible after 5s no matter what
+        setTimeout(() => {
+            const root = document.getElementById('appRoot');
+            if (root) root.style.visibility = 'visible';
+            const appScr = document.getElementById('appScreen');
+            if (appScr) { appScr.style.visibility = 'visible'; appScr.style.opacity = '1'; }
+        }, 5000);
+
         // Wire login button after DOM is ready
         document.addEventListener('DOMContentLoaded', () => {
             const logoutBtn = document.getElementById('logoutBtn');
@@ -2362,6 +2370,13 @@
         <!-- Hidden functional elements for JS compatibility -->
         <p id="streakText" class="streak hidden" style="display:none!important"><span class="streak-orb"></span><span class="streak-txt"></span></p>
         <p id="checkinText" class="checkin" style="display:none!important"></p>
+        <div id="xpDisplay" class="xp-display" style="display:none!important">
+            <div class="xp-aura-ring"></div>
+            <div class="xp-rank" id="xpRank"></div>
+            <div class="xp-number" id="xpNumber">0</div>
+            <div class="xp-bar-wrap"><div class="xp-bar-fill" id="xpBarFill" style="width:0%"></div></div>
+            <div class="xp-label" id="xpLabel">XP · Lv 0</div>
+        </div>
         <div class="icard">
             <div class="icard-top">
                 <img class="icard-orb" id="ipDomOrb" src="" alt=""/>
@@ -3684,16 +3699,21 @@ function updateXPDisplay() {
     if (barEl)  barEl.style.width  = Math.min(pct, 100) + '%';
     if (lblEl)  lblEl.textContent  = 'XP · Lv ' + level;
 
-    el.style.setProperty('--xp-glow', rank.glow);
-    el.classList.remove('hidden');
+    // Guard — old xpDisplay widget may not exist (replaced by identity card)
+    if (el) {
+        el.style.setProperty('--xp-glow', rank.glow);
+        el.classList.remove('hidden');
+    }
 
     // Rank-up detection — only trigger when truly crossing a rank threshold
     if (_lastRankIndex >= 0 && rank.index > _lastRankIndex) {
-        // Trigger glow burst on XP widget
-        el.classList.remove('rank-up');
-        void el.offsetWidth; // reflow to restart animation
-        el.classList.add('rank-up');
-        setTimeout(() => el.classList.remove('rank-up'), 1400);
+        // Trigger glow burst on XP widget (if old widget exists)
+        if (el) {
+            el.classList.remove('rank-up');
+            void el.offsetWidth;
+            el.classList.add('rank-up');
+            setTimeout(() => el.classList.remove('rank-up'), 1400);
+        }
 
         // Animate rank title
         if (rankEl) {
@@ -4879,6 +4899,19 @@ function renderAuthScreen() {
 
 /* ── AUTH TOGGLE ── */
 let currentScreen = null;
+
+// Extra safety — if appRoot still hidden 2.5s after DOM loads, force show
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        const root = document.getElementById('appRoot');
+        if (root && root.style.visibility !== 'visible') {
+            authInitializing = false;
+            authResolved = true;
+            if (typeof showAuth === 'function') showAuth();
+            else if (root) root.style.visibility = 'visible';
+        }
+    }, 2500);
+});
 
 function showApp() {
     if (!authResolved) return;

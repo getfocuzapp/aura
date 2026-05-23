@@ -2326,12 +2326,7 @@
             box-shadow: 0 0 18px rgba(232,213,176,0.14);
             margin-bottom: 0.12rem;
         }
-        #navGenerate:hover .nav-icon-generate,
-        #navGenerate.active .nav-icon-generate {
-            background: linear-gradient(135deg, rgba(232,213,176,0.28) 0%, rgba(180,150,80,0.22) 100%);
-            box-shadow: 0 0 28px rgba(232,213,176,0.28);
-            transform: scale(1.08);
-        }
+        
 
 </style>
 </head>
@@ -2357,12 +2352,11 @@
             <span class="top-brand-star">✦</span>
             <span class="top-brand-name">AURA</span>
         </div>
-        <button class="top-icon-btn" id="notifBtn" aria-label="Notifications">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-        </button>
-        <!-- Hidden functional buttons for JS wiring -->
-        <button id="historyBtn" style="display:none;">History</button>
-        <button id="logoutBtn" style="display:none;">Logout</button>
+        <!-- Spacer to balance the centered brand -->
+        <div style="width:2.2rem; flex-shrink:0;"></div>
+        <!-- Hidden functional buttons — never visible, wired via menu/nav -->
+        <button id="historyBtn" style="display:none!important;visibility:hidden;position:absolute;pointer-events:none;">History</button>
+        <button id="logoutBtn" style="display:none!important;visibility:hidden;position:absolute;pointer-events:none;">Logout</button>
     </div>
 
     <!-- Identity Card Snapshot -->
@@ -3894,7 +3888,7 @@ function initBottomNav() {
     if (!nav) return;
     nav.classList.remove('hidden');
 
-    // Wire menu button → logout
+    // Wire menu button → logout confirmation
     const menuBtn = $('menuBtn');
     if (menuBtn) menuBtn.addEventListener('click', () => {
         if (confirm('Sign out of AURA?')) $('logoutBtn').click();
@@ -3903,11 +3897,6 @@ function initBottomNav() {
     $('navHistory').addEventListener('click', () => {
         setNavActive('history');
         historyBtn.click();
-    });
-    $('navGenerate').addEventListener('click', () => {
-        setNavActive('generate');
-        const card = document.querySelector('.app-card');
-        if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
     $('navHome').addEventListener('click', () => {
         setNavActive('home');
@@ -3922,7 +3911,7 @@ function initBottomNav() {
 
 function setNavActive(tab) {
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    const map = { home: 'navHome', generate: 'navGenerate', history: 'navHistory', profile: 'navProfile' };
+    const map = { home: 'navHome', history: 'navHistory', profile: 'navProfile' };
     const el = $(map[tab]);
     if (el) el.classList.add('active');
 }
@@ -4934,8 +4923,7 @@ function showApp() {
         app.classList.add('app-fade-in');
         app.style.opacity = '1';
     }
-    if (logout)  logout.style.display  = 'block';
-    if (history) history.style.display = 'block';
+    // logoutBtn and historyBtn remain display:none — wired via menu button and nav tab
 
     document.getElementById('appRoot').style.visibility = 'visible';
 }
@@ -5267,10 +5255,6 @@ async function saveToHistory(entry) {
         <button class="nav-btn active" data-nav="home" id="navHome">
             <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 4l9 8"/><path d="M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg>
             <span class="nav-lbl">Home</span>
-        </button>
-        <button class="nav-btn" data-nav="generate" id="navGenerate">
-            <span class="nav-icon-generate">✦</span>
-            <span class="nav-lbl">Generate</span>
         </button>
         <button class="nav-btn" data-nav="history" id="navHistory">
             <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/><path d="M8 14h2M11 14h5M8 18h2M11 18h3"/></svg>

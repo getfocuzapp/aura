@@ -268,7 +268,9 @@
             gap: 0.6rem;
         }
         .mood-btn {
+            /* Use vw-based height as fallback for Android Chrome aspect-ratio bug */
             aspect-ratio: 1;
+            min-height: calc((100vw - 2.4rem - 1.2rem) / 3);
             padding: 0.8rem 0.4rem 0.7rem;
             border-radius: 1.1rem; font-weight: 600; font-size: 0.58rem;
             text-transform: uppercase; letter-spacing: 0.09em;
@@ -312,6 +314,15 @@
         .mood-btn.locked { opacity: 0.72; }
         .mood-btn.locked:hover { opacity: 0.88; transform: none; }
         .pro-badge { display: none; }
+
+        /* Last card alone — center it, same height as peers */
+        .mood-btn-last {
+            grid-column: 1 / -1;
+            max-width: calc((100vw - 2.4rem - 1.2rem) / 3);
+            min-height: calc((100vw - 2.4rem - 1.2rem) / 3);
+            margin: 0 auto;
+            aspect-ratio: 1;
+        }
 
         /* ── GENERATE BUTTON ── */
         .gen-btn {
@@ -2546,7 +2557,7 @@
                 <button class="mood-btn locked" data-mood="happy"><span class="mood-btn-icon"><img id="btn-icon-happy" style="width:26px;height:26px;object-fit:contain"/></span>Happy 🔒 <span class="pro-badge">PRO</span></button>
                 <button class="mood-btn locked" data-mood="numb"><span class="mood-btn-icon"><img id="btn-icon-numb" style="width:26px;height:26px;object-fit:contain"/></span>Numb 🔒 <span class="pro-badge">PRO</span></button>
                 <button class="mood-btn locked" data-mood="recovering"><span class="mood-btn-icon"><img id="btn-icon-recovering" style="width:26px;height:26px;object-fit:contain"/></span>Recovering 🔒 <span class="pro-badge">PRO</span></button>
-                <button class="mood-btn locked" data-mood="growing"><span class="mood-btn-icon"><img id="btn-icon-growing" style="width:26px;height:26px;object-fit:contain"/></span>Growing 🔒 <span class="pro-badge">PRO</span></button>
+                <button class="mood-btn locked mood-btn-last" data-mood="growing"><span class="mood-btn-icon"><img id="btn-icon-growing" style="width:26px;height:26px;object-fit:contain"/></span>Growing 🔒 <span class="pro-badge">PRO</span></button>
             </div>
             <button id="generateBtn" class="gen-btn" disabled><span>Generate My Status</span><span class="gen-btn-icon">✦</span></button>
             <p class="app-footer">Your journey. Your emotions. Your evolution.</p>

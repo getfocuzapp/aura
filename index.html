@@ -1480,6 +1480,179 @@
         }
         .history-modal-overlay.hidden { display: none; }
 
+        /* ── PROFILE PAGE ── */
+        .profile-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.80);
+            display: flex; justify-content: center; align-items: flex-end;
+            z-index: 500;
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            animation: overlayFadeIn 0.3s ease both;
+        }
+        .profile-overlay.hidden { display: none; }
+        .profile-content {
+            background: #070710;
+            border: 1px solid rgba(232,213,176,0.08);
+            border-bottom: none;
+            border-radius: 32px 32px 0 0;
+            width: 100%; max-width: 480px;
+            max-height: 92vh;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+            animation: sheetSlideUp 0.42s cubic-bezier(0.16,1,0.3,1) both;
+            box-shadow: 0 -1px 0 rgba(232,213,176,0.06), 0 -20px 80px rgba(0,0,0,0.95);
+        }
+        .profile-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 18px 20px 14px;
+            position: sticky; top: 0;
+            background: linear-gradient(180deg, #070710 65%, transparent 100%);
+            z-index: 2; flex-shrink: 0;
+        }
+        .profile-title {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.3rem; font-weight: 800; color: #fff;
+            margin: 0; letter-spacing: -0.02em;
+        }
+        .profile-body {
+            overflow-y: auto; padding: 0 1.1rem 2rem;
+            display: flex; flex-direction: column; gap: 0.85rem;
+            scrollbar-width: none;
+        }
+        .profile-body::-webkit-scrollbar { display: none; }
+
+        /* Rank card */
+        .pro-rank-card {
+            background: rgba(232,213,176,0.04);
+            border: 1px solid rgba(232,213,176,0.10);
+            border-radius: 1.1rem; padding: 1.0rem;
+        }
+        .pro-rank-top {
+            display: flex; align-items: center; gap: 0.75rem;
+        }
+        .pro-rank-orb {
+            width: 56px; height: 56px; border-radius: 50%; flex-shrink: 0;
+            filter: drop-shadow(0 0 10px var(--dom-glow, rgba(232,213,176,0.28)));
+            object-fit: contain;
+        }
+        .pro-rank-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.25rem; }
+        .pro-rank-label {
+            font-family: 'DM Sans', sans-serif; font-size: 0.42rem;
+            color: rgba(232,213,176,0.32); letter-spacing: 0.18em; text-transform: uppercase;
+        }
+        .pro-rank-name {
+            font-family: 'Cormorant Garant', Georgia, serif;
+            font-size: 1.0rem; font-weight: 700; color: var(--gold); letter-spacing: 0.02em;
+        }
+        .pro-xp-bar-wrap {
+            width: 100%; height: 3px;
+            background: rgba(232,213,176,0.08); border-radius: 3px; overflow: hidden;
+        }
+        .pro-xp-bar-fill {
+            height: 100%; border-radius: 3px;
+            background: linear-gradient(90deg, rgba(232,168,124,0.60), var(--gold));
+            transition: width 900ms cubic-bezier(0.16,1,0.3,1);
+        }
+        .pro-xp-text {
+            font-family: 'DM Sans', sans-serif; font-size: 0.48rem;
+            color: rgba(232,213,176,0.32); letter-spacing: 0.06em;
+        }
+        .pro-level-badge {
+            font-family: 'DM Sans', sans-serif; font-size: 0.55rem; font-weight: 700;
+            color: rgba(232,213,176,0.70);
+            background: rgba(232,213,176,0.10);
+            border: 1px solid rgba(232,213,176,0.20);
+            border-radius: 0.4rem; padding: 0.14rem 0.5rem;
+            white-space: nowrap; flex-shrink: 0; letter-spacing: 0.08em;
+        }
+
+        /* Stats strip */
+        .pro-stats-strip {
+            display: flex; align-items: center;
+            background: rgba(232,213,176,0.03);
+            border: 1px solid rgba(232,213,176,0.08);
+            border-radius: 1.0rem; padding: 0.85rem 0;
+        }
+        .pro-stat {
+            flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.12rem;
+        }
+        .pro-stat-sep {
+            width: 1px; height: 2.2rem; background: rgba(232,213,176,0.08); flex-shrink: 0;
+        }
+        .pro-stat-val {
+            font-family: 'DM Sans', sans-serif; font-size: 1.3rem; font-weight: 700;
+            color: var(--gold); line-height: 1;
+        }
+        .pro-stat-lbl {
+            font-family: 'DM Sans', sans-serif; font-size: 0.42rem; font-weight: 500;
+            color: rgba(232,213,176,0.30); letter-spacing: 0.12em; text-transform: uppercase;
+        }
+
+        /* Dominant mood */
+        .pro-dom-mood {
+            display: flex; align-items: center; gap: 0.65rem;
+            background: rgba(232,213,176,0.03);
+            border: 1px solid rgba(232,213,176,0.08);
+            border-radius: 1.0rem; padding: 0.75rem 0.9rem;
+        }
+        .pro-dom-orb {
+            width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0; object-fit: contain;
+            filter: drop-shadow(0 0 8px var(--dom-glow, rgba(232,213,176,0.28)));
+        }
+        .pro-dom-text { display: flex; flex-direction: column; gap: 0.08rem; }
+        .pro-dom-label {
+            font-family: 'DM Sans', sans-serif; font-size: 0.40rem; font-weight: 600;
+            color: rgba(232,213,176,0.30); letter-spacing: 0.16em; text-transform: uppercase;
+        }
+        .pro-dom-name {
+            font-family: 'Cormorant Garant', Georgia, serif;
+            font-size: 0.92rem; font-weight: 700; color: var(--gold);
+        }
+        .pro-dom-desc {
+            font-family: 'DM Sans', sans-serif; font-size: 0.42rem;
+            color: rgba(232,213,176,0.28); font-style: italic;
+        }
+
+        /* Section label */
+        .pro-section-label {
+            font-family: 'DM Sans', sans-serif; font-size: 0.44rem; font-weight: 600;
+            color: rgba(232,213,176,0.26); letter-spacing: 0.22em; text-transform: uppercase;
+            margin-top: 0.3rem;
+        }
+
+        /* Milestones */
+        .pro-milestones {
+            display: flex; flex-wrap: wrap; gap: 0.5rem;
+        }
+        .pro-milestone-chip {
+            display: flex; align-items: center; gap: 0.3rem;
+            background: rgba(232,213,176,0.06);
+            border: 1px solid rgba(232,213,176,0.14);
+            border-radius: 2rem; padding: 0.28rem 0.7rem;
+            font-family: 'DM Sans', sans-serif; font-size: 0.52rem;
+            color: rgba(232,213,176,0.65); font-weight: 500;
+        }
+        .pro-milestone-empty {
+            font-family: 'DM Sans', sans-serif; font-size: 0.55rem;
+            color: rgba(232,213,176,0.22); font-style: italic;
+        }
+
+        /* Logout */
+        .pro-logout-btn {
+            margin-top: 0.5rem; width: 100%; padding: 0.85rem;
+            border-radius: 0.85rem; border: 1px solid rgba(232,80,80,0.20);
+            background: rgba(232,80,80,0.05);
+            color: rgba(232,100,100,0.60); font-family: 'DM Sans', sans-serif;
+            font-size: 0.72rem; font-weight: 600; letter-spacing: 0.10em;
+            text-transform: uppercase; cursor: pointer;
+            transition: background 200ms, color 200ms, border-color 200ms;
+        }
+        .pro-logout-btn:hover {
+            background: rgba(232,80,80,0.12);
+            color: rgba(232,120,120,0.90);
+            border-color: rgba(232,80,80,0.40);
+        }
+
         /* ── Sheet ── */
         .history-modal-content {
             background: #070710;
@@ -2560,48 +2733,10 @@
                 <button class="mood-btn locked mood-btn-last" data-mood="growing"><span class="mood-btn-icon"><img id="btn-icon-growing" style="width:26px;height:26px;object-fit:contain"/></span>Growing 🔒 <span class="pro-badge">PRO</span></button>
             </div>
             <button id="generateBtn" class="gen-btn" disabled><span>Generate My Status</span><span class="gen-btn-icon">✦</span></button>
-            <p class="app-footer">Your journey. Your emotions. Your evolution.</p>
         </div>
     </div>
 
     <!-- Detailed Identity Section (secondary / scroll to discover) -->
-    <div id="identityDetail" class="identity-detail">
-        <div class="identity-section-label">Your Emotional Profile</div>
-        <div class="identity-row">
-            <div class="identity-rank-wrap">
-                <div class="identity-rank-label">Current Rank</div>
-                <div class="identity-rank-title" id="ipRankTitleDetail">Emotional Explorer</div>
-            </div>
-            <div class="identity-xp-wrap">
-                <div class="identity-xp-num" id="ipXpNumDetail">0</div>
-                <div class="identity-xp-bar"><div class="identity-xp-bar-fill" id="ipXpBarDetail" style="width:0%"></div></div>
-                <div class="identity-xp-sub" id="ipXpSubDetail">XP · Lv 0</div>
-            </div>
-        </div>
-        <div class="identity-stats">
-            <div class="identity-stat">
-                <div class="identity-stat-val" id="ipTotalGen">0</div>
-                <div class="identity-stat-lbl">Generated</div>
-            </div>
-            <div class="identity-stat">
-                <div class="identity-stat-val" id="ipStreakDetail">0</div>
-                <div class="identity-stat-lbl">Streak</div>
-            </div>
-            <div class="identity-stat">
-                <div class="identity-stat-val" id="ipLevelDetail">0</div>
-                <div class="identity-stat-lbl">Level</div>
-            </div>
-        </div>
-        <div class="identity-mood" id="ipDomMood">
-            <img class="identity-mood-orb" id="ipDomOrbDetail" src="" alt=""/>
-            <div class="identity-mood-text">
-                <div class="identity-mood-label">Dominant Mood</div>
-                <div class="identity-mood-name" id="ipDomName">—</div>
-                <div class="identity-mood-desc" id="ipDomDesc">Generate your first status to begin.</div>
-            </div>
-        </div>
-    </div>
-
 <script>
 /* ── DATA ── */
 const MOOD_EMOJIS = { tired: '😴', motivated: '💪', lost: '🌙', angry: '😤', anxious: '😰', grinding: '🔥', calm: '🌊', sad: '😢', overthinking: '💭', happy: '😊', numb: '😶', recovering: '🌿', growing: '🌱' };
@@ -3884,30 +4019,7 @@ function updateIdentityPanel() {
     if (ipOrbSmall) { ipOrbSmall.src = dom ? (MOOD_SVG[dom]||'') : ''; ipOrbSmall.style.setProperty('--dom-glow', glow); }
     if (ipMoodName) ipMoodName.textContent = dom ? (dom.charAt(0).toUpperCase() + dom.slice(1)) : '—';
 
-    // ── Detail section ──
-    if (detail) {
-        detail.classList.add('visible');
-        if (el('ipRankTitleDetail')) el('ipRankTitleDetail').textContent = rank.title;
-        if (el('ipXpNumDetail'))     el('ipXpNumDetail').textContent     = xp;
-        if (el('ipXpBarDetail'))     el('ipXpBarDetail').style.width     = Math.min(pct, 100) + '%';
-        if (el('ipXpSubDetail'))     el('ipXpSubDetail').textContent     = 'XP · Lv ' + level;
-        if (el('ipTotalGen'))        el('ipTotalGen').textContent        = data.totalGenerations || 0;
-        if (el('ipStreakDetail'))     el('ipStreakDetail').textContent    = data.streak || 0;
-        if (el('ipLevelDetail'))      el('ipLevelDetail').textContent    = level;
-
-        const ipOrbDetail = el('ipDomOrbDetail');
-        const ipName      = el('ipDomName');
-        const ipDesc      = el('ipDomDesc');
-        if (dom) {
-            if (ipOrbDetail) { ipOrbDetail.src = MOOD_SVG[dom] || ''; ipOrbDetail.style.setProperty('--dom-glow', MOOD_GLOW_VARS[dom] || 'rgba(232,213,176,0.25)'); }
-            if (ipName) ipName.textContent = dom.charAt(0).toUpperCase() + dom.slice(1);
-            if (ipDesc) ipDesc.textContent = MOOD_IDENTITY_DESC[dom] || '';
-        } else {
-            if (ipOrbDetail) ipOrbDetail.src = '';
-            if (ipName) ipName.textContent = '—';
-            if (ipDesc) ipDesc.textContent = 'Generate your first status to begin.';
-        }
-    }
+    // ── Detail section removed from home — lives on Profile tab ──
 }
 
 /* ── BOTTOM NAV ── */
@@ -3932,8 +4044,7 @@ function initBottomNav() {
     });
     $('navProfile').addEventListener('click', () => {
         setNavActive('profile');
-        const detail = $('identityDetail');
-        if (detail) detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        openProfile();
     });
 }
 
@@ -5240,12 +5351,161 @@ async function loadHistory() {
     </div>
 </div>
 
+<!-- Profile Page Overlay -->
+<div id="profileModal" class="profile-overlay hidden">
+    <div class="profile-content">
+        <div class="history-drag-pill"></div>
+        <div class="profile-header">
+            <h2 class="profile-title">Profile</h2>
+            <button id="closeProfile" class="history-close-btn">✕</button>
+        </div>
+        <div class="profile-body">
+
+            <!-- Identity rank card -->
+            <div class="pro-rank-card">
+                <div class="pro-rank-top">
+                    <img class="pro-rank-orb" id="proOrbImg" src="" alt=""/>
+                    <div class="pro-rank-info">
+                        <div class="pro-rank-label">Emotional Rank</div>
+                        <div class="pro-rank-name" id="proRankName">Emotional Explorer</div>
+                        <div class="pro-xp-bar-wrap">
+                            <div class="pro-xp-bar-fill" id="proXpBar" style="width:0%"></div>
+                        </div>
+                        <div class="pro-xp-text" id="proXpText">0 / 20 XP</div>
+                    </div>
+                    <div class="pro-level-badge" id="proLevel">Lv. 0</div>
+                </div>
+            </div>
+
+            <!-- Stats strip -->
+            <div class="pro-stats-strip">
+                <div class="pro-stat">
+                    <span class="pro-stat-val" id="proStreak">0</span>
+                    <span class="pro-stat-lbl">Day Streak</span>
+                </div>
+                <div class="pro-stat-sep"></div>
+                <div class="pro-stat">
+                    <span class="pro-stat-val" id="proGenerated">0</span>
+                    <span class="pro-stat-lbl">Generated</span>
+                </div>
+                <div class="pro-stat-sep"></div>
+                <div class="pro-stat">
+                    <span class="pro-stat-val" id="proLevel2">0</span>
+                    <span class="pro-stat-lbl">Level</span>
+                </div>
+            </div>
+
+            <!-- Dominant mood -->
+            <div class="pro-dom-mood" id="proDomMood">
+                <img class="pro-dom-orb" id="proDomOrb" src="" alt=""/>
+                <div class="pro-dom-text">
+                    <div class="pro-dom-label">Dominant Mood</div>
+                    <div class="pro-dom-name" id="proDomName">—</div>
+                    <div class="pro-dom-desc" id="proDomDesc">Generate your first status to begin.</div>
+                </div>
+            </div>
+
+            <!-- Milestones -->
+            <div class="pro-section-label">Streak Milestones</div>
+            <div class="pro-milestones" id="proMilestones">
+                <div class="pro-milestone-empty">No milestones yet. Keep your streak going!</div>
+            </div>
+
+            <!-- Logout -->
+            <button class="pro-logout-btn" id="proLogoutBtn">Sign Out</button>
+
+        </div>
+    </div>
+</div>
+
 <script>
+
+/* ── PROFILE PAGE ── */
+function openProfile() {
+    const modal = $('profileModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    populateProfile();
+}
+
+function closeProfile() {
+    const modal = $('profileModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function populateProfile() {
+    const data   = loadData();
+    const xp     = data.xp;
+    const rank   = getRank(xp);
+    const next   = getNextRank(xp);
+    const level  = Math.floor(xp / 100);
+    const pct    = next ? Math.round(((xp - rank.min) / (next.min - rank.min)) * 100) : 100;
+    const dom    = getDominantMood(data.moodCounts);
+    const glow   = dom ? (MOOD_GLOW_VARS[dom] || 'rgba(232,213,176,0.28)') : 'rgba(232,213,176,0.18)';
+
+    // Rank card
+    const proOrb = $('proOrbImg');
+    if (proOrb) { proOrb.src = dom ? (MOOD_SVG[dom] || '') : ''; proOrb.style.setProperty('--dom-glow', glow); }
+    const proRank = $('proRankName'); if (proRank) proRank.textContent = rank.title;
+    const proXpBar = $('proXpBar'); if (proXpBar) proXpBar.style.width = Math.min(pct, 100) + '%';
+    const proXpText = $('proXpText'); if (proXpText) proXpText.textContent = xp + ' / ' + (next ? next.min : '∞') + ' XP';
+    const proLvl = $('proLevel'); if (proLvl) proLvl.textContent = 'Lv. ' + level;
+
+    // Stats
+    const proStreak = $('proStreak'); if (proStreak) proStreak.textContent = data.streak || 0;
+    const proGen    = $('proGenerated'); if (proGen) proGen.textContent = data.totalGenerations || 0;
+    const proLvl2   = $('proLevel2'); if (proLvl2) proLvl2.textContent = level;
+
+    // Dominant mood
+    const proDomOrb  = $('proDomOrb');
+    const proDomName = $('proDomName');
+    const proDomDesc = $('proDomDesc');
+    if (dom) {
+        if (proDomOrb)  { proDomOrb.src = MOOD_SVG[dom] || ''; proDomOrb.style.setProperty('--dom-glow', glow); }
+        if (proDomName) proDomName.textContent = dom.charAt(0).toUpperCase() + dom.slice(1);
+        if (proDomDesc) proDomDesc.textContent = MOOD_IDENTITY_DESC[dom] || '';
+    } else {
+        if (proDomOrb)  proDomOrb.src = '';
+        if (proDomName) proDomName.textContent = '—';
+        if (proDomDesc) proDomDesc.textContent = 'Generate your first status to begin.';
+    }
+
+    // Milestones
+    const milestonesEl = $('proMilestones');
+    if (milestonesEl) {
+        const unlocked = data.unlockedMilestones || [];
+        const icons    = { 3:'🌱', 7:'🔥', 14:'⚡', 30:'✦', 60:'❋', 100:'∞' };
+        const labels   = { 3:'3-Day Flow', 7:'7-Day Spark', 14:'2-Week Fire', 30:'Month Ascendant', 60:'60-Day Oracle', 100:'Inner Cosmos' };
+        if (unlocked.length === 0) {
+            milestonesEl.innerHTML = '<div class="pro-milestone-empty">No milestones yet. Keep your streak going!</div>';
+        } else {
+            milestonesEl.innerHTML = unlocked
+                .sort((a,b) => a - b)
+                .map(m => `<div class="pro-milestone-chip">${icons[m] || '✦'} ${labels[m] || m + ' Days'}</div>`)
+                .join('');
+        }
+    }
+}
+
+// Wire close button
+document.addEventListener('DOMContentLoaded', () => {
+    const closeBtn = $('closeProfile');
+    if (closeBtn) closeBtn.addEventListener('click', closeProfile);
+    const logoutBtn = $('proLogoutBtn');
+    if (logoutBtn) logoutBtn.addEventListener('click', () => {
+        closeProfile();
+        $('logoutBtn').click();
+    });
+    // Close on backdrop tap
+    const modal = $('profileModal');
+    if (modal) modal.addEventListener('click', e => {
+        if (e.target === modal) closeProfile();
+    });
+});
 
 document.getElementById('historyBtn').addEventListener('click', async () => {
     const modal   = document.getElementById('historyModal');
     const content = modal.querySelector('.history-modal-content');
-    // FIX: replay animations on every open by resetting them
     modal.classList.remove('hidden');
     modal.style.animation   = 'none';
     content.style.animation = 'none';
@@ -5261,6 +5521,9 @@ document.getElementById('closeHistory').addEventListener('click', () => {
     document.getElementById('historyModal').classList.add('hidden');
 });
 document.getElementById('historyModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('historyModal'))
+        document.getElementById('historyModal').classList.add('hidden');
+});document.getElementById('historyModal').addEventListener('click', e => {
     if (e.target === document.getElementById('historyModal'))
         document.getElementById('historyModal').classList.add('hidden');
 });

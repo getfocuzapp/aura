@@ -1497,6 +1497,7 @@
             border-radius: 32px 32px 0 0;
             width: 100%; max-width: 480px;
             max-height: 92vh;
+            min-height: 85vh;
             display: flex; flex-direction: column;
             overflow: hidden;
             animation: sheetSlideUp 0.42s cubic-bezier(0.16,1,0.3,1) both;
@@ -2560,8 +2561,8 @@
         <button id="logoutBtn" style="display:none!important;visibility:hidden;position:absolute;pointer-events:none;">Logout</button>
     </div>
 
-    <!-- Identity Card Snapshot -->
-    <div id="identityPanel" class="identity-panel hidden">
+    <!-- Identity card hidden from home — shown in Profile tab -->
+    <div id="identityPanel" class="identity-panel" style="display:none!important">
         <!-- Hidden functional elements for JS compatibility -->
         <p id="streakText" class="streak hidden" style="display:none!important"><span class="streak-orb"></span><span class="streak-txt"></span></p>
         <p id="checkinText" class="checkin" style="display:none!important"></p>
@@ -2572,40 +2573,24 @@
             <div class="xp-bar-wrap"><div class="xp-bar-fill" id="xpBarFill" style="width:0%"></div></div>
             <div class="xp-label" id="xpLabel">XP · Lv 0</div>
         </div>
-        <div class="icard">
-            <div class="icard-top">
-                <img class="icard-orb" id="ipDomOrb" src="" alt=""/>
-                <div class="icard-info">
-                    <div class="icard-rank-row">
-                        <span class="icard-rank-name" id="ipRankTitle">Emotional Explorer</span>
-                        <span class="icard-level-badge" id="ipLevel">Lv. 0</span>
-                    </div>
-                    <div class="icard-xp-bar-wrap">
-                        <div class="icard-xp-bar-fill" id="ipXpBar" style="width:0%"></div>
-                    </div>
-                    <div class="icard-xp-text" id="ipXpText">0 / 20 XP</div>
-                </div>
-            </div>
-            <div class="icard-divider"></div>
-            <div class="icard-stats">
-                <div class="icard-stat">
-                    <span class="icard-stat-icon">🔥</span>
-                    <span class="icard-stat-val" id="ipStreak">0</span>
-                    <span class="icard-stat-lbl">Day Streak</span>
-                </div>
-                <div class="icard-stat-sep"></div>
-                <div class="icard-stat">
-                    <span class="icard-stat-icon aura-icon">◈</span>
-                    <span class="icard-stat-val" id="ipAuraEnergy">0%</span>
-                    <span class="icard-stat-lbl">Aura Energy</span>
-                </div>
-                <div class="icard-stat-sep"></div>
-                <div class="icard-stat">
-                    <img class="icard-stat-orb" id="ipDomOrbSmall" src="" alt=""/>
-                    <span class="icard-stat-val" id="ipDomMoodName">—</span>
-                    <span class="icard-stat-lbl">Dominant Mood</span>
-                </div>
-            </div>
+        <!-- Compact snapshot elements (kept for JS compat) -->
+        <img class="ip-orb" id="ipDomOrb" src="" alt="" style="display:none!important"/>
+        <div class="ip-center" style="display:none!important">
+            <div class="ip-rank" id="ipRankTitle"></div>
+            <div class="ip-bar-wrap"><div class="ip-bar-fill" id="ipXpBar" style="width:0%"></div></div>
+        </div>
+        <div class="ip-stats" style="display:none!important">
+            <div class="ip-stat"><div class="ip-stat-val" id="ipStreak">0</div><div class="ip-stat-lbl">Streak</div></div>
+            <div class="ip-stat"><div class="ip-stat-val" id="ipXpNum">0</div><div class="ip-stat-lbl">XP</div></div>
+            <div class="ip-stat"><div class="ip-stat-val" id="ipLevel">0</div><div class="ip-stat-lbl">Level</div></div>
+        </div>
+        <!-- icard elements (kept for JS compat) -->
+        <div style="display:none!important">
+            <div id="ipLevelAlt"></div>
+            <div id="ipXpText"></div>
+            <div id="ipAuraEnergy"></div>
+            <img id="ipDomOrbSmall" src="" alt=""/>
+            <div id="ipDomMoodName"></div>
         </div>
     </div>
 
@@ -4028,10 +4013,11 @@ function initBottomNav() {
     if (!nav) return;
     nav.classList.remove('hidden');
 
-    // Wire menu button → logout confirmation
+    // Menu button — no action needed, logout is on Profile page
     const menuBtn = $('menuBtn');
     if (menuBtn) menuBtn.addEventListener('click', () => {
-        if (confirm('Sign out of AURA?')) $('logoutBtn').click();
+        setNavActive('profile');
+        openProfile();
     });
 
     $('navHistory').addEventListener('click', () => {
@@ -5438,7 +5424,7 @@ function populateProfile() {
     const xp     = data.xp;
     const rank   = getRank(xp);
     const next   = getNextRank(xp);
-    const level  = Math.floor(xp / 100);
+    const level  = rank.index + 1; // rank 1–12, meaningful progression
     const pct    = next ? Math.round(((xp - rank.min) / (next.min - rank.min)) * 100) : 100;
     const dom    = getDominantMood(data.moodCounts);
     const glow   = dom ? (MOOD_GLOW_VARS[dom] || 'rgba(232,213,176,0.28)') : 'rgba(232,213,176,0.18)';

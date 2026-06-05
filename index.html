@@ -2547,16 +2547,12 @@
     <div id="appScreen">
 
     <div class="top-bar">
-        <button class="top-icon-btn" id="menuBtn" aria-label="Menu">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="17" y2="12"/><line x1="3" y1="17" x2="13" y2="17"/></svg>
-        </button>
+        <div style="width:2.2rem; flex-shrink:0;"></div>
         <div class="top-brand">
             <span class="top-brand-star">✦</span>
             <span class="top-brand-name">AURA</span>
         </div>
-        <!-- Spacer to balance the centered brand -->
         <div style="width:2.2rem; flex-shrink:0;"></div>
-        <!-- Hidden functional buttons — never visible, wired via menu/nav -->
         <button id="historyBtn" style="display:none!important;visibility:hidden;position:absolute;pointer-events:none;">History</button>
         <button id="logoutBtn" style="display:none!important;visibility:hidden;position:absolute;pointer-events:none;">Logout</button>
     </div>
@@ -4013,12 +4009,7 @@ function initBottomNav() {
     if (!nav) return;
     nav.classList.remove('hidden');
 
-    // Menu button — no action needed, logout is on Profile page
-    const menuBtn = $('menuBtn');
-    if (menuBtn) menuBtn.addEventListener('click', () => {
-        setNavActive('profile');
-        openProfile();
-    });
+    // Menu button removed — Profile accessible via bottom nav
 
     $('navHistory').addEventListener('click', () => {
         setNavActive('history');
@@ -4152,10 +4143,17 @@ async function processGeneration() {
     rewardMessage.classList.remove('hidden');
     updateXPDisplay();
     updateIdentityPanel();
+    _cachedCardBlob = null; // clear old cache
     setTimeout(() => $('shareBtn').classList.remove('hidden'), 150);
     const watermark = $('watermark');
     if (isPro) watermark.classList.add('hidden');
     else watermark.classList.remove('hidden');
+
+    // Pre-build blob in background so Download/Share are instant when tapped
+    buildStatusCanvas()
+        .then(canvas => new Promise(res => canvas.toBlob(res, 'image/png')))
+        .then(blob  => { _cachedCardBlob = blob; })
+        .catch(()   => { /* blob will be built on demand if this fails */ });
 
     saveToHistory({ mood: selectedMood, title: generated.title, text: generated.text, date: Date.now() });
 }
@@ -4817,28 +4815,30 @@ function triggerBlobDownload(blob) {
 }
 
 /* ── DOWNLOAD ── */
-downloadBtn.addEventListener('click', () => {
+let _cachedCardBlob = null; // cache so download/share don't rebuild canvas
+
+downloadBtn.addEventListener('click', async () => {
     if (!currentStatus || !selectedMood || isDownloading) return;
     isDownloading = true;
     downloadBtn.disabled = true;
     downloadBtn.textContent = 'Saving…';
-
-    captureCard()
-        .then(blob => {
-            triggerBlobDownload(blob);
-            downloadBtn.textContent = '✓ Saved';
-        })
-        .catch(err => {
-            console.error('Download error:', err);
-            downloadBtn.textContent = 'Failed';
-        })
-        .finally(() => {
-            setTimeout(() => {
-                downloadBtn.textContent = '⬇ Download';
-                downloadBtn.disabled = false;
-                isDownloading = false;
-            }, 1500);
-        });
+    try {
+        if (!_cachedCardBlob) {
+            const canvas = await buildStatusCanvas();
+            _cachedCardBlob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+        }
+        triggerBlobDownload(_cachedCardBlob);
+        downloadBtn.textContent = '✓ Saved';
+    } catch(err) {
+        console.error('Download error:', err);
+        downloadBtn.textContent = 'Failed';
+    } finally {
+        setTimeout(() => {
+            downloadBtn.textContent = '⬇ Download';
+            downloadBtn.disabled = false;
+            isDownloading = false;
+        }, 1500);
+    }
 });
 
 /* ── SHARE ── */
@@ -4847,53 +4847,63 @@ shareBtn.addEventListener('click', () => {
     if (!currentStatus || !selectedMood || isSharing) return;
     isSharing = true;
     shareBtn.disabled = true;
-    shareBtn.textContent = 'Preparing…';
+    shareBtn.textContent = 'Sharing…';
 
     const mood = selectedMood.charAt(0).toUpperCase() + selectedMood.slice(1);
     const shareText = mood + ' · Identity Status\nGenerated on AURA';
 
-    captureCard()
-        .then(blob => {
-            const file = new File([blob], 'aura-status.png', { type: 'image/png' });
+    const doShare = (blob) => {
+        const file = new File([blob], 'aura-status.png', { type: 'image/png' });
 
-            // Tier 1: native share WITH image file (Android Chrome / iOS Safari on HTTPS)
-            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                return navigator.share({
-                    title: 'My AURA Status',
-                    text: shareText,
-                    files: [file]
-                }).catch(err => {
-                    if (err.name !== 'AbortError') tryTextShare(shareText, blob);
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+            // Share sheet with image — called synchronously inside user gesture
+            navigator.share({
+                title: 'My AURA Status',
+                text: shareText,
+                files: [file]
+            }).catch(err => {
+                if (err.name !== 'AbortError') {
+                    // Share failed — fall back to text-only share
+                    navigator.share({ title: 'My AURA Status', text: shareText }).catch(() => {});
+                }
+            }).finally(() => {
+                shareBtn.disabled = false;
+                shareBtn.textContent = '↗ Share Image';
+                isSharing = false;
+            });
+        } else if (navigator.share) {
+            // Text-only share sheet
+            navigator.share({ title: 'My AURA Status', text: shareText })
+                .catch(() => {})
+                .finally(() => {
+                    shareBtn.disabled = false;
+                    shareBtn.textContent = '↗ Share Image';
+                    isSharing = false;
                 });
-            }
-
-            // Tier 2: native share WITHOUT file — download image first so user has it
-            if (navigator.share) {
-                triggerBlobDownload(blob);
-                return navigator.share({
-                    title: 'My AURA Status',
-                    text: shareText
-                }).catch(() => {});
-            }
-
-            // Tier 3: no Web Share API (desktop) — just download
+        } else {
+            // Desktop — download only
             triggerBlobDownload(blob);
-        })
-        .catch(err => console.error('Share error:', err))
-        .finally(() => {
             shareBtn.disabled = false;
             shareBtn.textContent = '↗ Share Image';
             isSharing = false;
-        });
-});
+        }
+    };
 
-function tryTextShare(text, blob) {
-    if (navigator.share) {
-        triggerBlobDownload(blob);
-        return navigator.share({ title: 'My AURA Status', text }).catch(() => {});
+    if (_cachedCardBlob) {
+        // Blob ready — call share immediately (preserves user gesture context)
+        doShare(_cachedCardBlob);
+    } else {
+        // Blob not ready — build then share (may lose gesture context on some browsers)
+        buildStatusCanvas()
+            .then(canvas => new Promise(res => canvas.toBlob(res, 'image/png')))
+            .then(blob => { _cachedCardBlob = blob; doShare(blob); })
+            .catch(() => {
+                shareBtn.disabled = false;
+                shareBtn.textContent = '↗ Share Image';
+                isSharing = false;
+            });
     }
-    triggerBlobDownload(blob);
-}
+});
 
 /* ── INIT ── */
 // Render from localStorage cache immediately (prevents XP/streak flash)

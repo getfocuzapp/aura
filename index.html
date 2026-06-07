@@ -2530,6 +2530,387 @@
         }
         
 
+
+        /* ══════════════════════════════════════════
+           PROFILE V2 — EMOTIONAL IDENTITY DASHBOARD
+        ══════════════════════════════════════════ */
+
+        /* Header */
+        .profile-header { padding-bottom: 0.5rem; }
+        .profile-header-text { display: flex; flex-direction: column; gap: 0.1rem; }
+        .profile-subtitle {
+            font-family: 'DM Sans', sans-serif; font-size: 0.52rem;
+            color: rgba(232,213,176,0.30); letter-spacing: 0.08em; margin: 0;
+        }
+
+        /* ── S1: EMOTIONAL PASSPORT ── */
+        .ep-card {
+            background: linear-gradient(145deg, rgba(22,16,36,0.98) 0%, rgba(14,10,24,0.98) 100%);
+            border: 1px solid rgba(232,213,176,0.14);
+            border-radius: 1.2rem; padding: 1.1rem;
+            position: relative; overflow: hidden;
+            box-shadow: 0 4px 32px rgba(0,0,0,0.60),
+                        0 0 0 1px rgba(232,213,176,0.05),
+                        inset 0 1px 0 rgba(232,213,176,0.08);
+            animation: epCardIn 600ms cubic-bezier(0.16,1,0.3,1) both;
+        }
+        @keyframes epCardIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .ep-card::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(ellipse 90% 60% at 25% 0%,
+                rgba(232,213,176,0.06) 0%, transparent 65%);
+            pointer-events: none;
+        }
+        .ep-particles {
+            position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+        }
+        .ep-particle {
+            position: absolute; border-radius: 50%;
+            background: radial-gradient(circle, rgba(232,213,176,0.70) 0%, transparent 70%);
+            animation: epFloat linear infinite;
+        }
+        @keyframes epFloat {
+            0%   { transform: translateY(0) scale(1);   opacity: 0; }
+            10%  { opacity: 0.8; }
+            90%  { opacity: 0.4; }
+            100% { transform: translateY(-80px) scale(0.4); opacity: 0; }
+        }
+        .ep-top { display: flex; align-items: flex-start; gap: 0.85rem; position: relative; z-index: 1; }
+        .ep-orb-wrap { position: relative; flex-shrink: 0; }
+        .ep-orb {
+            width: 76px; height: 76px; border-radius: 50%; object-fit: contain;
+            filter: drop-shadow(0 0 14px var(--ep-glow, rgba(232,213,176,0.35)));
+            animation: epOrbPulse 3.5s ease-in-out infinite;
+        }
+        @keyframes epOrbPulse {
+            0%,100% { filter: drop-shadow(0 0 14px var(--ep-glow, rgba(232,213,176,0.35))); }
+            50%      { filter: drop-shadow(0 0 24px var(--ep-glow, rgba(232,213,176,0.60))); }
+        }
+        .ep-orb-glow {
+            position: absolute; inset: -8px; border-radius: 50%;
+            background: radial-gradient(circle, var(--ep-glow, rgba(232,213,176,0.20)) 0%, transparent 70%);
+            pointer-events: none;
+            animation: epGlowBreath 3.5s ease-in-out infinite;
+        }
+        @keyframes epGlowBreath {
+            0%,100% { opacity: 0.6; transform: scale(1); }
+            50%      { opacity: 1.0; transform: scale(1.12); }
+        }
+        .ep-info { flex: 1; min-width: 0; position: relative; }
+        .ep-passport-label {
+            font-family: 'DM Sans', sans-serif; font-size: 0.42rem; font-weight: 600;
+            color: rgba(232,213,176,0.38); letter-spacing: 0.22em;
+            text-transform: uppercase; margin-bottom: 0.20rem;
+        }
+        .ep-rank-name {
+            font-family: 'Cormorant Garant', Georgia, serif;
+            font-size: 1.3rem; font-weight: 700; color: var(--gold);
+            letter-spacing: 0.02em; line-height: 1.1;
+        }
+        .ep-level-badge {
+            display: inline-block; margin-top: 0.30rem;
+            font-family: 'DM Sans', sans-serif; font-size: 0.56rem; font-weight: 700;
+            color: var(--gold);
+            background: rgba(232,213,176,0.10);
+            border: 1px solid rgba(232,213,176,0.28);
+            border-radius: 0.4rem; padding: 0.14rem 0.55rem;
+            letter-spacing: 0.10em;
+        }
+        .ep-xp-section { margin-top: 0.90rem; position: relative; z-index: 1; }
+        .ep-xp-nums {
+            display: flex; justify-content: space-between;
+            font-family: 'DM Sans', sans-serif; font-size: 0.52rem;
+            color: rgba(232,213,176,0.50); margin-bottom: 0.35rem;
+        }
+        .ep-next-label { color: rgba(232,213,176,0.30); font-size: 0.46rem; }
+        .ep-xp-bar-wrap {
+            width: 100%; height: 5px; background: rgba(232,213,176,0.08);
+            border-radius: 5px; overflow: hidden; position: relative;
+        }
+        .ep-xp-bar-fill {
+            height: 100%; border-radius: 5px;
+            background: linear-gradient(90deg, rgba(200,120,40,0.80), var(--gold), rgba(255,235,160,0.90));
+            transition: width 1200ms cubic-bezier(0.16,1,0.3,1);
+            position: relative; z-index: 1;
+        }
+        .ep-xp-bar-glow {
+            position: absolute; top: 0; left: 0; height: 100%; border-radius: 5px;
+            background: linear-gradient(90deg, transparent, rgba(232,213,176,0.55));
+            filter: blur(4px);
+            transition: width 1200ms cubic-bezier(0.16,1,0.3,1);
+        }
+        .ep-next-rank {
+            display: flex; align-items: center; gap: 0.65rem;
+            margin-top: 0.80rem; padding-top: 0.75rem;
+            border-top: 1px solid rgba(232,213,176,0.07);
+            position: relative; z-index: 1;
+        }
+        .ep-next-icon {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: rgba(232,213,176,0.06); border: 1px solid rgba(232,213,176,0.15);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.72rem; color: rgba(232,213,176,0.45); flex-shrink: 0;
+        }
+        .ep-next-rank-label {
+            font-family: 'DM Sans', sans-serif; font-size: 0.38rem;
+            color: rgba(232,213,176,0.28); letter-spacing: 0.16em; text-transform: uppercase;
+        }
+        .ep-next-rank-name {
+            font-family: 'Cormorant Garant', Georgia, serif;
+            font-size: 0.82rem; font-weight: 600; color: rgba(148,120,220,0.85);
+            letter-spacing: 0.03em;
+        }
+        .ep-next-rank-sub {
+            font-family: 'DM Sans', sans-serif; font-size: 0.40rem;
+            color: rgba(232,213,176,0.22); margin-top: 0.08rem;
+        }
+
+        /* ── S2: JOURNEY SNAPSHOT ── */
+        .journey-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.45rem;
+            animation: epCardIn 600ms cubic-bezier(0.16,1,0.3,1) 80ms both;
+        }
+        .journey-tile {
+            background: rgba(18,14,28,0.95);
+            border: 1px solid rgba(232,213,176,0.09);
+            border-radius: 0.9rem; padding: 0.75rem 0.3rem 0.65rem;
+            display: flex; flex-direction: column; align-items: center; gap: 0.22rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.40);
+        }
+        .journey-icon { font-size: 1.1rem; line-height: 1; }
+        .journey-icon-gen { font-size: 0.85rem; color: var(--gold); }
+        .journey-icon-lv  { font-size: 0.72rem; color: rgba(148,200,255,0.70); letter-spacing: -0.04em; }
+        .journey-icon-days{ font-size: 0.90rem; color: rgba(180,148,255,0.70); }
+        .journey-val {
+            font-family: 'DM Sans', sans-serif; font-size: 1.2rem; font-weight: 800;
+            color: var(--gold); line-height: 1;
+        }
+        .journey-lbl {
+            font-family: 'DM Sans', sans-serif; font-size: 0.36rem; font-weight: 500;
+            color: rgba(232,213,176,0.28); letter-spacing: 0.10em;
+            text-transform: uppercase; text-align: center;
+        }
+
+        /* ── S3: DOMINANT MOOD ── */
+        .dom-mood-card {
+            background: rgba(18,14,28,0.95);
+            border: 1px solid rgba(232,213,176,0.09);
+            border-radius: 1.1rem; padding: 1.0rem;
+            display: flex; align-items: center; gap: 0.75rem;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.40);
+            animation: epCardIn 600ms cubic-bezier(0.16,1,0.3,1) 120ms both;
+        }
+        .dom-mood-left { flex: 1; min-width: 0; }
+        .dom-mood-label-sm {
+            font-family: 'DM Sans', sans-serif; font-size: 0.40rem; font-weight: 600;
+            color: rgba(232,213,176,0.28); letter-spacing: 0.18em; text-transform: uppercase;
+            margin-bottom: 0.20rem;
+        }
+        .dom-mood-name {
+            font-family: 'Cormorant Garant', Georgia, serif;
+            font-size: 1.45rem; font-weight: 700; color: var(--gold); line-height: 1.1;
+        }
+        .dom-mood-pct-row { display: flex; align-items: baseline; gap: 0.3rem; margin: 0.20rem 0; }
+        .dom-mood-pct {
+            font-family: 'DM Sans', sans-serif; font-size: 0.80rem; font-weight: 700;
+            color: rgba(232,213,176,0.65);
+        }
+        .dom-mood-pct-sub {
+            font-family: 'DM Sans', sans-serif; font-size: 0.38rem;
+            color: rgba(232,213,176,0.25);
+        }
+        .dom-mood-desc {
+            font-family: 'DM Sans', sans-serif; font-size: 0.44rem;
+            color: rgba(232,213,176,0.32); font-style: italic; line-height: 1.4;
+            margin-top: 0.25rem;
+        }
+        .dom-mood-right { display: flex; flex-direction: column; align-items: center; gap: 0.40rem; flex-shrink: 0; }
+        .dom-mood-orb {
+            width: 52px; height: 52px; object-fit: contain; border-radius: 50%;
+            filter: drop-shadow(0 0 10px var(--dom-glow, rgba(232,213,176,0.35)));
+        }
+        .dom-mood-ring-wrap { position: relative; width: 52px; height: 52px; }
+        .dom-mood-ring { width: 100%; height: 100%; }
+        .dmr-track { stroke: rgba(232,213,176,0.08); }
+        .dmr-fill {
+            stroke: var(--gold); stroke-linecap: round;
+            transition: stroke-dashoffset 1200ms cubic-bezier(0.16,1,0.3,1);
+            filter: drop-shadow(0 0 3px rgba(232,213,176,0.50));
+        }
+        .dom-ring-num {
+            position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+            font-family: 'DM Sans', sans-serif; font-size: 0.55rem; font-weight: 700;
+            color: var(--gold);
+        }
+
+        /* ── S4: MOOD DISTRIBUTION ── */
+        .mood-dist-card {
+            background: rgba(18,14,28,0.95);
+            border: 1px solid rgba(232,213,176,0.09);
+            border-radius: 1.1rem; padding: 0.95rem;
+            animation: epCardIn 600ms cubic-bezier(0.16,1,0.3,1) 160ms both;
+        }
+        .mood-dist-header { margin-bottom: 0.75rem; }
+        .mood-dist-body { display: flex; gap: 0.75rem; align-items: center; }
+        .mood-dist-bars { flex: 1; display: flex; flex-direction: column; gap: 0.45rem; }
+        .mood-dist-row { display: flex; align-items: center; gap: 0.45rem; }
+        .mood-dist-row-name {
+            font-family: 'DM Sans', sans-serif; font-size: 0.48rem; font-weight: 500;
+            color: rgba(232,213,176,0.55); width: 60px; flex-shrink: 0;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .mood-dist-bar-wrap {
+            flex: 1; height: 5px; background: rgba(232,213,176,0.07); border-radius: 5px; overflow: hidden;
+        }
+        .mood-dist-bar-fill {
+            height: 100%; border-radius: 5px;
+            transition: width 1000ms cubic-bezier(0.16,1,0.3,1);
+        }
+        .mood-dist-pct {
+            font-family: 'DM Sans', sans-serif; font-size: 0.44rem; font-weight: 600;
+            color: rgba(232,213,176,0.40); width: 26px; text-align: right; flex-shrink: 0;
+        }
+        .mood-dist-empty {
+            font-family: 'DM Sans', sans-serif; font-size: 0.52rem;
+            color: rgba(232,213,176,0.20); font-style: italic;
+        }
+        .mood-dist-donut-wrap {
+            width: 90px; height: 90px; flex-shrink: 0; position: relative;
+        }
+        .mood-dist-donut { border-radius: 50%; }
+        .mood-dist-donut-orb {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            object-fit: contain; border-radius: 50%;
+            filter: drop-shadow(0 0 6px rgba(232,213,176,0.30));
+            padding: 22px; box-sizing: border-box;
+        }
+
+        /* ── S5: RECENT EVOLUTION ── */
+        .evolution-card {
+            background: rgba(18,14,28,0.95);
+            border: 1px solid rgba(232,213,176,0.09);
+            border-radius: 1.1rem; padding: 0.95rem;
+            animation: epCardIn 600ms cubic-bezier(0.16,1,0.3,1) 200ms both;
+        }
+        .evo-path { display: flex; flex-direction: column; gap: 0; }
+        .evo-item {
+            display: flex; align-items: center; gap: 0.65rem; padding: 0.50rem 0;
+            position: relative;
+        }
+        .evo-item:not(:last-child)::after {
+            content: ''; position: absolute; left: 15px; top: calc(50% + 16px);
+            width: 1px; height: calc(100% - 6px);
+            background: rgba(232,213,176,0.10); z-index: 0;
+        }
+        .evo-dot {
+            width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.65rem; position: relative; z-index: 1;
+            transition: all 300ms ease;
+        }
+        .evo-dot.current {
+            background: linear-gradient(135deg, rgba(232,213,176,0.20), rgba(232,213,176,0.10));
+            border: 1.5px solid rgba(232,213,176,0.45);
+            box-shadow: 0 0 14px rgba(232,213,176,0.25);
+        }
+        .evo-dot.done {
+            background: rgba(232,213,176,0.08);
+            border: 1px solid rgba(232,213,176,0.18);
+        }
+        .evo-dot.locked {
+            background: rgba(232,213,176,0.03);
+            border: 1px dashed rgba(232,213,176,0.10);
+        }
+        .evo-info { flex: 1; }
+        .evo-rank-name {
+            font-family: 'DM Sans', sans-serif; font-size: 0.60rem; font-weight: 600;
+            line-height: 1;
+        }
+        .evo-rank-name.current { color: var(--gold); }
+        .evo-rank-name.done    { color: rgba(232,213,176,0.55); }
+        .evo-rank-name.locked  { color: rgba(232,213,176,0.20); }
+        .evo-chip {
+            font-family: 'DM Sans', sans-serif; font-size: 0.36rem; font-weight: 600;
+            letter-spacing: 0.10em; text-transform: uppercase;
+            background: rgba(232,213,176,0.10); color: rgba(232,213,176,0.60);
+            border-radius: 0.3rem; padding: 0.08rem 0.35rem; margin-left: 0.4rem;
+        }
+
+        /* ── S6: STREAK MILESTONES ── */
+        .milestones-card {
+            background: rgba(18,14,28,0.95);
+            border: 1px solid rgba(232,213,176,0.09);
+            border-radius: 1.1rem; padding: 0.95rem;
+            animation: epCardIn 600ms cubic-bezier(0.16,1,0.3,1) 240ms both;
+        }
+        .milestones-row {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            gap: 0.25rem;
+        }
+        .ms-item { display: flex; flex-direction: column; align-items: center; gap: 0.28rem; flex: 1; }
+        .ms-badge {
+            width: 36px; height: 36px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; transition: all 300ms ease;
+        }
+        .ms-badge.done {
+            background: linear-gradient(135deg, rgba(232,184,40,0.22), rgba(200,140,20,0.15));
+            border: 1.5px solid rgba(232,184,40,0.55);
+            box-shadow: 0 0 12px rgba(232,184,40,0.30);
+            color: rgba(232,184,40,0.90);
+        }
+        .ms-badge.open {
+            background: rgba(232,213,176,0.04);
+            border: 1px dashed rgba(232,213,176,0.14);
+            color: rgba(232,213,176,0.18);
+        }
+        .ms-label {
+            font-family: 'DM Sans', sans-serif; font-size: 0.36rem; font-weight: 500;
+            color: rgba(232,213,176,0.28); letter-spacing: 0.06em; text-align: center;
+        }
+        .ms-label.done { color: rgba(232,184,40,0.60); }
+
+        /* ── S7: ACHIEVEMENTS ── */
+        .achievements-card {
+            background: rgba(18,14,28,0.95);
+            border: 1px solid rgba(232,213,176,0.09);
+            border-radius: 1.1rem; padding: 0.95rem;
+            animation: epCardIn 600ms cubic-bezier(0.16,1,0.3,1) 280ms both;
+        }
+        .achievements-header { margin-bottom: 0.75rem; }
+        .achievements-grid {
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.45rem;
+        }
+        .ach-item { display: flex; flex-direction: column; align-items: center; gap: 0.28rem; }
+        .ach-badge {
+            width: 48px; height: 48px; border-radius: 0.7rem;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem; transition: all 300ms ease;
+        }
+        .ach-badge.unlocked {
+            background: linear-gradient(135deg, rgba(232,213,176,0.14), rgba(200,160,40,0.10));
+            border: 1px solid rgba(232,213,176,0.24);
+            box-shadow: 0 0 16px rgba(232,213,176,0.12);
+        }
+        .ach-badge.locked {
+            background: rgba(232,213,176,0.03);
+            border: 1px solid rgba(232,213,176,0.07);
+            filter: grayscale(1); opacity: 0.35;
+        }
+        .ach-name {
+            font-family: 'DM Sans', sans-serif; font-size: 0.36rem; font-weight: 500;
+            color: rgba(232,213,176,0.35); text-align: center; line-height: 1.3;
+        }
+        .ach-status {
+            font-family: 'DM Sans', sans-serif; font-size: 0.32rem;
+            color: rgba(232,213,176,0.22); text-align: center;
+        }
+        .ach-item.unlocked .ach-name  { color: rgba(232,213,176,0.65); }
+        .ach-item.unlocked .ach-status { color: rgba(100,200,120,0.60); }
+
 </style>
 </head>
 <body>
@@ -5351,64 +5732,141 @@ async function loadHistory() {
 <div id="profileModal" class="profile-overlay hidden">
     <div class="profile-content">
         <div class="history-drag-pill"></div>
+
+        <!-- Header -->
         <div class="profile-header">
-            <h2 class="profile-title">Profile</h2>
+            <div class="profile-header-text">
+                <h2 class="profile-title">Profile</h2>
+                <p class="profile-subtitle">Your emotional identity</p>
+            </div>
             <button id="closeProfile" class="history-close-btn">✕</button>
         </div>
+
         <div class="profile-body">
 
-            <!-- Identity rank card -->
-            <div class="pro-rank-card">
-                <div class="pro-rank-top">
-                    <img class="pro-rank-orb" id="proOrbImg" src="" alt=""/>
-                    <div class="pro-rank-info">
-                        <div class="pro-rank-label">Emotional Rank</div>
-                        <div class="pro-rank-name" id="proRankName">Emotional Explorer</div>
-                        <div class="pro-xp-bar-wrap">
-                            <div class="pro-xp-bar-fill" id="proXpBar" style="width:0%"></div>
-                        </div>
-                        <div class="pro-xp-text" id="proXpText">0 / 20 XP</div>
+            <!-- S1: Emotional Passport -->
+            <div class="ep-card" id="epCard">
+                <div class="ep-particles" id="epParticles"></div>
+                <div class="ep-top">
+                    <div class="ep-orb-wrap">
+                        <img class="ep-orb" id="proOrbImg" src="" alt=""/>
+                        <div class="ep-orb-glow" id="epOrbGlow"></div>
                     </div>
-                    <div class="pro-level-badge" id="proLevel">Lv. 0</div>
+                    <div class="ep-info">
+                        <div class="ep-passport-label">Emotional Passport ✦</div>
+                        <div class="ep-rank-name" id="proRankName">Emotional Explorer</div>
+                        <div class="ep-level-badge" id="proLevel">Lv. 1</div>
+                    </div>
+                </div>
+                <div class="ep-xp-section">
+                    <div class="ep-xp-nums">
+                        <span id="proXpText">0 / 20 XP</span>
+                        <span id="proNextLabel" class="ep-next-label">Next Rank: 20 XP</span>
+                    </div>
+                    <div class="ep-xp-bar-wrap">
+                        <div class="ep-xp-bar-fill" id="proXpBar" style="width:0%"></div>
+                        <div class="ep-xp-bar-glow" id="proXpBarGlow" style="width:0%"></div>
+                    </div>
+                </div>
+                <div class="ep-next-rank" id="epNextRank">
+                    <div class="ep-next-icon">✦</div>
+                    <div>
+                        <div class="ep-next-rank-label">Next Rank</div>
+                        <div class="ep-next-rank-name" id="proNextRankName">Mind Wanderer</div>
+                        <div class="ep-next-rank-sub">Keep exploring your emotions</div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Stats strip -->
-            <div class="pro-stats-strip">
-                <div class="pro-stat">
-                    <span class="pro-stat-val" id="proStreak">0</span>
-                    <span class="pro-stat-lbl">Day Streak</span>
+            <!-- S2: Journey Snapshot -->
+            <div class="journey-grid">
+                <div class="journey-tile">
+                    <span class="journey-icon">🔥</span>
+                    <span class="journey-val" id="proStreak">0</span>
+                    <span class="journey-lbl">Day Streak</span>
                 </div>
-                <div class="pro-stat-sep"></div>
-                <div class="pro-stat">
-                    <span class="pro-stat-val" id="proGenerated">0</span>
-                    <span class="pro-stat-lbl">Generated</span>
+                <div class="journey-tile">
+                    <span class="journey-icon journey-icon-gen">✦</span>
+                    <span class="journey-val" id="proGenerated">0</span>
+                    <span class="journey-lbl">Generated</span>
                 </div>
-                <div class="pro-stat-sep"></div>
-                <div class="pro-stat">
-                    <span class="pro-stat-val" id="proLevel2">0</span>
-                    <span class="pro-stat-lbl">Level</span>
+                <div class="journey-tile">
+                    <span class="journey-icon journey-icon-lv">↑↑</span>
+                    <span class="journey-val" id="proLevel2">0</span>
+                    <span class="journey-lbl">Level</span>
                 </div>
-            </div>
-
-            <!-- Dominant mood -->
-            <div class="pro-dom-mood" id="proDomMood">
-                <img class="pro-dom-orb" id="proDomOrb" src="" alt=""/>
-                <div class="pro-dom-text">
-                    <div class="pro-dom-label">Dominant Mood</div>
-                    <div class="pro-dom-name" id="proDomName">—</div>
-                    <div class="pro-dom-desc" id="proDomDesc">Generate your first status to begin.</div>
+                <div class="journey-tile">
+                    <span class="journey-icon journey-icon-days">◫</span>
+                    <span class="journey-val" id="proDaysJoined">—</span>
+                    <span class="journey-lbl">Days Joined</span>
                 </div>
             </div>
 
-            <!-- Milestones -->
-            <div class="pro-section-label">Streak Milestones</div>
-            <div class="pro-milestones" id="proMilestones">
-                <div class="pro-milestone-empty">No milestones yet. Keep your streak going!</div>
+            <!-- S3: Dominant Mood -->
+            <div class="dom-mood-card" id="proDomMood">
+                <div class="dom-mood-left">
+                    <div class="dom-mood-label-sm">Dominant Mood</div>
+                    <div class="dom-mood-name" id="proDomName">—</div>
+                    <div class="dom-mood-pct-row">
+                        <span class="dom-mood-pct" id="proDomPct">0%</span>
+                        <span class="dom-mood-pct-sub">of recent patterns</span>
+                    </div>
+                    <div class="dom-mood-desc" id="proDomDesc">Generate your first status to begin.</div>
+                </div>
+                <div class="dom-mood-right">
+                    <img class="dom-mood-orb" id="proDomOrb" src="" alt=""/>
+                    <div class="dom-mood-ring-wrap">
+                        <svg class="dom-mood-ring" viewBox="0 0 64 64">
+                            <circle class="dmr-track" cx="32" cy="32" r="26" fill="none" stroke-width="5"/>
+                            <circle class="dmr-fill" id="proDomRing" cx="32" cy="32" r="26" fill="none" stroke-width="5"
+                                    stroke-dasharray="163.36" stroke-dashoffset="163.36"
+                                    transform="rotate(-90 32 32)"/>
+                        </svg>
+                        <span class="dom-ring-num" id="proDomRingNum">0%</span>
+                    </div>
+                </div>
             </div>
 
-            <!-- Logout -->
-            <button class="pro-logout-btn" id="proLogoutBtn">Sign Out</button>
+            <!-- S4: Mood Distribution -->
+            <div class="mood-dist-card">
+                <div class="mood-dist-header">
+                    <span class="pro-section-label">Mood Distribution</span>
+                </div>
+                <div class="mood-dist-body">
+                    <div class="mood-dist-bars" id="moodDistBars">
+                        <div class="mood-dist-empty">No data yet.</div>
+                    </div>
+                    <div class="mood-dist-donut-wrap">
+                        <canvas class="mood-dist-donut" id="moodDistDonut" width="90" height="90"></canvas>
+                        <img class="mood-dist-donut-orb" id="moodDistOrb" src="" alt=""/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- S5: Recent Evolution -->
+            <div class="evolution-card">
+                <div class="pro-section-label" style="margin-bottom:0.75rem">Recent Evolution</div>
+                <div class="evo-path" id="evoPath"></div>
+            </div>
+
+            <!-- S6: Streak Milestones -->
+            <div class="milestones-card">
+                <div class="pro-section-label" style="margin-bottom:0.75rem">Streak Milestones</div>
+                <div class="milestones-row" id="proMilestones"></div>
+            </div>
+
+            <!-- S7: Achievements -->
+            <div class="achievements-card">
+                <div class="achievements-header">
+                    <span class="pro-section-label">Achievements</span>
+                </div>
+                <div class="achievements-grid" id="proAchievements"></div>
+            </div>
+
+            <!-- S8: Sign Out -->
+            <button class="pro-logout-btn" id="proLogoutBtn">
+                <span>↪</span> Sign Out
+            </button>
 
         </div>
     </div>
@@ -5434,52 +5892,209 @@ function populateProfile() {
     const xp     = data.xp;
     const rank   = getRank(xp);
     const next   = getNextRank(xp);
-    const level  = rank.index + 1; // rank 1–12, meaningful progression
+    const level  = rank.index + 1;
     const pct    = next ? Math.round(((xp - rank.min) / (next.min - rank.min)) * 100) : 100;
     const dom    = getDominantMood(data.moodCounts);
     const glow   = dom ? (MOOD_GLOW_VARS[dom] || 'rgba(232,213,176,0.28)') : 'rgba(232,213,176,0.18)';
+    const el     = (id) => document.getElementById(id);
 
-    // Rank card
-    const proOrb = $('proOrbImg');
-    if (proOrb) { proOrb.src = dom ? (MOOD_SVG[dom] || '') : ''; proOrb.style.setProperty('--dom-glow', glow); }
-    const proRank = $('proRankName'); if (proRank) proRank.textContent = rank.title;
-    const proXpBar = $('proXpBar'); if (proXpBar) proXpBar.style.width = Math.min(pct, 100) + '%';
-    const proXpText = $('proXpText'); if (proXpText) proXpText.textContent = xp + ' / ' + (next ? next.min : '∞') + ' XP';
-    const proLvl = $('proLevel'); if (proLvl) proLvl.textContent = 'Lv. ' + level;
+    // ── S1: EMOTIONAL PASSPORT ──
+    const card = document.getElementById('epCard');
+    if (card) card.style.setProperty('--ep-glow', glow);
+    const epOrbGlow = el('epOrbGlow');
+    if (epOrbGlow) epOrbGlow.style.background = `radial-gradient(circle, ${glow} 0%, transparent 70%)`;
 
-    // Stats
-    const proStreak = $('proStreak'); if (proStreak) proStreak.textContent = data.streak || 0;
-    const proGen    = $('proGenerated'); if (proGen) proGen.textContent = data.totalGenerations || 0;
-    const proLvl2   = $('proLevel2'); if (proLvl2) proLvl2.textContent = level;
+    const proOrb = el('proOrbImg');
+    if (proOrb) { proOrb.src = dom ? (MOOD_SVG[dom] || '') : ''; }
+    if (el('proRankName'))   el('proRankName').textContent   = rank.title;
+    if (el('proLevel'))      el('proLevel').textContent      = 'Lv. ' + level;
+    if (el('proXpText'))     el('proXpText').textContent     = xp + ' / ' + (next ? next.min : '∞') + ' XP';
+    if (el('proNextLabel'))  el('proNextLabel').textContent  = 'Next Rank: ' + (next ? next.min : '∞') + ' XP';
+    if (el('proNextRankName')) el('proNextRankName').textContent = next ? next.title : 'Max Rank Reached';
 
-    // Dominant mood
-    const proDomOrb  = $('proDomOrb');
-    const proDomName = $('proDomName');
-    const proDomDesc = $('proDomDesc');
-    if (dom) {
-        if (proDomOrb)  { proDomOrb.src = MOOD_SVG[dom] || ''; proDomOrb.style.setProperty('--dom-glow', glow); }
-        if (proDomName) proDomName.textContent = dom.charAt(0).toUpperCase() + dom.slice(1);
-        if (proDomDesc) proDomDesc.textContent = MOOD_IDENTITY_DESC[dom] || '';
-    } else {
-        if (proDomOrb)  proDomOrb.src = '';
-        if (proDomName) proDomName.textContent = '—';
-        if (proDomDesc) proDomDesc.textContent = 'Generate your first status to begin.';
+    // Animate XP bar
+    requestAnimationFrame(() => {
+        if (el('proXpBar'))     el('proXpBar').style.width     = Math.min(pct,100) + '%';
+        if (el('proXpBarGlow')) el('proXpBarGlow').style.width = Math.min(pct,100) + '%';
+    });
+
+    // Particles
+    const particles = el('epParticles');
+    if (particles && !particles.dataset.built) {
+        particles.dataset.built = '1';
+        for (let i = 0; i < 12; i++) {
+            const p = document.createElement('div');
+            p.className = 'ep-particle';
+            const size = 2 + Math.random() * 3;
+            p.style.cssText = `
+                width:${size}px; height:${size}px;
+                left:${Math.random()*100}%;
+                top:${20+Math.random()*80}%;
+                animation-duration:${3+Math.random()*4}s;
+                animation-delay:${Math.random()*4}s;
+            `;
+            particles.appendChild(p);
+        }
     }
 
-    // Milestones
-    const milestonesEl = $('proMilestones');
-    if (milestonesEl) {
-        const unlocked = data.unlockedMilestones || [];
-        const icons    = { 3:'🌱', 7:'🔥', 14:'⚡', 30:'✦', 60:'❋', 100:'∞' };
-        const labels   = { 3:'3-Day Flow', 7:'7-Day Spark', 14:'2-Week Fire', 30:'Month Ascendant', 60:'60-Day Oracle', 100:'Inner Cosmos' };
-        if (unlocked.length === 0) {
-            milestonesEl.innerHTML = '<div class="pro-milestone-empty">No milestones yet. Keep your streak going!</div>';
+    // ── S2: JOURNEY SNAPSHOT ──
+    if (el('proStreak'))    el('proStreak').textContent    = data.streak || 0;
+    if (el('proGenerated')) el('proGenerated').textContent = data.totalGenerations || 0;
+    if (el('proLevel2'))    el('proLevel2').textContent    = level;
+
+    // Days joined from Firestore lastActive or fallback
+    const joined = data.joinedDate || null;
+    if (el('proDaysJoined')) {
+        if (joined) {
+            const days = Math.floor((Date.now() - joined) / 86400000);
+            el('proDaysJoined').textContent = days || 1;
         } else {
-            milestonesEl.innerHTML = unlocked
-                .sort((a,b) => a - b)
-                .map(m => `<div class="pro-milestone-chip">${icons[m] || '✦'} ${labels[m] || m + ' Days'}</div>`)
-                .join('');
+            el('proDaysJoined').textContent = '—';
         }
+    }
+
+    // ── S3: DOMINANT MOOD ──
+    const moodCounts = data.moodCounts || {};
+    const total = Object.values(moodCounts).reduce((a,b) => a+b, 0);
+    const domPct = dom && total > 0 ? Math.round((moodCounts[dom]/total)*100) : 0;
+
+    const domOrb = el('proDomOrb');
+    if (domOrb) { domOrb.src = dom ? (MOOD_SVG[dom]||'') : ''; domOrb.style.setProperty('--dom-glow', glow); }
+    if (el('proDomName')) el('proDomName').textContent = dom ? dom.charAt(0).toUpperCase()+dom.slice(1) : '—';
+    if (el('proDomPct'))  el('proDomPct').textContent  = domPct + '%';
+    if (el('proDomDesc')) el('proDomDesc').textContent = dom ? (MOOD_IDENTITY_DESC[dom]||'') : 'Generate your first status to begin.';
+    if (el('proDomRingNum')) el('proDomRingNum').textContent = domPct + '%';
+
+    // Ring animation
+    requestAnimationFrame(() => {
+        const ring = el('proDomRing');
+        if (ring) {
+            const circumference = 163.36;
+            const offset = circumference - (domPct/100)*circumference;
+            ring.style.strokeDashoffset = offset;
+            ring.style.stroke = glow.replace(/[\d.]+\)$/, '0.80)');
+        }
+    });
+
+    // ── S4: MOOD DISTRIBUTION ──
+    const distBars = el('moodDistBars');
+    const donutCanvas = el('moodDistDonut');
+    const donutOrb = el('moodDistOrb');
+    if (donutOrb && dom) donutOrb.src = MOOD_SVG[dom] || '';
+
+    const MOOD_COLORS_DIST = {
+        tired:'#c864c8', motivated:'#f07820', lost:'#4696f0',
+        angry:'#f02828', anxious:'#9650f0', grinding:'#f06410',
+        calm:'#14c8dc', overthinking:'#8c32dc', sad:'#3460c8',
+        happy:'#f0b820', numb:'#7878a0', recovering:'#14c860', growing:'#50c840'
+    };
+
+    if (distBars) {
+        const sorted = Object.entries(moodCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+        if (sorted.length === 0) {
+            distBars.innerHTML = '<div class="mood-dist-empty">No data yet.</div>';
+        } else {
+            const maxVal = sorted[0][1];
+            distBars.innerHTML = sorted.map(([mood,count]) => {
+                const moodPct = total > 0 ? Math.round((count/total)*100) : 0;
+                const barW = maxVal > 0 ? Math.round((count/maxVal)*100) : 0;
+                const color = MOOD_COLORS_DIST[mood] || '#e8d5b0';
+                const name = mood.charAt(0).toUpperCase()+mood.slice(1);
+                return `<div class="mood-dist-row">
+                    <span class="mood-dist-row-name">${name}</span>
+                    <div class="mood-dist-bar-wrap">
+                        <div class="mood-dist-bar-fill" style="width:0%;background:${color}" data-w="${barW}"></div>
+                    </div>
+                    <span class="mood-dist-pct">${moodPct}%</span>
+                </div>`;
+            }).join('');
+            // Animate bars
+            requestAnimationFrame(() => {
+                distBars.querySelectorAll('.mood-dist-bar-fill').forEach(b => {
+                    b.style.width = b.dataset.w + '%';
+                });
+            });
+        }
+    }
+
+    // Donut chart
+    if (donutCanvas && total > 0) {
+        const ctx2 = donutCanvas.getContext('2d');
+        const entries = Object.entries(moodCounts).sort((a,b)=>b[1]-a[1]).slice(0,6);
+        const sum = entries.reduce((a,[,v])=>a+v,0);
+        let startAngle = -Math.PI/2;
+        const cx=45, cy=45, r=36, inner=24;
+        ctx2.clearRect(0,0,90,90);
+        entries.forEach(([mood,count]) => {
+            const slice = (count/sum)*(Math.PI*2);
+            ctx2.beginPath();
+            ctx2.moveTo(cx,cy);
+            ctx2.arc(cx,cy,r,startAngle,startAngle+slice);
+            ctx2.closePath();
+            ctx2.fillStyle = MOOD_COLORS_DIST[mood] || '#e8d5b0';
+            ctx2.globalAlpha = 0.85;
+            ctx2.fill();
+            startAngle += slice;
+        });
+        // Donut hole
+        ctx2.globalAlpha = 1;
+        ctx2.beginPath();
+        ctx2.arc(cx,cy,inner,0,Math.PI*2);
+        ctx2.fillStyle = '#0d0a18';
+        ctx2.fill();
+    }
+
+    // ── S5: RECENT EVOLUTION ──
+    const evoPath = el('evoPath');
+    if (evoPath) {
+        const icons = ['◦','◈','◉','✦','✦','◈','✧','✴','✧','✴','❋','❋'];
+        evoPath.innerHTML = EMOTIONAL_RANKS.slice(0, Math.min(rank.index+3, EMOTIONAL_RANKS.length))
+            .map((r, i) => {
+                let state = i < rank.index ? 'done' : i === rank.index ? 'current' : 'locked';
+                const chip = state === 'current' ? '<span class="evo-chip">Current</span>' : '';
+                return `<div class="evo-item">
+                    <div class="evo-dot ${state}">${icons[i]||'◦'}</div>
+                    <div class="evo-info">
+                        <span class="evo-rank-name ${state}">${r.title}${chip}</span>
+                    </div>
+                </div>`;
+            }).join('');
+    }
+
+    // ── S6: STREAK MILESTONES ──
+    const msEl = el('proMilestones');
+    if (msEl) {
+        const MILESTONES = [1, 3, 7, 14, 30, 100];
+        const unlocked = data.unlockedMilestones || [];
+        const streak = data.streak || 0;
+        msEl.innerHTML = MILESTONES.map(m => {
+            const done = unlocked.includes(m) || streak >= m;
+            return `<div class="ms-item">
+                <div class="ms-badge ${done?'done':'open'}">${done?'✓':'○'}</div>
+                <span class="ms-label ${done?'done':''}">${m} ${m===1?'Day':'Days'}</span>
+            </div>`;
+        }).join('');
+    }
+
+    // ── S7: ACHIEVEMENTS ──
+    const achEl = el('proAchievements');
+    if (achEl) {
+        const ACHIEVEMENTS = [
+            { id:'first_gen',    icon:'✦', name:'First Expression', desc:'First status', check: () => (data.totalGenerations||0) >= 1 },
+            { id:'first_streak', icon:'🔥', name:'First Streak',     desc:'2-day streak',  check: () => (data.streak||0) >= 2 },
+            { id:'level_up',     icon:'↑↑', name:'Level Up',         desc:'Reach Level 2', check: () => level >= 2 },
+            { id:'explorer',     icon:'◉', name:'Explorer',          desc:'5 moods used',  check: () => Object.keys(moodCounts).length >= 5 },
+            { id:'growing_mind', icon:'🌱', name:'Growing Mind',      desc:'10 generated',  check: () => (data.totalGenerations||0) >= 10 },
+            { id:'deep_diver',   icon:'◈', name:'Deep Diver',         desc:'50 generated',  check: () => (data.totalGenerations||0) >= 50 },
+        ];
+        achEl.innerHTML = ACHIEVEMENTS.map(a => {
+            const unlocked = a.check();
+            return `<div class="ach-item ${unlocked?'unlocked':'locked'}">
+                <div class="ach-badge ${unlocked?'unlocked':'locked'}">${a.icon}</div>
+                <div class="ach-name">${a.name}</div>
+                <div class="ach-status">${unlocked?'Unlocked':'Locked'}</div>
+            </div>`;
+        }).join('');
     }
 }
 

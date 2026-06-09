@@ -1467,18 +1467,15 @@
 
         /* ── Overlay ── */
         .history-modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.75);
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            z-index: 500;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            animation: overlayFadeIn 0.3s ease both;
+            display: none;
+            width: 100%; max-width: 26rem;
+            min-height: calc(100vh - 4.4rem);
+            flex-direction: column;
+            position: relative; z-index: 1;
+            animation: fadeUp var(--anim) cubic-bezier(0.16,1,0.3,1) both;
         }
-        .history-modal-overlay.hidden { display: none; }
+        .history-modal-overlay.visible { display: flex; }
+        .history-modal-overlay.hidden  { display: none; }
 
 /* ── PROFILE PAGE (tab, not modal) ── */
         .profile-overlay {
@@ -1650,42 +1647,27 @@
 
         /* ── Sheet ── */
         .history-modal-content {
-            background: #070710;
-            border: 1px solid rgba(255,255,255,0.07);
-            border-bottom: none;
-            border-radius: 32px 32px 0 0;
-            width: 100%;
-            max-width: 480px;
-            max-height: 90vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            animation: sheetSlideUp 0.42s cubic-bezier(0.16,1,0.3,1) both;
-            box-shadow:
-                0 -1px 0 rgba(255,255,255,0.06),
-                0 -20px 80px rgba(0,0,0,0.95),
-                0 -4px 30px rgba(100,80,200,0.08);
+            background: transparent;
+            border: none; border-radius: 0;
+            width: 100%; flex: 1;
+            display: flex; flex-direction: column;
+            overflow: visible;
+            box-shadow: none;
+            animation: none;
         }
 
-        /* ── Drag pill ── */
-        .history-drag-pill {
-            width: 36px;
-            height: 3.5px;
-            border-radius: 2px;
-            background: rgba(255,255,255,0.12);
-            margin: 12px auto 0;
-            flex-shrink: 0;
-        }
+        /* ── Drag pill — hidden for tab mode ── */
+        .history-drag-pill { display: none; }
 
         /* ── Header ── */
         .history-modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 18px 20px 14px;
+            padding: 14px 18px 10px;
             position: sticky;
             top: 0;
-            background: linear-gradient(180deg, #070710 65%, transparent 100%);
+            background: linear-gradient(180deg, #070710 70%, transparent 100%);
             z-index: 2;
             flex-shrink: 0;
         }
@@ -1698,37 +1680,103 @@
             letter-spacing: -0.04em;
             line-height: 1;
         }
+        .history-modal-subtitle {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.52rem; font-weight: 500;
+            color: rgba(232,213,176,0.28);
+            letter-spacing: 0.06em;
+            margin: 3px 0 0 1px;
+        }
 
-        /* ── Close btn ── */
+        /* ── Close btn — reduced, subtle ── */
         .history-close-btn {
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.10);
-            color: rgba(255,255,255,0.45);
-            width: 30px;
-            height: 30px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.28);
+            width: 26px; height: 26px;
             border-radius: 50%;
-            font-size: 12px;
+            font-size: 11px;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             transition: all 0.2s ease;
             flex-shrink: 0;
         }
         .history-close-btn:active {
-            background: rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.06);
             transform: scale(0.88);
-            color: rgba(255,255,255,0.8);
+            color: rgba(255,255,255,0.55);
+        }
+
+        /* ── HISTORY SEARCH ── */
+        .history-search-wrap {
+            display: flex; align-items: center; gap: 0.5rem;
+            margin: 0 16px 10px;
+            background: rgba(232,213,176,0.05);
+            border: 1px solid rgba(232,213,176,0.10);
+            border-radius: 0.75rem;
+            padding: 0.55rem 0.75rem;
+            transition: border-color 200ms;
+        }
+        .history-search-wrap:focus-within {
+            border-color: rgba(232,213,176,0.25);
+            background: rgba(232,213,176,0.07);
+        }
+        .history-search-icon {
+            font-size: 1.0rem; color: rgba(232,213,176,0.28); flex-shrink: 0;
+        }
+        .history-search-input {
+            flex: 1; background: transparent; border: none; outline: none;
+            font-family: 'DM Sans', sans-serif; font-size: 0.72rem; font-weight: 400;
+            color: rgba(232,213,176,0.80); caret-color: var(--gold);
+        }
+        .history-search-input::placeholder { color: rgba(232,213,176,0.22); }
+        .history-search-clear {
+            background: transparent; border: none; cursor: pointer;
+            color: rgba(232,213,176,0.30); font-size: 0.65rem;
+            padding: 0; line-height: 1; transition: color 150ms;
+        }
+        .history-search-clear:hover { color: rgba(232,213,176,0.65); }
+        .history-search-clear.hidden { display: none; }
+
+        /* ── HISTORY FILTER CHIPS ── */
+        .history-filter-wrap {
+            padding: 0 16px 10px;
+            overflow: hidden;
+        }
+        .history-filter-chips {
+            display: flex; gap: 0.38rem;
+            overflow-x: auto; padding-bottom: 4px;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+        .history-filter-chips::-webkit-scrollbar { display: none; }
+        .hf-chip {
+            flex-shrink: 0;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.58rem; font-weight: 600;
+            letter-spacing: 0.06em;
+            padding: 0.32rem 0.72rem;
+            border-radius: 2rem;
+            border: 1px solid rgba(232,213,176,0.12);
+            background: rgba(232,213,176,0.04);
+            color: rgba(232,213,176,0.38);
+            cursor: pointer;
+            transition: background 180ms, border-color 180ms, color 180ms;
+            white-space: nowrap;
+        }
+        .hf-chip:active { transform: scale(0.94); }
+        .hf-chip.active {
+            background: rgba(232,213,176,0.12);
+            border-color: rgba(232,213,176,0.38);
+            color: var(--gold);
         }
 
         /* ── Scrollable list ── */
         .history-list {
             flex: 1;
-            overflow-y: auto;
+            overflow-y: visible;
             overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
-            min-height: 0;
-            padding-bottom: 48px;
+            padding-bottom: 5rem;
         }
         .history-list::-webkit-scrollbar { width: 0; }
 
@@ -4385,17 +4433,26 @@ function updateIdentityPanel() {
 /* ── BOTTOM NAV ── */
 function showTab(tab) {
     const home    = $('homePage');
+    const history = $('historyModal');
     const profile = $('profileModal');
-    if (tab === 'profile') {
-        if (home)    home.style.display    = 'none';
+
+    // Hide all
+    if (home)    home.style.display = 'none';
+    if (history) { history.classList.remove('visible'); history.classList.add('hidden'); }
+    if (profile) { profile.classList.remove('visible'); profile.classList.add('hidden'); }
+
+    // Show selected
+    if (tab === 'home') {
+        if (home) home.style.display = '';
+    } else if (tab === 'history') {
+        if (history) { history.classList.add('visible'); history.classList.remove('hidden'); }
+        loadHistory();
+    } else if (tab === 'profile') {
         if (profile) { profile.classList.add('visible'); profile.classList.remove('hidden'); }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
         populateProfile();
-    } else {
-        if (home)    home.style.display    = '';
-        if (profile) { profile.classList.remove('visible'); profile.classList.add('hidden'); }
-        if (tab === 'home') window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     setNavActive(tab);
 }
 
@@ -4405,7 +4462,7 @@ function initBottomNav() {
     nav.classList.remove('hidden');
 
     $('navHome').addEventListener('click',    () => showTab('home'));
-    $('navHistory').addEventListener('click', () => { setNavActive('history'); historyBtn.click(); });
+    $('navHistory').addEventListener('click', () => showTab('history'));
     $('navProfile').addEventListener('click', () => showTab('profile'));
 }
 
@@ -5493,6 +5550,7 @@ async function loadUserData(uid) {
                 moodCounts: {}, totalGenerations: 0,
                 dailyCount: 0, dailyDate: '',
                 history: [], isPro: false,
+                joinedDate: Date.now(),
                 lastActive: Date.now(),
             };
             await setDoc(ref, newDoc);
@@ -5508,6 +5566,7 @@ async function loadUserData(uid) {
             if (remote.lastUsed          === undefined) missing.lastUsed          = null;
             if (remote.dailyCount        === undefined) missing.dailyCount        = 0;
             if (remote.dailyDate         === undefined) missing.dailyDate         = '';
+            if (remote.joinedDate        === undefined) missing.joinedDate        = Date.now(); // backfill for existing users
             if (Object.keys(missing).length) {
                 updateDoc(ref, missing).catch(() => {});
             }
@@ -5556,6 +5615,7 @@ function updateUIWithUserData(remote) {
         // Sync moodCounts and totalGenerations from Firestore
         if (remote.moodCounts)       local.moodCounts       = remote.moodCounts;
         if (remote.totalGenerations) local.totalGenerations = remote.totalGenerations;
+        if (remote.joinedDate)       local.joinedDate       = remote.joinedDate;
         saveData(local);
 
         updateXPDisplay();
@@ -5620,7 +5680,6 @@ async function loadHistory() {
     const { doc, getDoc } = window.firebaseFns;
     const list = document.getElementById('historyList');
 
-    // Show skeleton while fetching
     list.innerHTML = `
         <div class="skeleton-card"><div class="skeleton-line short"></div><div class="skeleton-line medium"></div><div class="skeleton-line long"></div></div>
         <div class="skeleton-card"><div class="skeleton-line short"></div><div class="skeleton-line medium"></div><div class="skeleton-line long"></div></div>
@@ -5629,7 +5688,6 @@ async function loadHistory() {
     const uid  = window.firebaseAuth.currentUser.uid;
     const snap = await getDoc(doc(window.firebaseDB, 'users', uid));
     const data = snap.data();
-    list.innerHTML = '';
 
     if (!data?.history || data.history.length === 0) {
         list.innerHTML = `<div class="empty-history">
@@ -5640,11 +5698,66 @@ async function loadHistory() {
         return;
     }
 
-    const entries = data.history.slice().reverse();
+    // Store globally for search/filter
+    window._allHistoryEntries = data.history.slice().reverse();
+    window._activeHistoryMood = window._activeHistoryMood || 'all';
+    renderHistoryList(window._allHistoryEntries);
+
+    // Wire filter chips
+    const chips = document.querySelectorAll('.hf-chip');
+    chips.forEach(chip => {
+        const newChip = chip.cloneNode(true);
+        chip.parentNode.replaceChild(newChip, chip);
+        newChip.classList.toggle('active', newChip.dataset.mood === window._activeHistoryMood);
+        newChip.addEventListener('click', () => {
+            window._activeHistoryMood = newChip.dataset.mood;
+            document.querySelectorAll('.hf-chip').forEach(c => c.classList.remove('active'));
+            newChip.classList.add('active');
+            applyHistoryFilters();
+        });
+    });
+
+    // Wire search input
+    const searchInput = document.getElementById('historySearch');
+    const clearBtn    = document.getElementById('historySearchClear');
+    if (searchInput) {
+        // Remove old listeners by cloning
+        const newInput = searchInput.cloneNode(true);
+        searchInput.parentNode.replaceChild(newInput, searchInput);
+        newInput.value = '';
+        newInput.addEventListener('input', () => {
+            const q = newInput.value.trim().toLowerCase();
+            if (clearBtn) clearBtn.classList.toggle('hidden', q.length === 0);
+            applyHistoryFilters();
+        });
+    }
+    if (clearBtn) {
+        const newClear = clearBtn.cloneNode(true);
+        clearBtn.parentNode.replaceChild(newClear, clearBtn);
+        newClear.addEventListener('click', () => {
+            const inp = document.getElementById('historySearch');
+            if (inp) { inp.value = ''; inp.dispatchEvent(new Event('input')); }
+            newClear.classList.add('hidden');
+        });
+    }
+}
+
+/* ── RENDER HISTORY LIST ── */
+function renderHistoryList(entries) {
+    const list = document.getElementById('historyList');
+    if (!list) return;
+    list.innerHTML = '';
+    if (!entries || entries.length === 0) {
+        list.innerHTML = `<div class="empty-history">
+            <span class="empty-history-icon">🌙</span>
+            <p>No results found.</p>
+            <small>Try a different search or filter.</small>
+        </div>`;
+        return;
+    }
     let cardIndex = 0;
     let lastGroup = null;
 
-    // FIX: calendar-accurate date grouping (not ms-elapsed)
     function getDateGroup(dateVal) {
         const d   = new Date(dateVal);
         const now = new Date();
@@ -5667,16 +5780,14 @@ async function loadHistory() {
             lastGroup = group;
         }
 
-        // FIX: declare color BEFORE using it
         const color    = getMoodColor(item.mood);
         const bgTint   = hexToRgba(color, 0.16);
         const border   = hexToRgba(color, 0.32);
         const borderL  = hexToRgba(color, 0.85);
         const glow     = hexToRgba(color, 0.14);
         const tsColor  = hexToRgba(color, 0.60);
-        const isLatest = index === 0;
+        const isLatest = index === 0 && (window._allHistoryEntries || [])[0] === item;
 
-        // Particle starfield inside card
         const particles = Array.from({length: 10}, () => {
             const x = (Math.random() * 100).toFixed(0);
             const y = (Math.random() * 100).toFixed(0);
@@ -5689,8 +5800,6 @@ async function loadHistory() {
         div.className = 'history-item';
         div.style.setProperty('--dot-color', color);
         if (isLatest) div.classList.add('latest-card');
-
-        // FIX: cap stagger at 8 cards max (480ms), no 1200ms+ waits
         div.style.animationDelay = `${Math.min(cardIndex, 8) * 60}ms`;
         cardIndex++;
 
@@ -5715,6 +5824,31 @@ async function loadHistory() {
     });
 }
 
+/* ── APPLY SEARCH + MOOD FILTER ── */
+function applyHistoryFilters() {
+    const all      = window._allHistoryEntries || [];
+    const q        = (document.getElementById('historySearch')?.value || '').trim().toLowerCase();
+    const moodFilter = window._activeHistoryMood || 'all';
+
+    let filtered = all;
+
+    // Mood chip filter
+    if (moodFilter !== 'all') {
+        filtered = filtered.filter(item => (item.mood || '').toLowerCase() === moodFilter);
+    }
+
+    // Search query filter
+    if (q) {
+        filtered = filtered.filter(item =>
+            (item.mood  || '').toLowerCase().includes(q) ||
+            (item.title || '').toLowerCase().includes(q) ||
+            (item.text  || '').toLowerCase().includes(q)
+        );
+    }
+
+    renderHistoryList(filtered);
+}
+
 
 </script>
 
@@ -5722,8 +5856,44 @@ async function loadHistory() {
     <div class="history-modal-content">
         <div class="history-drag-pill"></div>
         <div class="history-modal-header">
-            <h2 class="history-modal-title">Your Emotional Timeline</h2>
-            <button id="closeHistory" class="history-close-btn">✕</button>
+            <div>
+                <h2 class="history-modal-title">History</h2>
+                <p class="history-modal-subtitle">Your emotional journey</p>
+            </div>
+        </div>
+
+        <!-- Search bar -->
+        <div class="history-search-wrap">
+            <span class="history-search-icon">⌕</span>
+            <input
+                id="historySearch"
+                class="history-search-input"
+                type="text"
+                placeholder="Search your memories..."
+                autocomplete="off"
+                spellcheck="false"
+            />
+            <button class="history-search-clear hidden" id="historySearchClear">✕</button>
+        </div>
+
+        <!-- Mood filter chips -->
+        <div class="history-filter-wrap" id="historyFilterWrap">
+            <div class="history-filter-chips" id="historyFilterChips">
+                <button class="hf-chip active" data-mood="all">All</button>
+                <button class="hf-chip" data-mood="tired">Tired</button>
+                <button class="hf-chip" data-mood="motivated">Motivated</button>
+                <button class="hf-chip" data-mood="lost">Lost</button>
+                <button class="hf-chip" data-mood="angry">Angry</button>
+                <button class="hf-chip" data-mood="anxious">Anxious</button>
+                <button class="hf-chip" data-mood="grinding">Grinding</button>
+                <button class="hf-chip" data-mood="calm">Calm</button>
+                <button class="hf-chip" data-mood="overthinking">Overthinking</button>
+                <button class="hf-chip" data-mood="sad">Sad</button>
+                <button class="hf-chip" data-mood="happy">Happy</button>
+                <button class="hf-chip" data-mood="numb">Numb</button>
+                <button class="hf-chip" data-mood="recovering">Recovering</button>
+                <button class="hf-chip" data-mood="growing">Growing</button>
+            </div>
         </div>
         <div class="history-list">
             <div id="historyList"></div>
@@ -6097,30 +6267,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-document.getElementById('historyBtn').addEventListener('click', async () => {
-    const modal   = document.getElementById('historyModal');
-    const content = modal.querySelector('.history-modal-content');
-    modal.classList.remove('hidden');
-    modal.style.animation   = 'none';
-    content.style.animation = 'none';
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-            modal.style.animation   = '';
-            content.style.animation = '';
-        });
-    });
-    await loadHistory();
-});
-document.getElementById('closeHistory').addEventListener('click', () => {
-    document.getElementById('historyModal').classList.add('hidden');
-});
-document.getElementById('historyModal').addEventListener('click', e => {
-    if (e.target === document.getElementById('historyModal'))
-        document.getElementById('historyModal').classList.add('hidden');
-});document.getElementById('historyModal').addEventListener('click', e => {
-    if (e.target === document.getElementById('historyModal'))
-        document.getElementById('historyModal').classList.add('hidden');
-});
+// historyBtn kept in DOM for JS compat but not used for navigation
+// History is now opened via showTab('history') from bottom nav
 
 async function saveToHistory(entry) {
     if (!window.firebaseAuth || !window.firebaseAuth.currentUser) return;

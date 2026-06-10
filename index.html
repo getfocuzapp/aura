@@ -2155,6 +2155,15 @@
         #appScreen {
             visibility: hidden;
             opacity: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        #homePage, .history-modal-overlay, .profile-overlay {
+            width: 100%;
+            max-width: 26rem;
+            box-sizing: border-box;
         }
 
         #authScreen {

@@ -2216,7 +2216,9 @@
         }
 
         #appScreen {
-            display: block;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             transition: opacity 380ms ease;
         }
         #appScreen.app-fade-in { opacity: 1; }

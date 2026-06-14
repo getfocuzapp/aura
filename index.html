@@ -9,7 +9,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAkOvsrQzbCicxylWgLBSIMO-RcNbTH4DQ",
@@ -28,7 +28,7 @@
         window.firebaseAuth   = auth;
         window.firebaseDB     = db;
         window.googleProvider = provider;
-        window.firebaseFns    = { signInWithPopup, signOut, onAuthStateChanged, doc, getDoc, setDoc, updateDoc, arrayUnion };
+        window.firebaseFns    = { signInWithPopup, signOut, onAuthStateChanged, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove };
 
         // Auth state — fires as soon as Firebase resolves
         // authStateReady() resolves ONCE when Firebase has fully determined
@@ -385,6 +385,7 @@
                 0 0 0 1px rgba(232,213,176,0.06),
                 0 32px 80px rgba(0,0,0,0.92);
             scrollbar-width: none;
+            position: relative;
         }
         .modal-box::-webkit-scrollbar { display: none; }
         .modal-top { display: flex; justify-content: space-between; align-items: center; width: 100%; flex-shrink: 0; }
@@ -421,6 +422,19 @@
         .mbtn-again:hover { background: #f0dfc0; box-shadow: 0 6px 28px rgba(232,213,176,0.26); }
         .mbtn-close { background: transparent; color: rgba(232,213,176,0.18); border-color: rgba(232,213,176,0.06); }
         .mbtn-close:hover { background: rgba(232,213,176,0.04); color: rgba(232,213,176,0.40); }
+        .sc-fav-icon {
+            position: absolute;
+            top: 0.7rem; right: 0.9rem;
+            background: none; border: none;
+            font-size: 1.4rem; cursor: pointer;
+            color: rgba(255,255,255,0.2);
+            transition: color 0.2s ease, transform 0.18s cubic-bezier(0.34,1.56,0.64,1);
+            z-index: 10; line-height: 1;
+            padding: 4px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+        }
+        .sc-fav-icon.active { color: #ff6eb0; }
+        .sc-fav-icon:active { transform: scale(1.4); }
 
         /* ── BOTTOM NAVIGATION ── */
         .bottom-nav {
@@ -2972,6 +2986,15 @@
         .ach-item.unlocked .ach-name  { color: rgba(232,213,176,0.65); }
         .ach-item.unlocked .ach-status { color: rgba(100,200,120,0.60); }
 
+        /* ── FAVORITE HEART BUTTON ON CARD ── */
+        .hc-fav-btn {
+            background: none; border: none; padding: 0 2px;
+            font-size: 1.05rem; cursor: pointer;
+            line-height: 1; flex-shrink: 0;
+            transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), color 0.18s ease;
+        }
+        .hc-fav-btn:active { transform: scale(1.35); }
+
         /* ── HISTORY DETAIL MODAL ── */
         #historyDetailModal {
             display: none;
@@ -3026,6 +3049,15 @@
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
         }
+        .hd-fav-btn {
+            background: none; border: none;
+            font-size: 1.3rem; cursor: pointer;
+            color: rgba(255,255,255,0.25);
+            transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), color 0.18s ease;
+            padding: 0 4px; flex-shrink: 0;
+        }
+        .hd-fav-btn.active { color: #c084fc; }
+        .hd-fav-btn:active { transform: scale(1.35); }
         .hd-body { padding: 1.1rem 1.2rem 0; }
         .hd-title {
             font-family: 'DM Sans', sans-serif;
@@ -3206,6 +3238,7 @@
                     </div>
                 </div>
             </div>
+            <button id="favResultBtn" class="sc-fav-icon" aria-label="Save to favorites">♥</button>
 
             <div id="rewardMessage" class="reward hidden">
                 <div class="reward-main">+1 expression logged</div>
@@ -4698,13 +4731,20 @@ async function processGeneration() {
     if (isPro) watermark.classList.add('hidden');
     else watermark.classList.remove('hidden');
 
+    // Track current entry date for favorite button
+    window._currentEntryDate = Date.now();
+    const favResultBtn = $('favResultBtn');
+    if (favResultBtn) {
+        favResultBtn.classList.remove('active');
+    }
+
     // Pre-build blob in background so Download/Share are instant when tapped
     buildStatusCanvas()
         .then(canvas => new Promise(res => canvas.toBlob(res, 'image/png')))
         .then(blob  => { _cachedCardBlob = blob; })
         .catch(()   => { /* blob will be built on demand if this fails */ });
 
-    saveToHistory({ mood: selectedMood, title: generated.title, text: generated.text, date: Date.now() });
+    saveToHistory({ mood: selectedMood, title: generated.title, text: generated.text, date: window._currentEntryDate });
 }
 
 /* ── DAILY LIMIT (Firestore-backed, bypass-proof) ── */
@@ -4908,6 +4948,15 @@ generateAgainBtn.addEventListener('click', () => {
         isLoading = false;
         stopCinematicLoading(() => cinematicReveal());
     }, 1900);
+});
+
+/* ── FAVORITE FROM RESULT MODAL ── */
+$('favResultBtn').addEventListener('click', async () => {
+    const dateVal = window._currentEntryDate;
+    if (!dateVal) return;
+    const btn = $('favResultBtn');
+    const nowFav = await toggleFavorite(dateVal);
+    btn.classList.toggle('active', nowFav);
 });
 
 /* ── COPY ── */
@@ -5658,6 +5707,7 @@ async function loadUserData(uid) {
                 moodCounts: {}, totalGenerations: 0,
                 dailyCount: 0, dailyDate: '',
                 history: [], isPro: false,
+                favorites: [],
                 joinedDate: Date.now(),
                 lastActive: Date.now(),
             };
@@ -5674,6 +5724,7 @@ async function loadUserData(uid) {
             if (remote.lastUsed          === undefined) missing.lastUsed          = null;
             if (remote.dailyCount        === undefined) missing.dailyCount        = 0;
             if (remote.dailyDate         === undefined) missing.dailyDate         = '';
+            if (remote.favorites         === undefined) missing.favorites         = [];
             if (remote.joinedDate        === undefined) missing.joinedDate        = Date.now(); // backfill for existing users
             if (Object.keys(missing).length) {
                 updateDoc(ref, missing).catch(() => {});
@@ -5809,6 +5860,12 @@ async function loadHistory() {
     // Store globally for search/filter
     window._allHistoryEntries = data.history.slice().reverse();
     window._activeHistoryMood = window._activeHistoryMood || 'all';
+
+    // Load favorites from Firestore, fallback to localStorage
+    const remoteFavs = Array.isArray(data.favorites) ? data.favorites : [];
+    window._favorites = new Set(remoteFavs.map(Number));
+    try { localStorage.setItem('aura_favorites', JSON.stringify([...window._favorites])); } catch(e) {}
+
     renderHistoryList(window._allHistoryEntries);
 
     // Wire filter chips
@@ -5848,6 +5905,32 @@ async function loadHistory() {
             newClear.classList.add('hidden');
         });
     }
+}
+
+/* ── FAVORITES ── */
+function loadFavoritesLocal() {
+    try {
+        const s = localStorage.getItem('aura_favorites');
+        return s ? new Set(JSON.parse(s).map(Number)) : new Set();
+    } catch(e) { return new Set(); }
+}
+
+async function toggleFavorite(dateVal) {
+    if (!window._favorites) window._favorites = loadFavoritesLocal();
+    const key = Number(dateVal);
+    const isFav = window._favorites.has(key);
+    if (isFav) { window._favorites.delete(key); } else { window._favorites.add(key); }
+    try { localStorage.setItem('aura_favorites', JSON.stringify([...window._favorites])); } catch(e) {}
+
+    // Firestore sync
+    const uid = window.firebaseAuth?.currentUser?.uid;
+    if (uid && window.firebaseDB && window.firebaseFns) {
+        const { doc, updateDoc, arrayUnion, arrayRemove } = window.firebaseFns;
+        updateDoc(doc(window.firebaseDB, 'users', uid), {
+            favorites: isFav ? arrayRemove(key) : arrayUnion(key)
+        }).catch(() => {});
+    }
+    return !isFav;
 }
 
 /* ── RENDER HISTORY LIST ── */
@@ -5911,6 +5994,7 @@ function renderHistoryList(entries) {
         div.style.animationDelay = `${Math.min(cardIndex, 8) * 60}ms`;
         cardIndex++;
 
+        const isFav = (window._favorites || loadFavoritesLocal()).has(Number(item.date));
         div.innerHTML = `
           <div class="history-card" style="
             background: ${bgTint};
@@ -5923,12 +6007,23 @@ function renderHistoryList(entries) {
             <div class="history-card-glass-edge"></div>
             <div class="history-card-header">
               <div class="history-mood" style="color:${color}">${getMoodIconMini(item.mood)} ${item.mood ? item.mood[0].toUpperCase()+item.mood.slice(1) : ''}</div>
-              ${isLatest ? `<span class="latest-badge" style="background:${color}; color:#08080f; border:none; font-weight:800">LATEST</span>` : ''}
+              <div style="display:flex;align-items:center;gap:0.4rem">
+                ${isLatest ? `<span class="latest-badge" style="background:${color}; color:#08080f; border:none; font-weight:800">LATEST</span>` : ''}
+                <button class="hc-fav-btn ${isFav ? 'active' : ''}" data-date="${item.date}" aria-label="Favorite" style="color:${isFav ? color : 'rgba(255,255,255,0.25)'}">♥</button>
+              </div>
             </div>
             <div class="history-text">${item.text || ''}</div>
             <div class="history-date" style="color:${tsColor}">${new Date(item.date).toLocaleString()}</div>
           </div>`;
-        div.querySelector('.history-card').addEventListener('click', () => openHistoryDetail(item));
+        const card = div.querySelector('.history-card');
+        const favBtn = div.querySelector('.hc-fav-btn');
+        favBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const nowFav = await toggleFavorite(item.date);
+            favBtn.classList.toggle('active', nowFav);
+            favBtn.style.color = nowFav ? color : 'rgba(255,255,255,0.25)';
+        });
+        card.addEventListener('click', () => openHistoryDetail(item));
         list.appendChild(div);
     });
 }
@@ -5952,6 +6047,15 @@ function renderHistoryList(entries) {
         document.getElementById('hdTitle').textContent = item.title || '';
         document.getElementById('hdText').textContent  = item.text  || '';
         document.getElementById('hdDate').textContent  = new Date(item.date).toLocaleString();
+
+        // Sync heart state
+        const favBtn = document.getElementById('hdFavBtn');
+        if (favBtn) {
+            const isFav = (window._favorites || loadFavoritesLocal()).has(Number(item.date));
+            favBtn.classList.toggle('active', isFav);
+            favBtn.style.color = isFav ? color : 'rgba(255,255,255,0.25)';
+        }
+
         modal.classList.add('visible');
         document.body.style.overflow = 'hidden';
     };
@@ -5967,9 +6071,23 @@ function renderHistoryList(entries) {
     document.addEventListener('DOMContentLoaded', function () {
         var closeBtn = getCloseBtn();
         var shareBtn = getShareBtn();
+        var favBtn   = document.getElementById('hdFavBtn');
         var modal    = getModal();
         if (closeBtn) closeBtn.addEventListener('click', closeDetail);
         if (modal)    modal.addEventListener('click', e => { if (e.target === modal) closeDetail(); });
+        if (favBtn) favBtn.addEventListener('click', async () => {
+            if (!_current) return;
+            const color = getMoodColor(_current.mood);
+            const nowFav = await toggleFavorite(_current.date);
+            favBtn.classList.toggle('active', nowFav);
+            favBtn.style.color = nowFav ? color : 'rgba(255,255,255,0.25)';
+            // Refresh card heart in list if visible
+            const cardFavBtn = document.querySelector(`.hc-fav-btn[data-date="${_current.date}"]`);
+            if (cardFavBtn) {
+                cardFavBtn.classList.toggle('active', nowFav);
+                cardFavBtn.style.color = nowFav ? color : 'rgba(255,255,255,0.25)';
+            }
+        });
         if (shareBtn) shareBtn.addEventListener('click', () => {
             if (!_current) return;
             const mood = _current.mood ? _current.mood[0].toUpperCase() + _current.mood.slice(1) : '';
@@ -5988,14 +6106,18 @@ function renderHistoryList(entries) {
 
 
 function applyHistoryFilters() {
-    const all      = window._allHistoryEntries || [];
-    const q        = (document.getElementById('historySearch')?.value || '').trim().toLowerCase();
+    const all        = window._allHistoryEntries || [];
+    const q          = (document.getElementById('historySearch')?.value || '').trim().toLowerCase();
     const moodFilter = window._activeHistoryMood || 'all';
 
     let filtered = all;
 
-    // Mood chip filter
-    if (moodFilter !== 'all') {
+    // Favorites filter
+    if (moodFilter === 'favorites') {
+        const favs = window._favorites || loadFavoritesLocal();
+        filtered = filtered.filter(item => favs.has(Number(item.date)));
+    } else if (moodFilter !== 'all') {
+        // Mood chip filter
         filtered = filtered.filter(item => (item.mood || '').toLowerCase() === moodFilter);
     }
 
@@ -6042,6 +6164,7 @@ function applyHistoryFilters() {
         <div class="history-filter-wrap" id="historyFilterWrap">
             <div class="history-filter-chips" id="historyFilterChips">
                 <button class="hf-chip active" data-mood="all">All</button>
+                <button class="hf-chip" data-mood="favorites">♥ Saved</button>
                 <button class="hf-chip" data-mood="tired">Tired</button>
                 <button class="hf-chip" data-mood="motivated">Motivated</button>
                 <button class="hf-chip" data-mood="lost">Lost</button>
@@ -6069,7 +6192,10 @@ function applyHistoryFilters() {
         <div class="hd-pill"></div>
         <div class="hd-header">
             <div class="hd-mood-row" id="hdMoodRow"></div>
-            <button class="hd-close" id="hdCloseBtn">✕</button>
+            <div style="display:flex;align-items:center;gap:0.5rem">
+                <button class="hd-fav-btn" id="hdFavBtn" aria-label="Favorite">♥</button>
+                <button class="hd-close" id="hdCloseBtn">✕</button>
+            </div>
         </div>
         <div class="hd-body">
             <div class="hd-title" id="hdTitle"></div>

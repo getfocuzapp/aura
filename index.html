@@ -5935,12 +5935,15 @@ function renderHistoryList(entries) {
 
 /* ── HISTORY DETAIL MODAL ── */
 (function () {
-    const modal   = document.getElementById('historyDetailModal');
-    const closeBtn = document.getElementById('hdCloseBtn');
-    const shareBtn = document.getElementById('hdShareBtn');
-    let _current  = null;
+    let _current = null;
+
+    function getModal()    { return document.getElementById('historyDetailModal'); }
+    function getCloseBtn() { return document.getElementById('hdCloseBtn'); }
+    function getShareBtn() { return document.getElementById('hdShareBtn'); }
 
     window.openHistoryDetail = function(item) {
+        const modal = getModal();
+        if (!modal) return;
         _current = item;
         const color = getMoodColor(item.mood);
         const moodLabel = item.mood ? item.mood[0].toUpperCase() + item.mood.slice(1) : '';
@@ -5954,26 +5957,32 @@ function renderHistoryList(entries) {
     };
 
     function closeDetail() {
-        modal.classList.remove('visible');
+        const modal = getModal();
+        if (modal) modal.classList.remove('visible');
         document.body.style.overflow = '';
         _current = null;
     }
 
-    closeBtn.addEventListener('click', closeDetail);
-    modal.addEventListener('click', e => { if (e.target === modal) closeDetail(); });
-
-    shareBtn.addEventListener('click', () => {
-        if (!_current) return;
-        const mood = _current.mood ? _current.mood[0].toUpperCase() + _current.mood.slice(1) : '';
-        const text = `${mood} · ${_current.title || ''}\n\n"${_current.text || ''}"\n\n— AURA`;
-        if (navigator.share) {
-            navigator.share({ title: 'My AURA Status', text }).catch(() => {});
-        } else {
-            navigator.clipboard?.writeText(text).then(() => {
-                shareBtn.textContent = 'Copied ✓';
-                setTimeout(() => { shareBtn.textContent = '↗ Share'; }, 1500);
-            });
-        }
+    // Wire close/share after DOM ready
+    document.addEventListener('DOMContentLoaded', function () {
+        var closeBtn = getCloseBtn();
+        var shareBtn = getShareBtn();
+        var modal    = getModal();
+        if (closeBtn) closeBtn.addEventListener('click', closeDetail);
+        if (modal)    modal.addEventListener('click', e => { if (e.target === modal) closeDetail(); });
+        if (shareBtn) shareBtn.addEventListener('click', () => {
+            if (!_current) return;
+            const mood = _current.mood ? _current.mood[0].toUpperCase() + _current.mood.slice(1) : '';
+            const text = `${mood} · ${_current.title || ''}\n\n"${_current.text || ''}"\n\n— AURA`;
+            if (navigator.share) {
+                navigator.share({ title: 'My AURA Status', text }).catch(() => {});
+            } else {
+                navigator.clipboard?.writeText(text).then(() => {
+                    shareBtn.textContent = 'Copied ✓';
+                    setTimeout(() => { shareBtn.textContent = '↗ Share'; }, 1500);
+                });
+            }
+        });
     });
 })();
 

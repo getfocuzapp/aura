@@ -1605,52 +1605,204 @@
             color: rgba(232,213,176,0.65);
         }
 
-        /* ── SECTION 2: MONTHLY RECAP CAROUSEL ── */
-        .ins-recap-section {
-            margin: 0 -20px 24px;
+        /* ── SECTION 2: MONTH NAVIGATION ── */
+        .ins-month-nav {
+            display: flex; align-items: center; justify-content: space-between;
+            margin: 0.8rem 0 1rem;
+            padding: 0.6rem 0.8rem;
+            border-radius: 18px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
         }
-        .ins-recap-track {
-            display: flex;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            padding: 0 20px;
-            gap: 14px;
+        .ins-month-nav-btn {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 12px;
+            color: rgba(255,255,255,0.7);
+            font-size: 1rem; font-weight: 700;
+            width: 36px; height: 36px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s, opacity 0.2s;
         }
-        .ins-recap-track::-webkit-scrollbar { display: none; }
-        .ins-recap-card {
-            flex: 0 0 calc(100% - 40px);
-            scroll-snap-align: center;
-            min-height: 650px;
-            max-height: 800px;
-            border-radius: 28px;
-            background: linear-gradient(165deg, rgba(140,80,255,0.08), rgba(10,10,20,0.96) 55%);
+        .ins-month-nav-btn:active { background: rgba(232,213,176,0.15); }
+        .ins-month-nav-btn:disabled { opacity: 0.25; cursor: default; }
+        .ins-month-nav-label {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem; font-weight: 800;
+            color: rgba(232,213,176,0.9);
+            letter-spacing: 0.04em;
+        }
+
+        /* ── SECTION 2: MONTHLY SUMMARY CARD ── */
+        .ins-summary-card {
+            display: flex; flex-direction: column; align-items: center;
+            padding: 1.8rem 1.3rem 1.5rem;
+            text-align: center;
+            background: linear-gradient(165deg, rgba(140,80,255,0.07), rgba(10,10,20,0.97) 60%);
+        }
+        .ins-sum-divider {
+            width: 100%; height: 1px;
+            background: rgba(255,255,255,0.07);
+            margin: 1.3rem 0;
+        }
+        .ins-sum-section-label {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.65rem; font-weight: 700;
+            letter-spacing: 0.1em; text-transform: uppercase;
+            color: rgba(255,255,255,0.3);
+            margin-bottom: 1rem; align-self: flex-start;
+        }
+
+        /* Orb */
+        .ins-sum-orb-wrap {
+            position: relative; width: 130px; height: 130px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 1.1rem;
+        }
+        .ins-sum-orb-glow {
+            position: absolute; inset: -20px; border-radius: 50%;
+            background: radial-gradient(circle, var(--sum-glow, rgba(155,143,204,0.5)) 0%, transparent 70%);
+            opacity: 0.6;
+        }
+        .ins-sum-orb-img {
+            position: relative; width: 120px; height: 120px;
+            border-radius: 50%; overflow: hidden;
+            box-shadow: 0 6px 30px rgba(0,0,0,0.55);
+        }
+        .ins-sum-orb-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .ins-sum-orb-img.fallback {
+            background: radial-gradient(circle at 35% 30%, var(--sum-accent,#9B8FCC) 0%, rgba(0,0,0,0.6) 100%);
+        }
+
+        /* Dominant emotion */
+        .ins-sum-dom-label {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.62rem; font-weight: 700;
+            letter-spacing: 0.1em; text-transform: uppercase;
+            color: rgba(255,255,255,0.35); margin-bottom: 0.3rem;
+        }
+        .ins-sum-dom-mood {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.1rem; font-weight: 900; color: #fff;
+            margin-bottom: 0.3rem;
+        }
+        .ins-sum-dom-pct {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem; font-weight: 700;
+            color: var(--sum-accent, #9B8FCC);
+        }
+
+        /* Archetype */
+        .ins-sum-arch-label {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.6rem; font-weight: 700;
+            letter-spacing: 0.08em; text-transform: uppercase;
+            color: rgba(255,255,255,0.3); margin-bottom: 0.3rem;
+        }
+        .ins-sum-arch-name {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.15rem; font-weight: 800; color: rgba(232,213,176,0.9);
+            margin-bottom: 0.15rem;
+        }
+        .ins-sum-arch-level {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.78rem; color: rgba(255,255,255,0.4);
+        }
+
+        /* Stats grid */
+        .ins-sum-stats-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 0.9rem; width: 100%;
+        }
+        .ins-sum-stat {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 16px; padding: 0.8rem 0.5rem;
+            display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
+        }
+        .ins-sum-stat-val {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.5rem; font-weight: 800; color: #fff;
+        }
+        .ins-sum-stat-key {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.62rem; font-weight: 700;
+            letter-spacing: 0.06em; text-transform: uppercase;
+            color: rgba(232,213,176,0.5);
+        }
+
+        /* Top moods */
+        .ins-sum-top-moods { width: 100%; display: flex; flex-direction: column; gap: 0.9rem; }
+        .ins-sum-mood-row { display: flex; align-items: center; gap: 0.7rem; }
+        .ins-sum-medal { font-size: 1.2rem; flex-shrink: 0; width: 1.7rem; text-align: center; }
+        .ins-sum-mood-info { flex: 1; min-width: 0; }
+        .ins-sum-mood-name-row {
+            display: flex; justify-content: space-between; align-items: baseline;
+            margin-bottom: 0.3rem;
+        }
+        .ins-sum-mood-name {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.92rem; font-weight: 700; color: #fff;
+        }
+        .ins-sum-mood-pct {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem; font-weight: 800;
+        }
+        .ins-sum-bar-track {
+            height: 8px; border-radius: 5px;
+            background: rgba(255,255,255,0.07); overflow: hidden;
+        }
+        .ins-sum-bar-fill {
+            display: block; height: 100%; border-radius: 5px;
+            width: 0%; transition: width 0.7s cubic-bezier(0.16,1,0.3,1);
+        }
+        .ins-sum-total {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem; font-weight: 700;
+            color: rgba(232,213,176,0.8); margin-top: 0.8rem; width: 100%; text-align: center;
+        }
+
+        /* Weekly evolution */
+        .ins-sum-evo-flow { display: flex; flex-direction: column; gap: 0; width: 100%; text-align: left; }
+
+        /* Reflection */
+        .ins-sum-reflection {
+            font-family: 'Cormorant Garant', Georgia, serif;
+            font-size: 1.1rem; font-weight: 600; font-style: italic;
+            line-height: 1.6; color: rgba(255,255,255,0.82);
+            width: 100%; text-align: center;
+        }
+
+        /* Achievements */
+        .ins-sum-ach-list { display: flex; flex-direction: column; gap: 0.8rem; width: 100%; }
+        .ins-sum-ach-item {
+            display: flex; align-items: center; gap: 0.8rem;
+            padding: 0.65rem 0.9rem;
+            border-radius: 16px;
+            background: rgba(232,213,176,0.05);
             border: 1px solid rgba(232,213,176,0.14);
-            box-shadow: 0 16px 56px rgba(0,0,0,0.55);
-            padding: 1.6rem 1.3rem;
-            box-sizing: border-box;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            overflow-x: hidden;
-            scrollbar-width: none;
         }
-        .ins-recap-card::-webkit-scrollbar { display: none; }
-        .ins-recap-dots {
-            display: flex; justify-content: center;
-            gap: 7px; margin-top: 12px;
+        .ins-sum-ach-icon { font-size: 1.3rem; flex-shrink: 0; width: 1.8rem; text-align: center; }
+        .ins-sum-ach-text { display: flex; flex-direction: column; text-align: left; }
+        .ins-sum-ach-name {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.86rem; font-weight: 700; color: #f0e4c8;
         }
-        .ins-recap-dot {
-            width: 6px; height: 6px; border-radius: 50%;
-            background: rgba(255,255,255,0.18);
-            transition: background 0.25s ease, transform 0.25s ease;
+        .ins-sum-ach-desc {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.7rem; color: rgba(255,255,255,0.4); margin-top: 0.1rem;
         }
-        .ins-recap-dot.active {
-            background: rgba(232,213,176,0.85);
-            transform: scale(1.3);
+        .ins-sum-ach-empty {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.8rem; color: rgba(255,255,255,0.25);
+            text-align: center; padding: 0.5rem 0;
         }
+        .ins-sum-no-data {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem; color: rgba(255,255,255,0.3);
+            text-align: center; padding: 1rem 0; width: 100%;
+        }
+
 
         /* ── CARD 1: MONTH AT A GLANCE ── */
         .rc1-brand {
@@ -2317,6 +2469,234 @@
         }
         .ins-share-report-btn:active { opacity: 0.75; transform: scale(0.99); }
         .ins-share-report-btn:disabled { opacity: 0.5; }
+
+        /* ── RECAP ANIMATED PREVIEW MODAL ── */
+        @keyframes rpcOrbFloat {
+            0%,100% { transform: translateY(0px); }
+            50%      { transform: translateY(-8px); }
+        }
+        @keyframes rpcGlowPulse {
+            0%,100% { opacity: 0.55; transform: scale(1); }
+            50%      { opacity: 0.9;  transform: scale(1.12); }
+        }
+        @keyframes rpcFadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .recap-preview-overlay {
+            position: fixed; inset: 0; z-index: 9999;
+            background: rgba(0,0,0,0.92);
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            overflow-y: auto;
+            padding: 24px 16px 32px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .recap-preview-overlay.visible { display: flex; }
+        .recap-preview-inner {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 18px; width: 100%; max-width: 390px;
+        }
+        .recap-preview-card {
+            width: 100%; border-radius: 28px;
+            padding: 1.8rem 1.3rem 1.5rem;
+            box-sizing: border-box;
+            display: flex; flex-direction: column; align-items: center;
+            background: linear-gradient(165deg, rgba(140,80,255,0.1), rgba(10,10,20,0.98) 55%);
+            border: 1px solid rgba(232,213,176,0.18);
+            box-shadow: 0 24px 80px rgba(0,0,0,0.8);
+            position: relative; overflow: hidden;
+            gap: 0;
+        }
+        /* Mood glow blob inside preview card */
+        .recap-preview-card::before {
+            content: '';
+            position: absolute; top: -60px; left: -60px;
+            width: 240px; height: 240px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--rpc-glow, rgba(232,213,176,0.4)) 0%, transparent 70%);
+            pointer-events: none;
+            animation: rpcGlowPulse 4s ease-in-out infinite;
+        }
+
+        .rpc-brand {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.72rem; font-weight: 700;
+            letter-spacing: 0.18em; color: rgba(232,213,176,0.7);
+            margin-bottom: 0.25rem;
+        }
+        .rpc-month {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.65rem; font-weight: 600;
+            letter-spacing: 0.1em;
+            color: rgba(255,255,255,0.45);
+            margin-bottom: 1.2rem;
+        }
+        .rpc-orb-zone {
+            position: relative;
+            width: 120px; height: 120px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 1rem;
+            animation: rpcOrbFloat 3.5s ease-in-out infinite;
+        }
+        .rpc-orb-halo {
+            position: absolute; inset: -18px; border-radius: 50%;
+            background: radial-gradient(circle, var(--rpc-glow, rgba(232,213,176,0.4)) 0%, transparent 70%);
+            animation: rpcGlowPulse 3.5s ease-in-out infinite;
+        }
+        .rpc-orb {
+            position: relative;
+            width: 110px; height: 110px;
+            border-radius: 50%; overflow: hidden;
+            box-shadow: 0 6px 28px rgba(0,0,0,0.5);
+        }
+        .rpc-orb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .rpc-orb.fallback {
+            background: radial-gradient(circle at 35% 30%, var(--rpc-accent, #E8D5B0) 0%, rgba(0,0,0,0.6) 100%);
+        }
+        .rpc-mood-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.7rem; font-weight: 900; color: #fff;
+            margin-bottom: 0.5rem;
+            animation: rpcFadeUp 0.5s ease both;
+            animation-delay: 0.15s;
+        }
+        .rpc-pct-zone {
+            display: flex; flex-direction: column; align-items: center;
+            margin-bottom: 0.6rem;
+            animation: rpcFadeUp 0.55s ease both;
+            animation-delay: 0.25s;
+        }
+        .rpc-pct {
+            font-family: 'Playfair Display', serif;
+            font-size: 4rem; font-weight: 900; line-height: 1;
+            color: var(--rpc-accent, #E8D5B0);
+            text-shadow: 0 0 28px var(--rpc-glow, rgba(232,213,176,0.5));
+        }
+        .rpc-pct-label {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.62rem; font-weight: 700;
+            letter-spacing: 0.08em;
+            color: rgba(255,255,255,0.45);
+            margin-top: 0.2rem;
+        }
+        .rpc-arch-label {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.58rem; font-weight: 700;
+            letter-spacing: 0.08em; text-transform: uppercase;
+            color: rgba(255,255,255,0.3);
+            margin-top: 0.4rem;
+        }
+        .rpc-arch-val {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem; font-weight: 800;
+            color: rgba(232,213,176,0.9);
+            margin-bottom: 1.1rem;
+        }
+        .rpc-stats-row {
+            display: grid; grid-template-columns: repeat(4,1fr);
+            width: 100%;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 0.75rem 0.3rem;
+            margin-bottom: 1.1rem;
+            box-sizing: border-box;
+        }
+        .rpc-stat-cell { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; }
+        .rpc-stat-val {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem; font-weight: 800; color: #fff;
+        }
+        .rpc-stat-key {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.52rem; font-weight: 700;
+            letter-spacing: 0.06em; text-transform: uppercase;
+            color: rgba(232,213,176,0.5);
+        }
+        .rpc-dist-section { width: 100%; margin-bottom: 1.2rem; }
+        .rpc-dist-label {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.58rem; font-weight: 700;
+            letter-spacing: 0.08em; text-transform: uppercase;
+            color: rgba(255,255,255,0.3);
+            text-align: center; margin-bottom: 0.65rem;
+        }
+        .rpc-dist-row {
+            display: flex; align-items: center; gap: 0.5rem;
+            margin-bottom: 0.45rem;
+        }
+        .rpc-dist-name {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.72rem; font-weight: 600;
+            color: rgba(255,255,255,0.75);
+            width: 5.2rem; flex-shrink: 0;
+        }
+        .rpc-dist-bar-track {
+            flex: 1; height: 7px; border-radius: 5px;
+            background: rgba(255,255,255,0.06); overflow: hidden;
+        }
+        .rpc-dist-bar-fill {
+            display: block; height: 100%; border-radius: 5px;
+            width: 0%; transition: width 0.7s cubic-bezier(0.16,1,0.3,1);
+        }
+        .rpc-dist-pct {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.7rem; font-weight: 700;
+            color: rgba(255,255,255,0.45);
+            width: 2.2rem; text-align: right; flex-shrink: 0;
+        }
+        .rpc-reflection-label {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.58rem; font-weight: 700;
+            letter-spacing: 0.08em; text-transform: uppercase;
+            color: rgba(255,255,255,0.3);
+            margin-bottom: 0.6rem;
+        }
+        .rpc-reflection {
+            font-family: 'Cormorant Garant', Georgia, serif;
+            font-size: 0.95rem; font-weight: 600;
+            font-style: italic; line-height: 1.6;
+            color: rgba(255,255,255,0.82); text-align: center;
+            animation: rpcFadeUp 0.6s ease both;
+            animation-delay: 0.4s;
+        }
+        .rpc-footer {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.62rem; font-weight: 600;
+            color: rgba(232,213,176,0.45);
+            letter-spacing: 0.06em; text-align: center;
+            margin-top: 1.2rem;
+        }
+        .recap-preview-actions {
+            display: flex; gap: 0.7rem; width: 100%; max-width: 390px;
+        }
+        .rpa-btn {
+            flex: 1; padding: 0.9rem 0;
+            border-radius: 16px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem; font-weight: 700;
+            cursor: pointer; border: none;
+        }
+        .rpa-share {
+            background: linear-gradient(135deg, rgba(232,213,176,0.18), rgba(140,80,255,0.2));
+            border: 1px solid rgba(232,213,176,0.3);
+            color: #f0e4c8;
+        }
+        .rpa-download {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: rgba(255,255,255,0.7);
+        }
+        .rpa-close {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.4);
+            flex: 0 0 auto; padding: 0.9rem 1.1rem;
+        }
+        .rpa-btn:active { opacity: 0.7; transform: scale(0.98); }
         .profile-content {
             background: transparent;
             border: none; border-radius: 0;
@@ -5406,6 +5786,7 @@ function showTab(tab) {
         loadHistory();
     } else if (tab === 'insights') {
         if (insights) { insights.classList.add('visible'); }
+        if (typeof window._resetInsightsMonth === 'function') window._resetInsightsMonth();
         populateInsights();
     } else if (tab === 'profile') {
         if (profile) { profile.classList.add('visible'); profile.classList.remove('hidden'); }
@@ -6222,19 +6603,56 @@ async function captureCard() {
 }
 
 /* ── MONTHLY SHAREABLE REPORT CANVAS (1080×1920, no photo — pure cinematic gradient) ── */
+/* ── RECAP CARD THEME MAP (self-contained, does not affect getMoodColor used elsewhere) ── */
+const RECAP_MOOD_THEME = {
+    numb:         { accent: '#A89BC9', glow: 'rgba(168,155,201,0.55)' },
+    tired:        { accent: '#8FA8E8', glow: 'rgba(143,168,232,0.55)' },
+    growing:      { accent: '#4ECB7A', glow: 'rgba(78,203,122,0.55)' },
+    motivated:    { accent: '#F0B84D', glow: 'rgba(240,184,77,0.60)' },
+    happy:        { accent: '#F4CD4A', glow: 'rgba(244,205,74,0.60)' },
+    calm:         { accent: '#4FD8E8', glow: 'rgba(79,216,232,0.55)' },
+    recovering:   { accent: '#3FC9A8', glow: 'rgba(63,201,168,0.55)' },
+    angry:        { accent: '#E85B5B', glow: 'rgba(232,91,91,0.55)' },
+    lost:         { accent: '#5B9CE8', glow: 'rgba(91,156,232,0.55)' },
+    overthinking: { accent: '#A364E0', glow: 'rgba(163,100,224,0.55)' },
+    anxious:      { accent: '#9B7FE8', glow: 'rgba(155,127,232,0.55)' },
+    sad:          { accent: '#7B91D4', glow: 'rgba(123,145,212,0.50)' },
+    lonely:       { accent: '#C39BD3', glow: 'rgba(195,155,211,0.50)' },
+    grateful:     { accent: '#5FD9A0', glow: 'rgba(95,217,160,0.55)' },
+};
+function getRecapTheme(mood) {
+    return RECAP_MOOD_THEME[(mood || '').toLowerCase()] || { accent: '#E8D5B0', glow: 'rgba(232,213,176,0.5)' };
+}
+
 function buildMonthlyReportCanvas(reportData) {
     return new Promise((resolve) => {
         document.fonts.load('700 48px "Cormorant Garant"').catch(() => {});
         document.fonts.load('900 60px "Playfair Display"').catch(() => {});
-        setTimeout(() => {
+
+        const { monthLabel, moodKey, moodLabel, moodPct, expressions, streak, energyScore, reflection, archetype, level, moodsFelt, distribution } = reportData;
+        const theme = getRecapTheme(moodKey);
+        const glow = theme.glow;
+        const accent = theme.accent;
+
+        // Load the real mood orb image asset (UPGRADE 1) — falls back to a themed gradient circle if unavailable
+        const orbSrc = MOOD_SVG[(moodKey || '').toLowerCase()];
+        const orbImg = new Image();
+        let orbLoaded = false;
+        const proceedWithRender = () => renderCanvas();
+
+        if (orbSrc) {
+            orbImg.onload = () => { orbLoaded = true; proceedWithRender(); };
+            orbImg.onerror = () => { orbLoaded = false; proceedWithRender(); };
+            orbImg.src = orbSrc;
+        } else {
+            setTimeout(proceedWithRender, 60);
+        }
+
+        function renderCanvas() {
             const W = 1080, H = 1920;
             const cv = document.createElement('canvas');
             cv.width = W; cv.height = H;
             const ctx = cv.getContext('2d');
-
-            const { monthLabel, moodKey, moodLabel, moodPct, expressions, streak, energyScore, reflection, archetype, level, moodsFelt } = reportData;
-            const glow = MOOD_GLOW_VARS[moodKey] || 'rgba(232,213,176,0.5)';
-            const moodColor = getMoodColor(moodKey);
 
             function roundedRect(x,y,w,h,r){
                 ctx.beginPath();
@@ -6264,10 +6682,10 @@ function buildMonthlyReportCanvas(reportData) {
             bg.addColorStop(0, '#1a1040'); bg.addColorStop(0.55, '#0a0a1a'); bg.addColorStop(1, '#04050d');
             ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
 
-            /* 2. Mood glow blobs */
+            /* 2. Dynamic mood-themed glow blobs (UPGRADE 2) */
             [[W*0.18,H*0.16,W*0.7],[W*0.85,H*0.78,W*0.6],[W*0.5,H*0.95,W*0.55]].forEach(([bx,by,r]) => {
                 const g = ctx.createRadialGradient(bx,by,0,bx,by,r);
-                g.addColorStop(0, glow.replace(/[\d.]+\)$/,'0.16)'));
+                g.addColorStop(0, glow.replace(/[\d.]+\)$/,'0.18)'));
                 g.addColorStop(1, 'rgba(0,0,0,0)');
                 ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
             });
@@ -6291,35 +6709,55 @@ function buildMonthlyReportCanvas(reportData) {
             ctx.font = '600 28px "DM Sans"';
             ctx.fillText(monthLabel.toUpperCase() + ' RECAP', W/2, 195);
 
-            /* 6. Dominant mood — large headline */
+            /* 6. Real mood orb (UPGRADE 1) with themed glow halo (UPGRADE 2) */
+            const orbY = 330, orbR = 92;
             ctx.save();
-            const orbY = 360, orbR = 90;
-            const orbGrad = ctx.createRadialGradient(W/2-25,orbY-25,5,W/2,orbY,orbR);
-            orbGrad.addColorStop(0, moodColor); orbGrad.addColorStop(1, 'rgba(0,0,0,0.6)');
-            ctx.shadowColor = glow; ctx.shadowBlur = 60;
-            ctx.fillStyle = orbGrad;
-            ctx.beginPath(); ctx.arc(W/2, orbY, orbR, 0, Math.PI*2); ctx.fill();
+            ctx.shadowColor = glow; ctx.shadowBlur = 70;
+            if (orbLoaded) {
+                ctx.beginPath();
+                ctx.arc(W/2, orbY, orbR, 0, Math.PI*2);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(255,255,255,0.02)';
+                ctx.fill();
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(W/2, orbY, orbR, 0, Math.PI*2);
+                ctx.clip();
+                ctx.drawImage(orbImg, W/2 - orbR, orbY - orbR, orbR*2, orbR*2);
+                ctx.restore();
+            } else {
+                const orbGrad = ctx.createRadialGradient(W/2-25,orbY-25,5,W/2,orbY,orbR);
+                orbGrad.addColorStop(0, accent); orbGrad.addColorStop(1, 'rgba(0,0,0,0.6)');
+                ctx.fillStyle = orbGrad;
+                ctx.beginPath(); ctx.arc(W/2, orbY, orbR, 0, Math.PI*2); ctx.fill();
+            }
             ctx.restore();
 
             ctx.fillStyle = '#fff';
-            ctx.font = '900 76px "Playfair Display"';
-            ctx.fillText(moodLabel, W/2, orbY + 175);
-            ctx.fillStyle = moodColor;
-            ctx.font = '800 52px "DM Sans"';
-            ctx.fillText(moodPct + '% of your month', W/2, orbY + 240);
+            ctx.font = '900 60px "Playfair Display"';
+            ctx.fillText(moodLabel, W/2, orbY + 165);
 
-            /* 6b. Archetype + Level */
-            ctx.fillStyle = 'rgba(255,255,255,0.4)';
-            ctx.font = '600 24px "DM Sans"';
-            ctx.fillText('EMOTIONAL ARCHETYPE', W/2, orbY + 320);
-            ctx.fillStyle = 'rgba(232,213,176,0.9)';
-            ctx.font = '800 42px "DM Sans"';
-            ctx.fillText(`${archetype || 'Emotional Explorer'} · Level ${level || 1}`, W/2, orbY + 368);
-
-            /* 7. Stats row card */
-            const statsY = 880, statsH = 220, statsW = 920, statsX = (W-statsW)/2;
             ctx.save();
-            roundedRect(statsX, statsY, statsW, statsH, 32);
+            ctx.shadowColor = glow; ctx.shadowBlur = 26;
+            ctx.fillStyle = accent;
+            ctx.font = '900 152px "Playfair Display"';
+            ctx.fillText(moodPct + '%', W/2, orbY + 320);
+            ctx.restore();
+
+            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            ctx.font = '700 28px "DM Sans"';
+            ctx.fillText('OF YOUR MONTH', W/2, orbY + 368);
+
+            ctx.fillStyle = 'rgba(255,255,255,0.35)';
+            ctx.font = '600 21px "DM Sans"';
+            ctx.fillText('EMOTIONAL ARCHETYPE', W/2, orbY + 424);
+            ctx.fillStyle = 'rgba(232,213,176,0.9)';
+            ctx.font = '800 36px "DM Sans"';
+            ctx.fillText(`${archetype || 'Emotional Explorer'} · Level ${level || 1}`, W/2, orbY + 466);
+
+            const statsY = orbY + 515, statsH = 190, statsW = W * 0.9, statsX = (W-statsW)/2;
+            ctx.save();
+            roundedRect(statsX, statsY, statsW, statsH, 30);
             ctx.fillStyle = 'rgba(255,255,255,0.05)';
             ctx.fill();
             ctx.strokeStyle = 'rgba(255,255,255,0.10)'; ctx.lineWidth = 2; ctx.stroke();
@@ -6335,36 +6773,79 @@ function buildMonthlyReportCanvas(reportData) {
             stats.forEach((s, i) => {
                 const cx = statsX + colW * i + colW/2;
                 ctx.fillStyle = '#fff';
-                ctx.font = '800 54px "DM Sans"';
-                ctx.fillText(s.val, cx, statsY + 110);
+                ctx.font = '800 46px "DM Sans"';
+                ctx.fillText(s.val, cx, statsY + 86);
                 ctx.fillStyle = 'rgba(232,213,176,0.6)';
-                ctx.font = '600 20px "DM Sans"';
-                ctx.fillText(s.label, cx, statsY + 155);
+                ctx.font = '600 17px "DM Sans"';
+                ctx.fillText(s.label, cx, statsY + 126);
                 if (i < 3) {
                     ctx.strokeStyle = 'rgba(255,255,255,0.10)'; ctx.lineWidth = 2;
                     ctx.beginPath();
-                    ctx.moveTo(statsX + colW*(i+1), statsY + 40);
-                    ctx.lineTo(statsX + colW*(i+1), statsY + statsH - 40);
+                    ctx.moveTo(statsX + colW*(i+1), statsY + 32);
+                    ctx.lineTo(statsX + colW*(i+1), statsY + statsH - 32);
                     ctx.stroke();
                 }
             });
 
-            /* 8. Reflection */
+            const distY = statsY + statsH + 58;
+            ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            ctx.font = '600 21px "DM Sans"';
+            ctx.fillText('MOOD DISTRIBUTION', W/2, distY);
+
+            const dist = (distribution && distribution.length) ? distribution : [];
+            const distBarsX = statsX, distBarsW = statsW;
+            const rowH = 50;
+            dist.forEach((d, i) => {
+                const rowY = distY + 32 + i * rowH;
+                const dColor = getRecapTheme(d.mood).accent;
+
+                ctx.textAlign = 'left';
+                ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                ctx.font = '700 24px "DM Sans"';
+                ctx.fillText(d.label, distBarsX, rowY + 18);
+
+                const trackX = distBarsX + 200, trackW = distBarsW - 200 - 75, trackH = 12;
+                roundedRect(trackX, rowY + 4, trackW, trackH, 6);
+                ctx.fillStyle = 'rgba(255,255,255,0.08)';
+                ctx.fill();
+
+                const fillW = Math.max(8, trackW * (d.pct / 100));
+                roundedRect(trackX, rowY + 4, fillW, trackH, 6);
+                ctx.fillStyle = dColor;
+                ctx.fill();
+
+                ctx.textAlign = 'right';
+                ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                ctx.font = '700 24px "DM Sans"';
+                ctx.fillText(d.pct + '%', distBarsX + distBarsW, rowY + 18);
+                ctx.textAlign = 'center';
+            });
+            const distBlockH = dist.length ? (32 + dist.length * rowH + 6) : 24;
+
+            const reflectionLabelY = distY + distBlockH + 44;
             ctx.fillStyle = 'rgba(255,255,255,0.55)';
-            ctx.font = '600 22px "DM Sans"';
-            ctx.fillText('MONTHLY REFLECTION', W/2, 1225);
+            ctx.font = '600 21px "DM Sans"';
+            ctx.fillText('MONTHLY REFLECTION', W/2, reflectionLabelY);
 
+            const wordCount = reflection.split(/\s+/).length;
+            const reflFontPx = wordCount > 70 ? 30 : wordCount > 55 ? 33 : 36;
+            const reflLineH  = wordCount > 70 ? 42 : wordCount > 55 ? 45 : 48;
             ctx.fillStyle = 'rgba(255,255,255,0.88)';
-            ctx.font = 'italic 600 38px "Cormorant Garant"';
-            wrapText(reflection, W/2, 1295, 820, 54);
+            ctx.font = `italic 600 ${reflFontPx}px "Cormorant Garant"`;
+            const reflectionTextStartY = reflectionLabelY + 56;
+            const reflectionLineCount = wrapText(reflection, W/2, reflectionTextStartY, 870, reflLineH);
+            const reflectionBlockEndY = reflectionTextStartY + reflectionLineCount * reflLineH;
 
-            /* 9. Footer brand */
-            ctx.fillStyle = 'rgba(232,213,176,0.4)';
-            ctx.font = '500 26px "DM Sans"';
-            ctx.fillText('Your Daily Ritual · auraapp', W/2, H - 90);
+            const footerY = Math.max(reflectionBlockEndY + 70, H - 130);
+            ctx.fillStyle = 'rgba(232,213,176,0.55)';
+            ctx.font = '600 23px "DM Sans"';
+            ctx.fillText('AURA Emotional Recap', W/2, footerY);
+            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            ctx.font = '500 19px "DM Sans"';
+            ctx.fillText(monthLabel, W/2, footerY + 32);
 
             resolve(cv);
-        }, 60);
+        }
     });
 }
 
@@ -6477,61 +6958,186 @@ shareBtn.addEventListener('click', () => {
     }
 });
 
-/* ── SHARE MONTHLY JOURNEY (Insights Section 9) ── */
+/* ── SHARE MONTHLY JOURNEY (Insights Section 9) — preview modal first ── */
 (function () {
     let isSharingReport = false;
-    document.addEventListener('DOMContentLoaded', function () {
-        const btn = document.getElementById('insShareReportBtn');
-        if (!btn) return;
-        btn.addEventListener('click', async () => {
-            if (isSharingReport || !window._currentReportData) return;
-            isSharingReport = true;
-            btn.disabled = true;
-            btn.textContent = 'Preparing…';
 
-            try {
-                const blob = await captureMonthlyReportCard();
-                const file = new File([blob], 'aura-monthly-journey.png', { type: 'image/png' });
-                const shareText = `My ${window._currentReportData.monthLabel} on AURA ✦`;
+    /* Populate preview card from reportData */
+    function populateRecapPreview(d) {
+        const el = id => document.getElementById(id);
+        const theme = (typeof getRecapTheme === 'function') ? getRecapTheme(d.moodKey) : {accent:'#E8D5B0', glow:'rgba(232,213,176,0.5)'};
+        const card = document.getElementById('recapPreviewCard');
+        if (card) {
+            card.style.setProperty('--rpc-accent', theme.accent);
+            card.style.setProperty('--rpc-glow', theme.glow);
+        }
 
+        if (el('rpcMonth'))    el('rpcMonth').textContent    = (d.monthLabel || '').toUpperCase() + ' RECAP';
+        if (el('rpcMoodName')) el('rpcMoodName').textContent = d.moodLabel || '—';
+        if (el('rpcPct'))      el('rpcPct').textContent      = (d.moodPct || 0) + '%';
+        if (el('rpcPct'))      el('rpcPct').style.color      = theme.accent;
+        if (el('rpcArchVal'))  el('rpcArchVal').textContent  = `${d.archetype || '—'} · Level ${d.level || 1}`;
+
+        // Real orb image
+        const orbEl = el('rpcOrb');
+        if (orbEl) {
+            const orbSrc = (typeof MOOD_SVG !== 'undefined') ? MOOD_SVG[(d.moodKey || '').toLowerCase()] : null;
+            if (orbSrc) {
+                orbEl.innerHTML = `<img src="${orbSrc}" alt="${d.moodLabel}" />`;
+                orbEl.classList.remove('fallback');
+            } else {
+                orbEl.innerHTML = '';
+                orbEl.classList.add('fallback');
+            }
+        }
+
+        // Stats row
+        const statsRow = el('rpcStatsRow');
+        if (statsRow) {
+            const stats = [
+                {val: d.expressions, key: 'EXPRESSIONS'},
+                {val: (d.streak || 0) + 'D', key: 'STREAK'},
+                {val: (d.energyScore || 0) + '%', key: 'ENERGY'},
+                {val: d.moodsFelt || 0, key: 'MOODS'},
+            ];
+            statsRow.innerHTML = stats.map(s =>
+                `<div class="rpc-stat-cell"><div class="rpc-stat-val">${s.val}</div><div class="rpc-stat-key">${s.key}</div></div>`
+            ).join('');
+        }
+
+        // Distribution
+        const distSection = el('rpcDistSection');
+        if (distSection && d.distribution && d.distribution.length) {
+            distSection.innerHTML = `<div class="rpc-dist-label">MOOD DISTRIBUTION</div>` +
+                d.distribution.map(dd => {
+                    const dTheme = (typeof getRecapTheme === 'function') ? getRecapTheme(dd.mood) : {accent:'#fff'};
+                    return `<div class="rpc-dist-row">
+                        <div class="rpc-dist-name">${dd.label}</div>
+                        <div class="rpc-dist-bar-track"><span class="rpc-dist-bar-fill" data-pct="${dd.pct}" style="background:${dTheme.accent}"></span></div>
+                        <div class="rpc-dist-pct">${dd.pct}%</div>
+                    </div>`;
+                }).join('');
+            // Animate bars after paint
+            requestAnimationFrame(() => {
+                distSection.querySelectorAll('.rpc-dist-bar-fill').forEach(b => { b.style.width = b.dataset.pct + '%'; });
+            });
+        } else if (distSection) {
+            distSection.innerHTML = '';
+        }
+
+        // Reflection
+        if (el('rpcReflection')) el('rpcReflection').textContent = d.reflection || '';
+
+        // Footer
+        if (el('rpcFooter')) el('rpcFooter').innerHTML =
+            `AURA Emotional Recap<br><span style="color:rgba(255,255,255,0.3);font-size:0.55rem">${d.monthLabel || ''}</span>`;
+    }
+
+    async function doShareOrDownload(action) {
+        if (isSharingReport) return;
+        isSharingReport = true;
+        const shareBtn = document.getElementById('recapPreviewShareBtn');
+        const dlBtn    = document.getElementById('recapPreviewDownloadBtn');
+        if (shareBtn) shareBtn.disabled = true;
+        if (dlBtn)    dlBtn.disabled    = true;
+
+        try {
+            const blob = await captureMonthlyReportCard();
+            const file = new File([blob], 'aura-monthly-journey.png', { type: 'image/png' });
+            const shareText = `My ${(window._currentReportData || {}).monthLabel || ''} on AURA ✦`;
+
+            if (action === 'share') {
                 if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                     await navigator.share({ title: 'My AURA Monthly Journey', text: shareText, files: [file] })
-                        .catch(err => {
-                            if (err.name !== 'AbortError') triggerBlobDownload(blob);
-                        });
+                        .catch(err => { if (err.name !== 'AbortError') triggerBlobDownload(blob); });
                 } else if (navigator.share) {
                     await navigator.share({ title: 'My AURA Monthly Journey', text: shareText }).catch(() => {});
                     triggerBlobDownload(blob);
                 } else {
                     triggerBlobDownload(blob);
                 }
-                btn.textContent = '✓ Shared';
-            } catch (err) {
-                console.error('Monthly report share error:', err);
-                btn.textContent = 'Failed — try again';
-            } finally {
-                setTimeout(() => {
-                    btn.textContent = '↗ Share Monthly Journey';
-                    btn.disabled = false;
-                    isSharingReport = false;
-                }, 1600);
+            } else {
+                triggerBlobDownload(blob);
             }
-        });
+        } catch (err) {
+            console.error('Monthly report error:', err);
+        } finally {
+            if (shareBtn) shareBtn.disabled = false;
+            if (dlBtn)    dlBtn.disabled    = false;
+            isSharingReport = false;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const triggerBtn  = document.getElementById('insShareReportBtn');
+        const modal       = document.getElementById('recapPreviewModal');
+        const closeBtn    = document.getElementById('recapPreviewCloseBtn');
+        const shareBtn    = document.getElementById('recapPreviewShareBtn');
+        const dlBtn       = document.getElementById('recapPreviewDownloadBtn');
+
+        if (triggerBtn && modal) {
+            triggerBtn.addEventListener('click', () => {
+                if (!window._currentReportData) return;
+                populateRecapPreview(window._currentReportData);
+                modal.classList.add('visible');
+                modal.scrollTop = 0;
+            });
+        }
+        if (closeBtn && modal)  closeBtn.addEventListener('click',  () => modal.classList.remove('visible'));
+        if (modal) modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('visible'); });
+        if (shareBtn) shareBtn.addEventListener('click', () => doShareOrDownload('share'));
+        if (dlBtn)    dlBtn.addEventListener('click',    () => doShareOrDownload('download'));
     });
 })();
 
-/* ── MONTHLY RECAP CAROUSEL: dot sync ── */
+
+/* ── MONTH NAVIGATION (Insights page) ── */
 (function () {
+    // Track which month is currently displayed (null = current month)
+    let _insYear  = null;
+    let _insMonth = null;
+
+    function getDisplayDate() {
+        const now = new Date();
+        return {
+            year:  _insYear  !== null ? _insYear  : now.getFullYear(),
+            month: _insMonth !== null ? _insMonth : now.getMonth()
+        };
+    }
+
+    function navigate(delta) {
+        const { year, month } = getDisplayDate();
+        const d = new Date(year, month + delta, 1);
+        _insYear  = d.getFullYear();
+        _insMonth = d.getMonth();
+
+        // Don't allow navigating into the future
+        const now = new Date();
+        if (_insYear > now.getFullYear() || (_insYear === now.getFullYear() && _insMonth > now.getMonth())) {
+            _insYear  = now.getFullYear();
+            _insMonth = now.getMonth();
+        }
+
+        populateInsights(_insYear, _insMonth);
+
+        // Scroll insights page back to top on month change
+        const modal = document.getElementById('insightsModal');
+        if (modal) modal.scrollTop = 0;
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
-        const track = document.getElementById('insRecapTrack');
-        if (!track) return;
-        const dots = Array.from(document.querySelectorAll('.ins-recap-dot'));
-        track.addEventListener('scroll', () => {
-            const cardWidth = track.scrollWidth / 3;
-            const idx = Math.round(track.scrollLeft / cardWidth);
-            dots.forEach((d, i) => d.classList.toggle('active', i === idx));
-        }, { passive: true });
+        const prevBtn = document.getElementById('insMonthPrev');
+        const nextBtn = document.getElementById('insMonthNext');
+        if (prevBtn) prevBtn.addEventListener('click', () => navigate(-1));
+        if (nextBtn) nextBtn.addEventListener('click', () => navigate(+1));
     });
+
+    // Reset to current month whenever the Insights tab is opened
+    const _origShowTab = typeof showTab === 'function' ? showTab : null;
+    window._resetInsightsMonth = function () {
+        _insYear  = null;
+        _insMonth = null;
+    };
 })();
 
 /* ── INIT ── */
@@ -7276,79 +7882,81 @@ function applyHistoryFilters() {
         </div>
     </div>
 
-    <!-- SECTION 2: Monthly Recap Carousel (3 swipeable cards) -->
-    <div class="ins-recap-section">
-        <div class="ins-recap-track" id="insRecapTrack">
-            <div class="ins-recap-card" id="insRecapCard1" data-card="1">
-                <div class="rc1-brand">✦ AURA</div>
-                <div class="rc1-month" id="rc1Month">JUNE 2026 RECAP</div>
+    <!-- SECTION 2: Monthly Summary (single scrollable card) -->
 
-                <div class="rc1-orb-wrap">
-                    <div class="rc1-orb-glow" id="rc1OrbGlow"></div>
-                    <div class="rc1-orb-img" id="rc1OrbImg"></div>
-                </div>
+    <!-- Month navigation -->
+    <div class="ins-month-nav">
+        <button class="ins-month-nav-btn" id="insMonthPrev">←</button>
+        <div class="ins-month-nav-label" id="insMonthNavLabel">June 2026</div>
+        <button class="ins-month-nav-btn" id="insMonthNext">→</button>
+    </div>
 
-                <div class="rc1-dom-label">DOMINANT EMOTION</div>
-                <div class="rc1-dom-mood" id="rc1DomMood">—</div>
-                <div class="rc1-dom-pct" id="rc1DomPct">0% of your emotional journey</div>
+    <!-- Single summary card -->
+    <div class="ins-card ins-summary-card">
 
-                <div class="rc1-archetype-block">
-                    <div class="rc1-arch-label">EMOTIONAL ARCHETYPE</div>
-                    <div class="rc1-arch-name" id="rc1ArchName">—</div>
-                    <div class="rc1-arch-level" id="rc1ArchLevel">Level 1</div>
-                </div>
+        <!-- Orb + Dominant Emotion -->
+        <div class="ins-sum-orb-wrap">
+            <div class="ins-sum-orb-glow" id="insSumOrbGlow"></div>
+            <div class="ins-sum-orb-img" id="insSumOrbImg"></div>
+        </div>
+        <div class="ins-sum-dom-label">DOMINANT EMOTION</div>
+        <div class="ins-sum-dom-mood" id="insSumDomMood">—</div>
+        <div class="ins-sum-dom-pct" id="insSumDomPct">—</div>
 
-                <div class="rc1-stats-grid">
-                    <div class="rc1-stat">
-                        <div class="rc1-stat-val" id="rc1StatExpressions">0</div>
-                        <div class="rc1-stat-key">Expressions</div>
-                    </div>
-                    <div class="rc1-stat">
-                        <div class="rc1-stat-val" id="rc1StatStreak">0</div>
-                        <div class="rc1-stat-key">Streak</div>
-                    </div>
-                    <div class="rc1-stat">
-                        <div class="rc1-stat-val" id="rc1StatEnergy">0%</div>
-                        <div class="rc1-stat-key">Energy</div>
-                    </div>
-                    <div class="rc1-stat">
-                        <div class="rc1-stat-val" id="rc1StatMoods">0</div>
-                        <div class="rc1-stat-key">Moods Felt</div>
-                    </div>
-                </div>
+        <div class="ins-sum-divider"></div>
+
+        <!-- Archetype -->
+        <div class="ins-sum-arch-label">EMOTIONAL ARCHETYPE</div>
+        <div class="ins-sum-arch-name" id="insSumArchName">—</div>
+        <div class="ins-sum-arch-level" id="insSumArchLevel">Level 1</div>
+
+        <div class="ins-sum-divider"></div>
+
+        <!-- Stats 2×2 -->
+        <div class="ins-sum-stats-grid">
+            <div class="ins-sum-stat">
+                <div class="ins-sum-stat-val" id="insSumExpressions">0</div>
+                <div class="ins-sum-stat-key">Expressions</div>
             </div>
-            <div class="ins-recap-card" id="insRecapCard2" data-card="2">
-                <div class="rc2-brand">✦ AURA</div>
-                <div class="rc2-title">YOUR EMOTIONAL MIX</div>
-
-                <div class="rc2-top-moods" id="rc2TopMoods"></div>
-
-                <div class="rc2-divider"></div>
-
-                <div class="rc2-total" id="rc2Total">0 Different Emotions Felt</div>
-
-                <div class="rc2-divider"></div>
-
-                <div class="rc2-evo-label">EMOTIONAL EVOLUTION</div>
-                <div class="rc2-evo-flow" id="rc2EvoFlow"></div>
+            <div class="ins-sum-stat">
+                <div class="ins-sum-stat-val" id="insSumStreak">0</div>
+                <div class="ins-sum-stat-key">Streak</div>
             </div>
-            <div class="ins-recap-card" id="insRecapCard3" data-card="3">
-                <div class="rc3-brand">✦ AURA</div>
-                <div class="rc3-title">MONTHLY REFLECTION</div>
-
-                <div class="rc3-reflection" id="rc3Reflection"></div>
-
-                <div class="rc3-divider"></div>
-
-                <div class="rc3-ach-label">ACHIEVEMENTS EARNED</div>
-                <div class="rc3-ach-list" id="rc3AchList"></div>
+            <div class="ins-sum-stat">
+                <div class="ins-sum-stat-val" id="insSumEnergy">0%</div>
+                <div class="ins-sum-stat-key">Energy</div>
+            </div>
+            <div class="ins-sum-stat">
+                <div class="ins-sum-stat-val" id="insSumMoods">0</div>
+                <div class="ins-sum-stat-key">Moods Felt</div>
             </div>
         </div>
-        <div class="ins-recap-dots" id="insRecapDots">
-            <span class="ins-recap-dot active" data-dot="1"></span>
-            <span class="ins-recap-dot" data-dot="2"></span>
-            <span class="ins-recap-dot" data-dot="3"></span>
-        </div>
+
+        <div class="ins-sum-divider"></div>
+
+        <!-- Mood mix (top 3 with medals + bars) -->
+        <div class="ins-sum-section-label">YOUR EMOTIONAL MIX</div>
+        <div class="ins-sum-top-moods" id="insSumTopMoods"></div>
+        <div class="ins-sum-total" id="insSumTotal"></div>
+
+        <div class="ins-sum-divider"></div>
+
+        <!-- Weekly evolution -->
+        <div class="ins-sum-section-label">EMOTIONAL EVOLUTION</div>
+        <div class="ins-sum-evo-flow" id="insSumEvoFlow"></div>
+
+        <div class="ins-sum-divider"></div>
+
+        <!-- Monthly reflection -->
+        <div class="ins-sum-section-label">MONTHLY REFLECTION</div>
+        <div class="ins-sum-reflection" id="insSumReflection"></div>
+
+        <div class="ins-sum-divider"></div>
+
+        <!-- Achievements earned -->
+        <div class="ins-sum-section-label">ACHIEVEMENTS EARNED</div>
+        <div class="ins-sum-ach-list" id="insSumAchList"></div>
+
     </div>
 
     <!-- SECTION 8: Emotional Energy Score -->
@@ -7406,6 +8014,46 @@ function applyHistoryFilters() {
     <!-- SECTION 9: Shareable Monthly Report trigger -->
     <button class="ins-share-report-btn" id="insShareReportBtn">↗ Share Monthly Journey</button>
 
+</div>
+
+<!-- RECAP PREVIEW MODAL -->
+<div class="recap-preview-overlay" id="recapPreviewModal">
+    <div class="recap-preview-inner">
+        <div class="recap-preview-card" id="recapPreviewCard">
+            <div class="rpc-brand">✦ AURA</div>
+            <div class="rpc-month" id="rpcMonth">JUNE 2026 RECAP</div>
+
+            <div class="rpc-orb-zone">
+                <div class="rpc-orb-halo" id="rpcOrbHalo"></div>
+                <div class="rpc-orb" id="rpcOrb"></div>
+            </div>
+
+            <div class="rpc-mood-name" id="rpcMoodName">—</div>
+
+            <div class="rpc-pct-zone">
+                <div class="rpc-pct" id="rpcPct">0%</div>
+                <div class="rpc-pct-label">OF YOUR MONTH</div>
+            </div>
+
+            <div class="rpc-arch-label">EMOTIONAL ARCHETYPE</div>
+            <div class="rpc-arch-val" id="rpcArchVal">—</div>
+
+            <div class="rpc-stats-row" id="rpcStatsRow"></div>
+
+            <div class="rpc-dist-section" id="rpcDistSection"></div>
+
+            <div class="rpc-reflection-label">MONTHLY REFLECTION</div>
+            <div class="rpc-reflection" id="rpcReflection"></div>
+
+            <div class="rpc-footer" id="rpcFooter"></div>
+        </div>
+
+        <div class="recap-preview-actions">
+            <button class="rpa-btn rpa-share" id="recapPreviewShareBtn">↗ Share</button>
+            <button class="rpa-btn rpa-download" id="recapPreviewDownloadBtn">⬇ Download</button>
+            <button class="rpa-btn rpa-close" id="recapPreviewCloseBtn">✕ Close</button>
+        </div>
+    </div>
 </div>
 
 <!-- Profile Page Overlay -->
@@ -7577,7 +8225,7 @@ function getWeeklyMoodEvolution(monthEntries) {
     return steps;
 }
 
-async function populateInsights() {
+async function populateInsights(targetYear, targetMonth) {
     const el = (id) => document.getElementById(id);
     const data = loadData();
 
@@ -7589,21 +8237,29 @@ async function populateInsights() {
     if (el('insHeroStreak'))    el('insHeroStreak').textContent    = data.streak || 0;
     // insHeroEnergy filled after energyScore is computed below
 
-    // Current month label
+    // Determine which month to display
     const now = new Date();
-    const monthLabel = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-    if (el('insCurrentMonth')) el('insCurrentMonth').textContent = monthLabel;
+    const curYear  = (targetYear  !== undefined) ? targetYear  : now.getFullYear();
+    const curMonth = (targetMonth !== undefined) ? targetMonth : now.getMonth();
+    const monthLabel = new Date(curYear, curMonth, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
-    // Fetch history (independent of History tab having been visited)
+    // Update month nav label
+    if (el('insMonthNavLabel')) el('insMonthNavLabel').textContent = monthLabel;
+    if (el('insCurrentMonth'))  el('insCurrentMonth').textContent  = monthLabel;
+
+    // Disable Next button if already on current month
+    const isCurrentMonth = (curYear === now.getFullYear() && curMonth === now.getMonth());
+    const nextBtn = el('insMonthNext');
+    if (nextBtn) nextBtn.disabled = isCurrentMonth;
+
+    // Fetch history
     let history = window._allHistoryEntries;
     if (!history) {
         const fetched = await fetchHistoryData();
         history = fetched.history.slice().reverse();
     }
 
-    // Filter to current month
-    const curYear  = now.getFullYear();
-    const curMonth = now.getMonth();
+    // Filter to selected month
     const monthEntries = (history || []).filter(item => {
         const d = new Date(item.date);
         return d.getFullYear() === curYear && d.getMonth() === curMonth;
@@ -7770,78 +8426,87 @@ async function populateInsights() {
         }
     }
 
-    // ── CAROUSEL CARD 1: Month at a Glance ──
+    // ── SECTION 2: Monthly Summary Card ──
     {
         const domMoodKey = top ? top[0] : null;
-        const domColor   = domMoodKey ? getMoodColor(domMoodKey) : '#9B8FCC';
+        const theme      = getRecapTheme(domMoodKey || 'calm');
         const domLabel   = domMoodKey ? (domMoodKey[0].toUpperCase() + domMoodKey.slice(1)) : 'No data yet';
         const domPct     = (domMoodKey && monthEntries.length) ? Math.round((top[1] / monthEntries.length) * 100) : 0;
         const orbSrc     = domMoodKey ? MOOD_SVG[domMoodKey] : null;
+        const sumCard    = el('insSumOrbGlow') ? el('insSumOrbGlow').closest('.ins-summary-card') : null;
 
-        if (el('rc1Month'))    el('rc1Month').textContent = (monthLabel || '').toUpperCase() + ' RECAP';
-        if (el('rc1DomMood'))  el('rc1DomMood').textContent = domLabel;
-        if (el('rc1DomPct'))   el('rc1DomPct').textContent  = domMoodKey ? `${domPct}% of your emotional journey` : 'Start logging to see your journey';
-
-        const orbGlow = el('rc1OrbGlow');
-        const orbImg  = el('rc1OrbImg');
-        if (orbGlow) orbGlow.style.setProperty('--orb-color', domColor);
-        if (orbImg) {
-            orbImg.style.setProperty('--orb-color', domColor);
-            orbImg.innerHTML = orbSrc ? `<img src="${orbSrc}" alt="${domLabel}">` : '<span style="font-size:3rem;">✦</span>';
+        // Apply mood theme CSS vars to card
+        if (sumCard) {
+            sumCard.style.setProperty('--sum-accent', theme.accent);
+            sumCard.style.setProperty('--sum-glow',   theme.glow);
         }
 
-        if (el('rc1ArchName'))  el('rc1ArchName').textContent  = heroRank.title || 'Emotional Explorer';
-        if (el('rc1ArchLevel')) el('rc1ArchLevel').textContent = 'Level ' + heroLevel;
+        // Orb
+        const orbGlow = el('insSumOrbGlow');
+        const orbImg  = el('insSumOrbImg');
+        if (orbGlow) orbGlow.style.background = `radial-gradient(circle, ${theme.glow} 0%, transparent 70%)`;
+        if (orbImg) {
+            orbImg.classList.remove('fallback');
+            orbImg.innerHTML = orbSrc
+                ? `<img src="${orbSrc}" alt="${domLabel}">`
+                : '<span style="font-size:3rem;display:flex;align-items:center;justify-content:center;height:100%">✦</span>';
+            if (!orbSrc) orbImg.classList.add('fallback');
+        }
 
-        if (el('rc1StatExpressions')) el('rc1StatExpressions').textContent = monthEntries.length;
-        if (el('rc1StatStreak'))      el('rc1StatStreak').textContent      = data.streak || 0;
-        if (el('rc1StatEnergy'))      el('rc1StatEnergy').textContent      = energyScore + '%';
-        if (el('rc1StatMoods'))       el('rc1StatMoods').textContent       = distinctMoods;
-    }
+        // Dominant emotion
+        if (el('insSumDomMood')) el('insSumDomMood').textContent = domLabel;
+        if (el('insSumDomPct'))  {
+            el('insSumDomPct').textContent = domMoodKey ? `${domPct}% of your emotional journey` : 'Start logging to see your journey';
+            el('insSumDomPct').style.color = theme.accent;
+        }
 
-    // ── CAROUSEL CARD 2: Emotional Journey ──
-    {
+        // Archetype
+        if (el('insSumArchName'))  el('insSumArchName').textContent  = heroRank.title || 'Emotional Explorer';
+        if (el('insSumArchLevel')) el('insSumArchLevel').textContent = 'Level ' + heroLevel;
+
+        // Stats
+        if (el('insSumExpressions')) el('insSumExpressions').textContent = monthEntries.length;
+        if (el('insSumStreak'))      el('insSumStreak').textContent      = data.streak || 0;
+        if (el('insSumEnergy'))      el('insSumEnergy').textContent      = energyScore + '%';
+        if (el('insSumMoods'))       el('insSumMoods').textContent       = distinctMoods;
+
+        // Top moods (medals + bars)
         const medals = ['🥇', '🥈', '🥉'];
         const topThree = sortedMoods.slice(0, 3);
-        const topMoodsEl = el('rc2TopMoods');
+        const topMoodsEl = el('insSumTopMoods');
         if (topMoodsEl) {
             if (topThree.length === 0) {
-                topMoodsEl.innerHTML = `<div class="ins-dist-empty">No moods logged this month yet.</div>`;
+                topMoodsEl.innerHTML = `<div class="ins-sum-no-data">No moods logged this month yet.</div>`;
             } else {
                 topMoodsEl.innerHTML = topThree.map(([mood, count], i) => {
                     const color = getMoodColor(mood);
                     const pct   = Math.round((count / monthEntries.length) * 100);
                     const label = mood[0].toUpperCase() + mood.slice(1);
-                    return `<div class="rc2-mood-row">
-                        <span class="rc2-medal">${medals[i]}</span>
-                        <div class="rc2-mood-info">
-                            <div class="rc2-mood-name-row">
-                                <span class="rc2-mood-name">${label}</span>
-                                <span class="rc2-mood-pct" style="color:${color}">${pct}%</span>
+                    return `<div class="ins-sum-mood-row">
+                        <span class="ins-sum-medal">${medals[i]}</span>
+                        <div class="ins-sum-mood-info">
+                            <div class="ins-sum-mood-name-row">
+                                <span class="ins-sum-mood-name">${label}</span>
+                                <span class="ins-sum-mood-pct" style="color:${color}">${pct}%</span>
                             </div>
-                            <div class="rc2-bar-track"><span class="rc2-bar-fill" data-pct="${pct}" style="background:${color}"></span></div>
+                            <div class="ins-sum-bar-track"><span class="ins-sum-bar-fill" data-pct="${pct}" style="background:${color}"></span></div>
                         </div>
                     </div>`;
                 }).join('');
-                // animate bars after paint
                 requestAnimationFrame(() => {
-                    topMoodsEl.querySelectorAll('.rc2-bar-fill').forEach(bar => {
-                        bar.style.width = bar.dataset.pct + '%';
-                    });
+                    topMoodsEl.querySelectorAll('.ins-sum-bar-fill').forEach(b => { b.style.width = b.dataset.pct + '%'; });
                 });
             }
         }
+        if (el('insSumTotal')) el('insSumTotal').textContent = `${distinctMoods} Different Emotion${distinctMoods === 1 ? '' : 's'} Felt`;
 
-        if (el('rc2Total')) {
-            el('rc2Total').textContent = `${distinctMoods} Different Emotion${distinctMoods === 1 ? '' : 's'} Felt`;
-        }
-
-        const rc2EvoFlow = el('rc2EvoFlow');
-        if (rc2EvoFlow) {
+        // Weekly evolution
+        const evoFlowEl = el('insSumEvoFlow');
+        if (evoFlowEl) {
             if (evoSteps.length === 0) {
-                rc2EvoFlow.innerHTML = `<div class="ins-evo-empty">Not enough data yet to show your evolution.</div>`;
+                evoFlowEl.innerHTML = `<div class="ins-sum-no-data">Not enough data yet to show your evolution.</div>`;
             } else {
-                rc2EvoFlow.innerHTML = evoSteps.map((s, i) => {
+                evoFlowEl.innerHTML = evoSteps.map((s, i) => {
                     const color = getMoodColor(s.mood);
                     const label = s.mood[0].toUpperCase() + s.mood.slice(1);
                     const arrow = i < evoSteps.length - 1 ? `<span class="ins-evo-arrow">↓</span>` : '';
@@ -7856,35 +8521,37 @@ async function populateInsights() {
                 }).join('');
             }
         }
-    }
 
-    // ── CAROUSEL CARD 3: Reflection & Achievements ──
-    const reflectionText = generateMonthlyReflectionText(monthEntries, moodCounts, data.streak || 0, monthLabel);
-    if (el('rc3Reflection')) el('rc3Reflection').textContent = reflectionText;
+        // Monthly reflection
+        const reflectionText = generateMonthlyReflectionText(monthEntries, moodCounts, data.streak || 0, monthLabel, energyScore);
+        if (el('insSumReflection')) el('insSumReflection').textContent = reflectionText;
 
-    {
-        const rank3  = getRank(data.xp || 0);
-        const level3 = rank3.index + 1;
-        const ACH3   = getAchievementsList(data, level3, data.moodCounts || {});
-        const earned3 = ACH3.filter(a => a.check());
-        const achListEl = el('rc3AchList');
+        // Achievements earned
+        const ACH = getAchievementsList(data, heroLevel, data.moodCounts || {});
+        const earned = ACH.filter(a => a.check());
+        const achListEl = el('insSumAchList');
         if (achListEl) {
-            if (earned3.length === 0) {
-                achListEl.innerHTML = `<div class="rc3-ach-empty">Keep going — your first achievement is close.</div>`;
-            } else {
-                achListEl.innerHTML = earned3.map(a => `
-                    <div class="rc3-ach-item">
-                        <div class="rc3-ach-icon">${a.icon}</div>
-                        <div class="rc3-ach-text">
-                            <div class="rc3-ach-name">${a.name}</div>
-                            <div class="rc3-ach-desc">${a.desc}</div>
+            achListEl.innerHTML = earned.length === 0
+                ? `<div class="ins-sum-ach-empty">Keep going — your first achievement is close.</div>`
+                : earned.map(a => `
+                    <div class="ins-sum-ach-item">
+                        <div class="ins-sum-ach-icon">${a.icon}</div>
+                        <div class="ins-sum-ach-text">
+                            <div class="ins-sum-ach-name">${a.name}</div>
+                            <div class="ins-sum-ach-desc">${a.desc}</div>
                         </div>
                     </div>`).join('');
-            }
         }
     }
 
     // ── SECTION 9: Store data for shareable report canvas ──
+    const reflectionText = generateMonthlyReflectionText(monthEntries, moodCounts, data.streak || 0, monthLabel, energyScore);
+    const distributionTop4 = sortedMoods.slice(0, 4).map(([mood, count]) => ({
+        mood,
+        label: mood[0].toUpperCase() + mood.slice(1),
+        pct: Math.round((count / monthEntries.length) * 100)
+    }));
+
     window._currentReportData = {
         monthLabel,
         moodKey:     top ? top[0] : 'calm',
@@ -7896,7 +8563,8 @@ async function populateInsights() {
         reflection:  reflectionText,
         archetype:   heroRank.title || 'Emotional Explorer',
         level:       heroLevel,
-        moodsFelt:   distinctMoods
+        moodsFelt:   distinctMoods,
+        distribution: distributionTop4
     };
 }
 
@@ -7975,51 +8643,84 @@ function buildMonthlyReflection(monthEntries, moodCounts, streak, monthLabel) {
 }
 
 /* ── REFLECTION TEXT GENERATOR (shared by legacy section + Card 3, ≤90 words, human tone) ── */
-function generateMonthlyReflectionText(monthEntries, moodCounts, streak, monthLabel) {
+function generateMonthlyReflectionText(monthEntries, moodCounts, streak, monthLabel, energyScore) {
     if (monthEntries.length === 0) {
         return `${monthLabel} is still unwritten. Every check-in helps you see yourself a little clearer — start whenever you're ready.`;
     }
 
-    const sorted   = Object.entries(moodCounts).sort((a,b) => b[1]-a[1]);
-    const topMood  = sorted[0][0];
-    const variety  = sorted.length;
+    const sorted    = Object.entries(moodCounts).sort((a,b) => b[1]-a[1]);
+    const topMood   = sorted[0][0];
+    const variety   = sorted.length;
     const moodLabel = topMood[0].toUpperCase() + topMood.slice(1);
+    const energy    = typeof energyScore === 'number' ? energyScore : null;
 
-    const openers = {
-        numb:        "This month wasn't loud.",
-        tired:       "This month asked a lot of you.",
-        motivated:   "This month wasn't defined by perfection.",
-        calm:        "This month moved at its own steady pace.",
-        anxious:     "This month, your mind rarely sat still.",
-        overthinking:"This month, your thoughts did a lot of the work.",
-        angry:       "This month had some real friction in it.",
-        sad:         "This month carried some real weight.",
-        happy:       "This month had genuine light in it.",
-        lonely:      "This month had some quiet distance in it.",
-        grateful:    "This month, gratitude kept finding its way in.",
-        lost:        "This month felt like searching for solid ground.",
-        recovering:  "This month was about finding your way back.",
-        growing:     "This month, something in you kept expanding."
+    // Mood-specific narrative core — each captures a distinct emotional story, not a generic template
+    const moodNarratives = {
+        growing:      `This month was marked by progress. ${moodLabel} appeared more than any other emotion, suggesting a period of intentional change.`,
+        motivated:    `This month carried real momentum. ${moodLabel} appeared more than any other emotion, suggesting drive that didn't need to be loud to be real.`,
+        numb:         `This month was quieter emotionally. ${moodLabel} appeared more than any other feeling, suggesting a period of observation and reflection.`,
+        calm:         `This month settled into a steadier rhythm. ${moodLabel} appeared more than any other feeling, suggesting a season of genuine ease.`,
+        happy:        `This month had real light in it. ${moodLabel} appeared more than any other feeling, suggesting moments worth holding onto.`,
+        recovering:   `This month was about finding your footing again. ${moodLabel} appeared more than any other feeling, suggesting healing that's already underway.`,
+        tired:        `This month asked more of you than usual. ${moodLabel} appeared more than any other feeling, suggesting it's been a demanding stretch.`,
+        sad:          `This month carried some real weight. ${moodLabel} appeared more than any other feeling, suggesting something has needed processing.`,
+        angry:        `This month had its share of friction. ${moodLabel} appeared more than any other feeling, suggesting something has been pushing back against you.`,
+        anxious:      `This month, your mind rarely sat still. ${moodLabel} appeared more than any other feeling, suggesting a lot has felt uncertain.`,
+        overthinking: `This month, your thoughts carried a lot of the weight. ${moodLabel} appeared more than any other feeling, suggesting your mind has been working overtime.`,
+        lost:         `This month felt like searching for solid ground. ${moodLabel} appeared more than any other feeling, suggesting you're in a season of figuring things out.`,
+        lonely:       `This month had some quiet distance in it. ${moodLabel} appeared more than any other feeling, suggesting connection has felt a little out of reach.`,
+        grateful:     `This month, gratitude kept finding its way in. ${moodLabel} appeared more than any other feeling, suggesting you've been noticing what's good.`,
     };
-    const opener = openers[topMood] || "This month had its own shape.";
+    const core = moodNarratives[topMood] || `This month had its own shape. ${moodLabel} appeared more than any other feeling, marking a distinct chapter.`;
 
-    const varietyPhrase = variety >= 4
-        ? `feelings moved through a wide range`
-        : variety > 1
-            ? `a few different feelings passed through`
-            : `one feeling held steady`;
+    // Streak phrase — incorporates consistency
+    const streakPhrase = streak >= 14
+        ? `Your ${streak}-day streak shows real, sustained commitment to checking in with yourself.`
+        : streak >= 7
+            ? `You returned ${streak} days in a row, checking in even when it would've been easy not to.`
+            : streak >= 3
+                ? `You kept a ${streak}-day streak going — small, steady proof that you're paying attention.`
+                : `You showed up enough times this month to start noticing a pattern.`;
 
-    const streakPhrase = streak >= 7
-        ? `You returned ${streak} days in a row, checking in even when it would've been easy not to.`
-        : streak >= 3
-            ? `You kept a ${streak}-day streak going — small, steady proof that you're paying attention.`
-            : `You showed up enough times to start noticing a pattern.`;
+    // Energy phrase — incorporates emotional energy score, framed as engagement/resilience, never as a verdict on mood
+    let energyPhrase = '';
+    if (energy !== null) {
+        energyPhrase = energy >= 70
+            ? `Your energy stayed strong throughout, a sign of real resilience.`
+            : energy >= 40
+                ? `Your energy held steady, building quietly in the background.`
+                : `Your energy is still building, and that's exactly where growth starts.`;
+    }
 
-    const closer = "Growth is rarely dramatic — it often looks like showing up when nobody is watching.";
+    // Diversity phrase — incorporates mood variety
+    const varietyPhrase = variety >= 5
+        ? `You moved through a genuinely wide range of feelings this month.`
+        : variety >= 3
+            ? `A few different feelings passed through along the way.`
+            : `One feeling held steady through most of it.`;
 
-    let result = `${opener} It was defined by presence. ${streakPhrase} ${moodLabel} appeared more than any other feeling, and ${varietyPhrase} along the way. ${closer}`;
+    // Mood-specific closers — distinct sentiment per dominant mood, not interchangeable
+    const closers = {
+        growing:      `Your consistency shows a willingness to keep moving forward even when growth felt slow.`,
+        motivated:    `That kind of follow-through compounds — keep noticing it.`,
+        numb:         `Even so, you continued checking in with yourself, which is a meaningful form of progress.`,
+        calm:         `Steadiness like this is its own quiet kind of strength.`,
+        happy:        `Moments like these are worth returning to when things feel harder.`,
+        recovering:   `Healing isn't always visible day to day, but the pattern says it's happening.`,
+        tired:        `Rest is part of the process, not a detour from it.`,
+        sad:          `Naming what you feel, even when it's heavy, is its own kind of courage.`,
+        angry:        `Friction often points to what matters most to you — worth sitting with.`,
+        anxious:      `Showing up despite the noise in your head says something about your resolve.`,
+        overthinking: `Sometimes the loudest month in your head is also the most productive one, quietly.`,
+        lost:         `Searching is still a form of moving — you haven't stopped.`,
+        lonely:       `Reaching out, even just to yourself, still counts as connection.`,
+        grateful:     `That habit of noticing good things tends to grow the more you practice it.`,
+    };
+    const closer = closers[topMood] || `Growth is rarely dramatic — it often looks like showing up when nobody is watching.`;
 
-    // Hard safety cap at 90 words
+    let result = `${core} ${streakPhrase} ${energyPhrase} ${varietyPhrase} ${closer}`.replace(/\s+/g, ' ').trim();
+
+    // Hard safety cap: keep within 50-90 words (spec range)
     const words = result.split(/\s+/);
     if (words.length > 90) result = words.slice(0, 90).join(' ') + '…';
 

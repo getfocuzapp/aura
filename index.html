@@ -1520,64 +1520,137 @@
 
         /* ── SECTION 1: INSIGHTS HERO (premium glass card) ── */
         .ins-hero-card {
-            min-height: 220px;
             border-radius: 28px;
-            padding: 1.6rem 1.4rem 1.5rem;
+            padding: 1.5rem 1.4rem 1.6rem;
             margin-top: 1.2rem;
             background: linear-gradient(160deg, rgba(140,80,255,0.10), rgba(232,213,176,0.06) 60%, rgba(255,255,255,0.03));
             border: 1px solid rgba(232,213,176,0.18);
             box-shadow: 0 12px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
             backdrop-filter: blur(18px);
             -webkit-backdrop-filter: blur(18px);
-            position: relative;
-            overflow: hidden;
+            position: relative; overflow: hidden;
+            display: flex; flex-direction: column; align-items: center;
+            text-align: center;
         }
         .ins-hero-card::before {
             content: '';
-            position: absolute; top: -40%; left: -20%;
-            width: 70%; height: 70%;
-            background: radial-gradient(circle, rgba(140,80,255,0.18) 0%, transparent 70%);
+            position: absolute; top: -60px; left: -60px;
+            width: 200px; height: 200px;
+            background: radial-gradient(circle, var(--hero-glow, rgba(140,80,255,0.22)) 0%, transparent 70%);
             pointer-events: none;
+        }
+        /* Top label row */
+        .ins-hero-top-row {
+            display: flex; align-items: center; justify-content: space-between;
+            width: 100%; margin-bottom: 0.2rem;
         }
         .ins-hero-brand {
             font-family: 'DM Sans', sans-serif;
-            font-size: 0.8rem; font-weight: 700;
+            font-size: 0.72rem; font-weight: 700;
             letter-spacing: 0.18em;
-            color: rgba(232,213,176,0.7);
-            margin-bottom: 0.3rem;
+            color: rgba(232,213,176,0.6);
         }
-        .ins-hero-title {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.7rem; font-weight: 900;
-            color: #fff; letter-spacing: 0.04em;
-            margin-bottom: 0.35rem;
-        }
-        .ins-hero-subtitle {
+        .ins-hero-month-tag {
             font-family: 'DM Sans', sans-serif;
-            font-size: 0.82rem;
-            color: rgba(255,255,255,0.42);
+            font-size: 0.62rem; font-weight: 700;
+            letter-spacing: 0.12em; text-transform: uppercase;
+            color: rgba(255,255,255,0.3);
+        }
+        /* Month/date */
+        .ins-hero-date {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem; font-weight: 600;
+            color: rgba(255,255,255,0.45);
+            margin-bottom: 1.5rem;
+            width: 100%; text-align: center;
+        }
+        /* Orb zone */
+        .ins-hero-orb-zone {
+            position: relative; width: 120px; height: 120px;
+            display: flex; align-items: center; justify-content: center;
             margin-bottom: 1.3rem;
         }
-        .ins-hero-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.1rem 0.6rem;
-            position: relative; z-index: 1;
+        .ins-hero-orb-halo {
+            position: absolute; inset: -16px; border-radius: 50%;
+            background: radial-gradient(circle, var(--hero-glow, rgba(155,143,204,0.5)) 0%, transparent 70%);
+            opacity: 0.7;
         }
-        .ins-hero-stat { text-align: left; }
-        .ins-hero-val {
-            font-family: 'DM Sans', sans-serif;
-            font-size: 1.5rem; font-weight: 800;
-            color: #f0e4c8; line-height: 1.1;
-            letter-spacing: -0.01em;
+        .ins-hero-orb-img {
+            position: relative; width: 110px; height: 110px;
+            border-radius: 50%; overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
         }
-        .ins-hero-key {
+        .ins-hero-orb-img img { width:100%; height:100%; object-fit:cover; display:block; }
+        .ins-hero-orb-img.fallback {
+            background: radial-gradient(circle at 35% 30%, var(--hero-accent,#9B8FCC) 0%, rgba(0,0,0,0.6) 100%);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.4rem;
+        }
+        /* Dominant mood name */
+        .ins-hero-mood-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.7rem; font-weight: 900;
+            color: #fff; letter-spacing: 0.02em;
+            line-height: 1.05; margin-bottom: 0.5rem;
+        }
+        /* Hero percentage */
+        .ins-hero-pct-row {
+            display: flex; flex-direction: column; align-items: center;
+            margin-bottom: 1.3rem; gap: 0.2rem;
+        }
+        .ins-hero-pct {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem; font-weight: 900;
+            line-height: 1;
+            color: var(--hero-accent, #9B8FCC);
+        }
+        .ins-hero-pct-label {
             font-family: 'DM Sans', sans-serif;
-            font-size: 0.65rem;
+            font-size: 0.62rem; font-weight: 700;
+            letter-spacing: 0.1em; text-transform: uppercase;
             color: rgba(255,255,255,0.35);
-            text-transform: uppercase; letter-spacing: 0.06em;
-            margin-top: 0.25rem;
         }
+        /* Divider rule */
+        .ins-hero-rule {
+            width: 40px; height: 1px;
+            background: rgba(232,213,176,0.25);
+            margin-bottom: 1rem;
+        }
+        /* Archetype + level */
+        .ins-hero-arch {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.92rem; font-weight: 700;
+            color: rgba(232,213,176,0.85);
+            letter-spacing: 0.01em;
+            margin-bottom: 1.4rem;
+        }
+        /* Secondary stats row */
+        .ins-hero-stats-row {
+            display: flex; align-items: center; justify-content: center;
+            gap: 0; width: 100%;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 16px; padding: 0.75rem 0;
+        }
+        .ins-hero-mini-stat {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; gap: 0.2rem;
+        }
+        .ins-hero-mini-val {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.1rem; font-weight: 800; color: #fff;
+        }
+        .ins-hero-mini-key {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.6rem; font-weight: 700;
+            letter-spacing: 0.06em; text-transform: uppercase;
+            color: rgba(232,213,176,0.45);
+        }
+        .ins-hero-mini-divider {
+            width: 1px; height: 28px;
+            background: rgba(255,255,255,0.09);
+        }
+
 
         /* ── SECTION 1: INSIGHTS HEADER ── */
         .ins-header {
@@ -1732,38 +1805,107 @@
         }
 
         /* Top moods */
-        .ins-sum-top-moods { width: 100%; display: flex; flex-direction: column; gap: 0.9rem; }
-        .ins-sum-mood-row { display: flex; align-items: center; gap: 0.7rem; }
-        .ins-sum-medal { font-size: 1.2rem; flex-shrink: 0; width: 1.7rem; text-align: center; }
-        .ins-sum-mood-info { flex: 1; min-width: 0; }
+        /* ── MOOD DISTRIBUTION (top 4, premium bars) ── */
+        .ins-sum-top-moods { width: 100%; display: flex; flex-direction: column; gap: 1.3rem; }
+        .ins-sum-mood-row { display: flex; align-items: center; gap: 0.75rem; }
+        .ins-sum-mood-orb {
+            width: 36px; height: 36px; border-radius: 50%;
+            overflow: hidden; flex-shrink: 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+        }
+        .ins-sum-mood-orb img { width:100%; height:100%; object-fit:cover; display:block; }
+        .ins-sum-mood-orb.fallback {
+            background: radial-gradient(circle at 35% 30%, var(--orb-color,#9B8FCC) 0%, rgba(0,0,0,0.6) 100%);
+        }
+        .ins-sum-mood-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.4rem; }
         .ins-sum-mood-name-row {
             display: flex; justify-content: space-between; align-items: baseline;
-            margin-bottom: 0.3rem;
         }
         .ins-sum-mood-name {
             font-family: 'DM Sans', sans-serif;
-            font-size: 0.92rem; font-weight: 700; color: #fff;
+            font-size: 0.95rem; font-weight: 700; color: #fff;
         }
         .ins-sum-mood-pct {
             font-family: 'DM Sans', sans-serif;
-            font-size: 0.88rem; font-weight: 800;
+            font-size: 1rem; font-weight: 900;
+            letter-spacing: -0.01em;
         }
         .ins-sum-bar-track {
-            height: 8px; border-radius: 5px;
+            height: 14px; border-radius: 10px;
             background: rgba(255,255,255,0.07); overflow: hidden;
+            width: 100%;
         }
         .ins-sum-bar-fill {
-            display: block; height: 100%; border-radius: 5px;
-            width: 0%; transition: width 0.7s cubic-bezier(0.16,1,0.3,1);
+            display: block; height: 100%; border-radius: 10px;
+            width: 0%;
+            transition: width 0.8s cubic-bezier(0.16,1,0.3,1);
+            box-shadow: 0 0 10px var(--bar-glow, transparent);
         }
         .ins-sum-total {
             font-family: 'DM Sans', sans-serif;
-            font-size: 0.88rem; font-weight: 700;
-            color: rgba(232,213,176,0.8); margin-top: 0.8rem; width: 100%; text-align: center;
+            font-size: 0.82rem; font-weight: 600;
+            color: rgba(255,255,255,0.35);
+            margin-top: 0.4rem; width: 100%; text-align: center;
+            letter-spacing: 0.04em;
         }
 
-        /* Weekly evolution */
-        .ins-sum-evo-flow { display: flex; flex-direction: column; gap: 0; width: 100%; text-align: left; }
+        /* ── EMOTIONAL STORY OF THE MONTH ── */
+        .ins-story-card {
+            width: 100%;
+            border-radius: 24px;
+            padding: 1.6rem 1.3rem 1.5rem;
+            box-sizing: border-box;
+            display: flex; flex-direction: column; align-items: center;
+            text-align: center;
+            position: relative; overflow: hidden;
+            background: linear-gradient(160deg,
+                rgba(var(--story-rgb, 155,143,204), 0.10) 0%,
+                rgba(10,10,20,0.85) 60%);
+            border: 1px solid rgba(var(--story-rgb, 155,143,204), 0.22);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.5),
+                        inset 0 1px 0 rgba(255,255,255,0.05);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+        /* Ambient glow blob top-center */
+        .ins-story-card::before {
+            content: '';
+            position: absolute; top: -50px; left: 50%; transform: translateX(-50%);
+            width: 200px; height: 160px;
+            background: radial-gradient(circle,
+                rgba(var(--story-rgb, 155,143,204), 0.25) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .ins-story-label {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.58rem; font-weight: 700;
+            letter-spacing: 0.14em; text-transform: uppercase;
+            color: rgba(255,255,255,0.3);
+            margin-bottom: 1.1rem;
+            position: relative; z-index: 1;
+        }
+        .ins-story-title {
+            font-family: 'Cormorant Garant', Georgia, serif;
+            font-size: 2rem; font-weight: 700;
+            font-style: italic; line-height: 1.15;
+            color: #fff;
+            letter-spacing: 0.01em;
+            margin-bottom: 1.1rem;
+            position: relative; z-index: 1;
+        }
+        .ins-story-rule {
+            width: 48px; height: 1px;
+            background: rgba(var(--story-rgb, 155,143,204), 0.45);
+            margin-bottom: 1.1rem;
+        }
+        .ins-story-body {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem; font-weight: 400;
+            line-height: 1.7;
+            color: rgba(255,255,255,0.68);
+            position: relative; z-index: 1;
+        }
+
 
         /* Reflection */
         .ins-sum-reflection {
@@ -1774,28 +1916,100 @@
         }
 
         /* Achievements */
-        .ins-sum-ach-list { display: flex; flex-direction: column; gap: 0.8rem; width: 100%; }
-        .ins-sum-ach-item {
-            display: flex; align-items: center; gap: 0.8rem;
-            padding: 0.65rem 0.9rem;
-            border-radius: 16px;
-            background: rgba(232,213,176,0.05);
-            border: 1px solid rgba(232,213,176,0.14);
+        /* ── ACHIEVEMENTS — COLLECTIBLE CARD GRID ── */
+        .ins-sum-ach-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            width: 100%;
         }
-        .ins-sum-ach-icon { font-size: 1.3rem; flex-shrink: 0; width: 1.8rem; text-align: center; }
-        .ins-sum-ach-text { display: flex; flex-direction: column; text-align: left; }
+        .ins-sum-ach-item {
+            border-radius: 20px;
+            padding: 1rem 0.8rem 0.9rem;
+            display: flex; flex-direction: column; align-items: center;
+            text-align: center; gap: 0.45rem;
+            position: relative; overflow: hidden;
+            box-sizing: border-box;
+        }
+        /* Unlocked states */
+        .ins-sum-ach-item.rarity-common {
+            background: linear-gradient(160deg, rgba(180,180,180,0.10), rgba(10,10,20,0.9));
+            border: 1px solid rgba(180,180,180,0.22);
+        }
+        .ins-sum-ach-item.rarity-rare {
+            background: linear-gradient(160deg, rgba(80,160,255,0.14), rgba(10,10,20,0.9));
+            border: 1px solid rgba(80,160,255,0.35);
+            box-shadow: 0 0 18px rgba(80,160,255,0.1);
+        }
+        .ins-sum-ach-item.rarity-epic {
+            background: linear-gradient(160deg, rgba(160,80,255,0.16), rgba(10,10,20,0.9));
+            border: 1px solid rgba(160,80,255,0.40);
+            box-shadow: 0 0 20px rgba(160,80,255,0.14);
+        }
+        .ins-sum-ach-item.rarity-legendary {
+            background: linear-gradient(160deg, rgba(232,213,100,0.18), rgba(10,10,20,0.9));
+            border: 1px solid rgba(232,213,100,0.45);
+            box-shadow: 0 0 24px rgba(232,213,100,0.18);
+        }
+        /* Locked state */
+        .ins-sum-ach-item.locked {
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.07);
+            opacity: 0.65;
+        }
+        /* Glow blob top */
+        .ins-sum-ach-item.rarity-rare::before,
+        .ins-sum-ach-item.rarity-epic::before,
+        .ins-sum-ach-item.rarity-legendary::before {
+            content: '';
+            position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+            width: 80px; height: 60px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .ins-sum-ach-item.rarity-rare::before      { background: radial-gradient(circle, rgba(80,160,255,0.25) 0%, transparent 70%); }
+        .ins-sum-ach-item.rarity-epic::before      { background: radial-gradient(circle, rgba(160,80,255,0.28) 0%, transparent 70%); }
+        .ins-sum-ach-item.rarity-legendary::before { background: radial-gradient(circle, rgba(232,213,100,0.30) 0%, transparent 70%); }
+
+        .ins-sum-ach-icon {
+            font-size: 2rem; line-height: 1;
+            position: relative; z-index: 1;
+        }
+        .ins-sum-ach-item.locked .ins-sum-ach-icon { filter: grayscale(1); opacity: 0.4; }
+
         .ins-sum-ach-name {
             font-family: 'DM Sans', sans-serif;
-            font-size: 0.86rem; font-weight: 700; color: #f0e4c8;
+            font-size: 0.78rem; font-weight: 800;
+            line-height: 1.2; color: #fff;
+            position: relative; z-index: 1;
         }
+        .ins-sum-ach-item.locked .ins-sum-ach-name { color: rgba(255,255,255,0.3); }
+
         .ins-sum-ach-desc {
             font-family: 'DM Sans', sans-serif;
-            font-size: 0.7rem; color: rgba(255,255,255,0.4); margin-top: 0.1rem;
+            font-size: 0.62rem; color: rgba(255,255,255,0.4);
+            line-height: 1.3;
         }
+        /* Rarity badge */
+        .ins-sum-ach-rarity {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.55rem; font-weight: 800;
+            letter-spacing: 0.1em; text-transform: uppercase;
+            padding: 0.18rem 0.55rem;
+            border-radius: 20px;
+            margin-top: 0.1rem;
+        }
+        .ins-sum-ach-item.rarity-common    .ins-sum-ach-rarity { background: rgba(180,180,180,0.15); color: rgba(200,200,200,0.8); border: 1px solid rgba(180,180,180,0.3); }
+        .ins-sum-ach-item.rarity-rare      .ins-sum-ach-rarity { background: rgba(80,160,255,0.18);  color: rgba(120,180,255,0.95); border: 1px solid rgba(80,160,255,0.4); }
+        .ins-sum-ach-item.rarity-epic      .ins-sum-ach-rarity { background: rgba(160,80,255,0.20);  color: rgba(200,140,255,0.95); border: 1px solid rgba(160,80,255,0.45); }
+        .ins-sum-ach-item.rarity-legendary .ins-sum-ach-rarity { background: rgba(232,213,100,0.18); color: rgba(255,235,130,0.95); border: 1px solid rgba(232,213,100,0.45); }
+        .ins-sum-ach-item.locked           .ins-sum-ach-rarity { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.1); }
+
         .ins-sum-ach-empty {
             font-family: 'DM Sans', sans-serif;
             font-size: 0.8rem; color: rgba(255,255,255,0.25);
             text-align: center; padding: 0.5rem 0;
+            grid-column: 1 / -1;
         }
         .ins-sum-no-data {
             font-family: 'DM Sans', sans-serif;
@@ -2183,6 +2397,115 @@
             font-size: 0.8rem; color: rgba(255,255,255,0.25);
             text-align: center; padding: 1.5rem 0;
         }
+
+        /* ── YOUR JOURNEY — RANK PROGRESSION TIMELINE ── */
+        .ins-journey-timeline {
+            width: 100%;
+            display: flex; flex-direction: column; align-items: center;
+            position: relative;
+            padding: 0.4rem 0 0.2rem;
+        }
+        .ins-journey-item {
+            display: flex; align-items: center;
+            width: 100%; position: relative;
+            gap: 1rem;
+        }
+        /* Vertical connector line */
+        .ins-journey-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 31px; /* center of 64px node */
+            top: 64px;
+            width: 2px;
+            height: 36px;
+            border-radius: 2px;
+        }
+        .ins-journey-item.state-completed:not(:last-child)::after {
+            background: linear-gradient(to bottom, rgba(232,213,176,0.7), rgba(232,213,176,0.2));
+        }
+        .ins-journey-item.state-current:not(:last-child)::after {
+            background: linear-gradient(to bottom, rgba(140,80,255,0.5), rgba(255,255,255,0.05));
+        }
+        .ins-journey-item.state-locked:not(:last-child)::after {
+            background: rgba(255,255,255,0.07);
+        }
+        /* Node circle */
+        .ins-journey-node {
+            width: 64px; height: 64px; border-radius: 50%;
+            flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+            transition: box-shadow 0.3s ease;
+        }
+        .ins-journey-item.state-completed .ins-journey-node {
+            background: linear-gradient(135deg, rgba(232,213,176,0.25), rgba(200,160,60,0.15));
+            border: 2px solid rgba(232,213,176,0.55);
+            box-shadow: 0 0 16px rgba(232,213,176,0.2);
+        }
+        .ins-journey-item.state-current .ins-journey-node {
+            background: linear-gradient(135deg, rgba(140,80,255,0.3), rgba(100,50,200,0.2));
+            border: 2px solid rgba(140,80,255,0.8);
+            box-shadow: 0 0 24px rgba(140,80,255,0.45), 0 0 48px rgba(140,80,255,0.15);
+            animation: journeyCurrentPulse 2.5s ease-in-out infinite;
+        }
+        @keyframes journeyCurrentPulse {
+            0%,100% { box-shadow: 0 0 24px rgba(140,80,255,0.45), 0 0 48px rgba(140,80,255,0.15); }
+            50%      { box-shadow: 0 0 32px rgba(140,80,255,0.65), 0 0 60px rgba(140,80,255,0.25); }
+        }
+        .ins-journey-item.state-locked .ins-journey-node {
+            background: rgba(255,255,255,0.03);
+            border: 2px solid rgba(255,255,255,0.1);
+            box-shadow: none;
+        }
+        /* Node icon */
+        .ins-journey-node-icon {
+            font-size: 1.4rem;
+            line-height: 1;
+        }
+        .ins-journey-item.state-completed .ins-journey-node-icon { color: rgba(232,213,176,0.9); }
+        .ins-journey-item.state-current   .ins-journey-node-icon { color: #fff; font-size: 1.2rem; }
+        .ins-journey-item.state-locked    .ins-journey-node-icon { color: rgba(255,255,255,0.2); font-size: 1.1rem; }
+        /* Current node: outer ring pulse */
+        .ins-journey-item.state-current .ins-journey-node::before {
+            content: '';
+            position: absolute; inset: -6px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(140,80,255,0.35);
+            animation: journeyRingPulse 2.5s ease-in-out infinite;
+        }
+        @keyframes journeyRingPulse {
+            0%,100% { opacity: 0.5; transform: scale(1); }
+            50%      { opacity: 1;   transform: scale(1.04); }
+        }
+        /* Text info */
+        .ins-journey-info {
+            flex: 1; display: flex; flex-direction: column;
+            padding: 1rem 0;
+        }
+        .ins-journey-rank-name {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem; font-weight: 800;
+            line-height: 1.2;
+        }
+        .ins-journey-item.state-completed .ins-journey-rank-name { color: rgba(232,213,176,0.85); }
+        .ins-journey-item.state-current   .ins-journey-rank-name { color: #fff; font-size: 1.05rem; }
+        .ins-journey-item.state-locked    .ins-journey-rank-name { color: rgba(255,255,255,0.28); }
+        .ins-journey-rank-sub {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.68rem; font-weight: 600;
+            letter-spacing: 0.05em;
+            margin-top: 0.2rem;
+        }
+        .ins-journey-item.state-completed .ins-journey-rank-sub { color: rgba(232,213,176,0.5); }
+        .ins-journey-item.state-current   .ins-journey-rank-sub { color: rgba(140,80,255,0.9); }
+        .ins-journey-item.state-locked    .ins-journey-rank-sub { color: rgba(255,255,255,0.18); }
+        /* State badge (right side) */
+        .ins-journey-badge {
+            font-size: 1.1rem; flex-shrink: 0;
+            width: 28px; text-align: center;
+        }
+
+
 
         /* ── SECTION 6: MONTHLY REFLECTION CARD ── */
         .ins-reflection-card {
@@ -7859,25 +8182,49 @@ function applyHistoryFilters() {
 
     <!-- SECTION 1: Insights Hero -->
     <div class="ins-hero-card">
-        <div class="ins-hero-brand">✦ AURA</div>
-        <div class="ins-hero-title">INSIGHTS</div>
-        <div class="ins-hero-subtitle">Your emotional journey over time.</div>
-        <div class="ins-hero-grid">
-            <div class="ins-hero-stat">
-                <div class="ins-hero-val" id="insHeroArchetype">—</div>
-                <div class="ins-hero-key">Archetype</div>
+        <!-- Top label row -->
+        <div class="ins-hero-top-row">
+            <div class="ins-hero-brand">✦ AURA</div>
+            <div class="ins-hero-month-tag" id="insHeroMonthTag">MONTHLY RECAP</div>
+        </div>
+        <div class="ins-hero-date" id="insHeroDate">June 2026</div>
+
+        <!-- Orb — hero visual -->
+        <div class="ins-hero-orb-zone">
+            <div class="ins-hero-orb-halo" id="insHeroOrbHalo"></div>
+            <div class="ins-hero-orb-img" id="insHeroOrbImg"></div>
+        </div>
+
+        <!-- Dominant mood name -->
+        <div class="ins-hero-mood-name" id="insHeroMoodName">—</div>
+
+        <!-- HERO: percentage -->
+        <div class="ins-hero-pct-row">
+            <span class="ins-hero-pct" id="insHeroPct">0%</span>
+            <span class="ins-hero-pct-label">OF YOUR MONTH</span>
+        </div>
+
+        <!-- Divider -->
+        <div class="ins-hero-rule"></div>
+
+        <!-- Archetype + Level -->
+        <div class="ins-hero-arch" id="insHeroArch">— · Level 1</div>
+
+        <!-- Secondary stats row: Energy + Streak -->
+        <div class="ins-hero-stats-row">
+            <div class="ins-hero-mini-stat">
+                <span class="ins-hero-mini-val" id="insHeroEnergy">0%</span>
+                <span class="ins-hero-mini-key">Energy</span>
             </div>
-            <div class="ins-hero-stat">
-                <div class="ins-hero-val" id="insHeroLevel">1</div>
-                <div class="ins-hero-key">Level</div>
+            <div class="ins-hero-mini-divider"></div>
+            <div class="ins-hero-mini-stat">
+                <span class="ins-hero-mini-val" id="insHeroStreak">0</span>
+                <span class="ins-hero-mini-key">Streak</span>
             </div>
-            <div class="ins-hero-stat">
-                <div class="ins-hero-val" id="insHeroEnergy">0%</div>
-                <div class="ins-hero-key">Energy Score</div>
-            </div>
-            <div class="ins-hero-stat">
-                <div class="ins-hero-val" id="insHeroStreak">0</div>
-                <div class="ins-hero-key">Streak</div>
+            <div class="ins-hero-mini-divider"></div>
+            <div class="ins-hero-mini-stat">
+                <span class="ins-hero-mini-val" id="insHeroLevel">1</span>
+                <span class="ins-hero-mini-key">Level</span>
             </div>
         </div>
     </div>
@@ -7941,9 +8288,19 @@ function applyHistoryFilters() {
 
         <div class="ins-sum-divider"></div>
 
-        <!-- Weekly evolution -->
-        <div class="ins-sum-section-label">EMOTIONAL EVOLUTION</div>
-        <div class="ins-sum-evo-flow" id="insSumEvoFlow"></div>
+        <!-- Emotional Story of the Month -->
+        <div class="ins-story-card" id="insSumStoryCard">
+            <div class="ins-story-label">EMOTIONAL STORY OF THE MONTH</div>
+            <div class="ins-story-title" id="insSumStoryTitle">—</div>
+            <div class="ins-story-rule"></div>
+            <div class="ins-story-body" id="insSumStoryBody"></div>
+        </div>
+
+        <div class="ins-sum-divider"></div>
+
+        <!-- Your Journey — Rank Progression Timeline -->
+        <div class="ins-sum-section-label">YOUR JOURNEY</div>
+        <div class="ins-journey-timeline" id="insSumJourneyTimeline"></div>
 
         <div class="ins-sum-divider"></div>
 
@@ -8229,13 +8586,13 @@ async function populateInsights(targetYear, targetMonth) {
     const el = (id) => document.getElementById(id);
     const data = loadData();
 
-    // ── SECTION 1: Hero Card (Archetype = Rank, Level, Energy, Streak) ──
+    // ── SECTION 1: Hero Card ──
     const heroRank  = getRank(data.xp || 0);
     const heroLevel = heroRank.index + 1;
-    if (el('insHeroArchetype')) el('insHeroArchetype').textContent = heroRank.title || 'Emotional Explorer';
-    if (el('insHeroLevel'))     el('insHeroLevel').textContent     = heroLevel;
-    if (el('insHeroStreak'))    el('insHeroStreak').textContent    = data.streak || 0;
-    // insHeroEnergy filled after energyScore is computed below
+    if (el('insHeroLevel'))  el('insHeroLevel').textContent  = heroLevel;
+    if (el('insHeroStreak')) el('insHeroStreak').textContent = data.streak || 0;
+    // insHeroEnergy, insHeroMoodName, insHeroPct, insHeroArch, insHeroOrbImg filled
+    // after mood data + energyScore is computed below
 
     // Determine which month to display
     const now = new Date();
@@ -8243,8 +8600,9 @@ async function populateInsights(targetYear, targetMonth) {
     const curMonth = (targetMonth !== undefined) ? targetMonth : now.getMonth();
     const monthLabel = new Date(curYear, curMonth, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
-    // Update month nav label
+    // Update month nav label + hero date
     if (el('insMonthNavLabel')) el('insMonthNavLabel').textContent = monthLabel;
+    if (el('insHeroDate'))      el('insHeroDate').textContent      = monthLabel;
     if (el('insCurrentMonth'))  el('insCurrentMonth').textContent  = monthLabel;
 
     // Disable Next button if already on current month
@@ -8308,6 +8666,53 @@ async function populateInsights(targetYear, targetMonth) {
     const energyScore = computeEnergyScore(monthEntries, moodCounts, data.streak || 0, curYear, curMonth);
     renderEnergyScore(energyScore);
     if (el('insHeroEnergy')) el('insHeroEnergy').textContent = energyScore + '%';
+
+    // ── SECTION 1 (continued): Hero orb, mood name, pct, archetype ──
+    {
+        const heroMoodKey   = top ? top[0] : null;
+        const heroTheme     = getRecapTheme(heroMoodKey || 'calm');
+        const heroMoodLabel = heroMoodKey ? (heroMoodKey[0].toUpperCase() + heroMoodKey.slice(1)) : '—';
+        const heroDomPct    = (heroMoodKey && monthEntries.length)
+            ? Math.round((top[1] / monthEntries.length) * 100) : 0;
+        const heroOrbSrc    = heroMoodKey ? MOOD_SVG[heroMoodKey] : null;
+
+        // Apply mood-themed CSS vars to hero card
+        const heroCard = el('insHeroOrbImg') ? el('insHeroOrbImg').closest('.ins-hero-card') : null;
+        if (heroCard) {
+            heroCard.style.setProperty('--hero-glow',   heroTheme.glow);
+            heroCard.style.setProperty('--hero-accent', heroTheme.accent);
+        }
+
+        // Orb halo
+        const heroHalo = el('insHeroOrbHalo');
+        if (heroHalo) heroHalo.style.background =
+            `radial-gradient(circle, ${heroTheme.glow} 0%, transparent 70%)`;
+
+        // Orb image
+        const heroOrbImg = el('insHeroOrbImg');
+        if (heroOrbImg) {
+            heroOrbImg.classList.remove('fallback');
+            if (heroOrbSrc) {
+                heroOrbImg.innerHTML = `<img src="${heroOrbSrc}" alt="${heroMoodLabel}">`;
+            } else {
+                heroOrbImg.innerHTML = '✦';
+                heroOrbImg.classList.add('fallback');
+            }
+        }
+
+        // Mood name
+        if (el('insHeroMoodName')) el('insHeroMoodName').textContent = heroMoodLabel;
+
+        // Percentage
+        if (el('insHeroPct')) {
+            el('insHeroPct').textContent  = heroMoodKey ? heroDomPct + '%' : '—';
+            el('insHeroPct').style.color  = heroTheme.accent;
+        }
+
+        // Archetype + Level
+        if (el('insHeroArch'))
+            el('insHeroArch').textContent = `${heroRank.title || 'Emotional Explorer'} · Level ${heroLevel}`;
+    }
 
     // ── SECTION 4: Mood Trends ──
     {
@@ -8415,14 +8820,9 @@ async function populateInsights(targetYear, targetMonth) {
         const hubGrid = el('insAchHubGrid');
         if (hubGrid) {
             const ACH6 = getAchievementsList(data, heroLevel, data.moodCounts || {});
-            hubGrid.innerHTML = ACH6.map(a => {
-                const unlocked = a.check();
-                return `<div class="ins-ach-hub-item ${unlocked ? 'unlocked' : 'locked'}">
-                    <div class="ins-ach-hub-icon">${a.icon}</div>
-                    <div class="ins-ach-hub-name">${a.name}</div>
-                    <div class="ins-ach-hub-status">${unlocked ? 'Unlocked' : 'Locked'}</div>
-                </div>`;
-            }).join('');
+            // Reuse the ins-sum-ach-list grid layout for the hub too
+            hubGrid.className = 'ins-ach-hub-grid ins-sum-ach-list';
+            hubGrid.innerHTML = ACH6.map(a => renderAchievementCard(a)).join('');
         }
     }
 
@@ -8470,26 +8870,33 @@ async function populateInsights(targetYear, targetMonth) {
         if (el('insSumEnergy'))      el('insSumEnergy').textContent      = energyScore + '%';
         if (el('insSumMoods'))       el('insSumMoods').textContent       = distinctMoods;
 
-        // Top moods (medals + bars)
-        const medals = ['🥇', '🥈', '🥉'];
-        const topThree = sortedMoods.slice(0, 3);
+        // Top moods — top 4, real orb, premium bars
+        const topFour = sortedMoods.slice(0, 4);
         const topMoodsEl = el('insSumTopMoods');
         if (topMoodsEl) {
-            if (topThree.length === 0) {
+            if (topFour.length === 0) {
                 topMoodsEl.innerHTML = `<div class="ins-sum-no-data">No moods logged this month yet.</div>`;
             } else {
-                topMoodsEl.innerHTML = topThree.map(([mood, count], i) => {
-                    const color = getMoodColor(mood);
-                    const pct   = Math.round((count / monthEntries.length) * 100);
-                    const label = mood[0].toUpperCase() + mood.slice(1);
+                topMoodsEl.innerHTML = topFour.map(([mood, count]) => {
+                    const theme   = getRecapTheme(mood);
+                    const orbSrc  = MOOD_SVG[mood];
+                    const pct     = Math.round((count / monthEntries.length) * 100);
+                    const label   = mood[0].toUpperCase() + mood.slice(1);
+                    const orbHTML = orbSrc
+                        ? `<img src="${orbSrc}" alt="${label}">`
+                        : '';
                     return `<div class="ins-sum-mood-row">
-                        <span class="ins-sum-medal">${medals[i]}</span>
+                        <div class="ins-sum-mood-orb${orbSrc ? '' : ' fallback'}" style="--orb-color:${theme.accent}">${orbHTML}</div>
                         <div class="ins-sum-mood-info">
                             <div class="ins-sum-mood-name-row">
                                 <span class="ins-sum-mood-name">${label}</span>
-                                <span class="ins-sum-mood-pct" style="color:${color}">${pct}%</span>
+                                <span class="ins-sum-mood-pct" style="color:${theme.accent}">${pct}%</span>
                             </div>
-                            <div class="ins-sum-bar-track"><span class="ins-sum-bar-fill" data-pct="${pct}" style="background:${color}"></span></div>
+                            <div class="ins-sum-bar-track">
+                                <span class="ins-sum-bar-fill" data-pct="${pct}"
+                                    style="background:${theme.accent};--bar-glow:${theme.glow}">
+                                </span>
+                            </div>
                         </div>
                     </div>`;
                 }).join('');
@@ -8498,49 +8905,88 @@ async function populateInsights(targetYear, targetMonth) {
                 });
             }
         }
-        if (el('insSumTotal')) el('insSumTotal').textContent = `${distinctMoods} Different Emotion${distinctMoods === 1 ? '' : 's'} Felt`;
+        if (el('insSumTotal')) el('insSumTotal').textContent =
+            `${distinctMoods} emotion${distinctMoods === 1 ? '' : 's'} felt this month`;
 
-        // Weekly evolution
-        const evoFlowEl = el('insSumEvoFlow');
-        if (evoFlowEl) {
-            if (evoSteps.length === 0) {
-                evoFlowEl.innerHTML = `<div class="ins-sum-no-data">Not enough data yet to show your evolution.</div>`;
-            } else {
-                evoFlowEl.innerHTML = evoSteps.map((s, i) => {
-                    const color = getMoodColor(s.mood);
-                    const label = s.mood[0].toUpperCase() + s.mood.slice(1);
-                    const arrow = i < evoSteps.length - 1 ? `<span class="ins-evo-arrow">↓</span>` : '';
-                    return `<div class="ins-evo-step">
-                        <span class="ins-evo-dot" style="background:${color};--evo-color:${color}"></span>
-                        <div class="ins-evo-label-wrap">
-                            <span class="ins-evo-week">Week ${s.week}</span>
-                            <span class="ins-evo-mood">${label}</span>
-                        </div>
-                        ${arrow}
-                    </div>`;
-                }).join('');
+        // ── Emotional Story of the Month ──
+        {
+            const story = generateEmotionalStory(monthEntries, moodCounts, data.streak || 0, energyScore);
+            if (el('insSumStoryTitle')) el('insSumStoryTitle').textContent = story.title;
+            if (el('insSumStoryBody'))  el('insSumStoryBody').textContent  = story.body;
+
+            // Apply mood-themed accent to story card
+            const storyCard = el('insSumStoryCard');
+            if (storyCard && top) {
+                const storyTheme = getRecapTheme(top[0]);
+                // Convert hex accent to RGB for CSS custom property
+                const hex = storyTheme.accent.replace('#','');
+                const r = parseInt(hex.slice(0,2),16);
+                const g = parseInt(hex.slice(2,4),16);
+                const b = parseInt(hex.slice(4,6),16);
+                storyCard.style.setProperty('--story-rgb', `${r},${g},${b}`);
+                const rule = storyCard.querySelector('.ins-story-rule');
+                if (rule) rule.style.background = `rgba(${r},${g},${b},0.5)`;
             }
+        }
+
+        // ── Your Journey — Rank Progression Timeline ──
+        const journeyEl = el('insSumJourneyTimeline');
+        if (journeyEl) {
+            const curXp       = data.xp || 0;
+            const curRankIdx  = heroRank.index;
+            // Show: all completed ranks + current + next 3 locked (or up to end of list)
+            const startIdx    = 0;
+            const endIdx      = Math.min(EMOTIONAL_RANKS.length - 1, curRankIdx + 3);
+            const visibleRanks = EMOTIONAL_RANKS.slice(startIdx, endIdx + 1);
+
+            journeyEl.innerHTML = visibleRanks.map((rank, i) => {
+                const rankIdx   = i; // relative to visible slice (same as absolute since startIdx=0)
+                const isCompleted = rankIdx < curRankIdx;
+                const isCurrent   = rankIdx === curRankIdx;
+                const isLocked    = rankIdx > curRankIdx;
+
+                const state = isCompleted ? 'state-completed' : isCurrent ? 'state-current' : 'state-locked';
+
+                // Node icon: completed=checkmark, current=rank icon, locked=lock
+                const nodeIcon = isCompleted ? '✓' : isLocked ? '🔒' : (rank.icon || '✦');
+
+                // Sub label
+                let subLabel = '';
+                if (isCompleted) {
+                    subLabel = `${rank.min} XP — Completed`;
+                } else if (isCurrent) {
+                    const next = EMOTIONAL_RANKS[curRankIdx + 1];
+                    const xpNeeded = next ? next.min - curXp : 0;
+                    subLabel = next ? `${xpNeeded} XP to next rank` : 'Maximum rank reached';
+                } else {
+                    subLabel = `Unlocks at ${rank.min} XP`;
+                }
+
+                // Right badge
+                const badge = isCompleted ? '✦' : isCurrent ? '▶' : '';
+
+                return `<div class="ins-journey-item ${state}">
+                    <div class="ins-journey-node">
+                        <span class="ins-journey-node-icon">${nodeIcon}</span>
+                    </div>
+                    <div class="ins-journey-info">
+                        <div class="ins-journey-rank-name">${rank.title}</div>
+                        <div class="ins-journey-rank-sub">${subLabel}</div>
+                    </div>
+                    <div class="ins-journey-badge">${badge}</div>
+                </div>`;
+            }).join('');
         }
 
         // Monthly reflection
         const reflectionText = generateMonthlyReflectionText(monthEntries, moodCounts, data.streak || 0, monthLabel, energyScore);
         if (el('insSumReflection')) el('insSumReflection').textContent = reflectionText;
 
-        // Achievements earned
+        // Achievements — show all (earned unlocked, unearned locked) as collectible cards
         const ACH = getAchievementsList(data, heroLevel, data.moodCounts || {});
-        const earned = ACH.filter(a => a.check());
         const achListEl = el('insSumAchList');
         if (achListEl) {
-            achListEl.innerHTML = earned.length === 0
-                ? `<div class="ins-sum-ach-empty">Keep going — your first achievement is close.</div>`
-                : earned.map(a => `
-                    <div class="ins-sum-ach-item">
-                        <div class="ins-sum-ach-icon">${a.icon}</div>
-                        <div class="ins-sum-ach-text">
-                            <div class="ins-sum-ach-name">${a.name}</div>
-                            <div class="ins-sum-ach-desc">${a.desc}</div>
-                        </div>
-                    </div>`).join('');
+            achListEl.innerHTML = ACH.map(a => renderAchievementCard(a)).join('');
         }
     }
 
@@ -8635,6 +9081,106 @@ function renderEnergyScore(score) {
         fillEl.style.strokeDashoffset = offset;
     });
 }
+/* ── EMOTIONAL STORY OF THE MONTH GENERATOR ── */
+function generateEmotionalStory(monthEntries, moodCounts, streak, energyScore) {
+    // Defaults for empty state
+    if (monthEntries.length === 0) {
+        return {
+            title: 'A Story Not Yet Written',
+            body: 'Every great story starts with a single entry. This month is still a blank page — and blank pages hold every possibility. Come back after logging a few moods and watch your emotional story take shape.'
+        };
+    }
+
+    const sorted   = Object.entries(moodCounts).sort((a,b) => b[1]-a[1]);
+    const topMood  = sorted[0][0];
+    const variety  = sorted.length;
+    const energy   = energyScore || 0;
+    const entries  = monthEntries.length;
+
+    // Per-mood emotional titles — poetic, not clinical
+    const titles = {
+        numb:         'The Quiet Observer',
+        tired:        'The Weary Pilgrim',
+        growing:      'The Patient Climber',
+        motivated:    'The Relentless Dreamer',
+        calm:         'The Still Water',
+        recovering:   'The Returning Light',
+        happy:        'The Open-Hearted One',
+        sad:          'The Deep Feeler',
+        angry:        'The Burning Ember',
+        anxious:      'The Watchful Wanderer',
+        overthinking: 'The Restless Mind',
+        lost:         'The Seeker in the Dark',
+        lonely:       'The Solitary Star',
+        grateful:     'The Quiet Collector',
+    };
+    const title = titles[topMood] || 'The Unseen Chapter';
+
+    // Streak phrase
+    const streakPhrase = streak >= 14
+        ? `${streak} days of checking in — that kind of discipline is rare and worth noticing.`
+        : streak >= 7
+            ? `${streak} days in a row. Not because it was always easy, but because you kept showing up anyway.`
+            : streak >= 3
+                ? `${streak} days of returning to yourself. Small streaks are where bigger ones begin.`
+                : `Every time you opened this app, you chose self-awareness over distraction.`;
+
+    // Energy phrase — framed as engagement, never as a verdict
+    const energyPhrase = energy >= 70
+        ? `Your energy this month moved with real intention — present, active, and building something.`
+        : energy >= 40
+            ? `Your energy held its ground this month, quietly doing the work even when it wasn't obvious.`
+            : `Low energy months aren't wasted months. Sometimes the most meaningful growth happens in stillness.`;
+
+    // Diversity phrase
+    const diversityPhrase = variety >= 5
+        ? `You moved through ${variety} different emotional states — that kind of range signals a rich inner life, not instability.`
+        : variety >= 3
+            ? `A few different feelings passed through. You didn't flatten your experience into one note.`
+            : `One feeling held the stage this month. There's clarity in that kind of emotional focus.`;
+
+    // Per-mood narrative core — the heart of the story
+    const cores = {
+        numb: `Numbness is often misread as absence. But you kept logging, kept returning, kept witnessing yourself even when there was little to report. That is its own quiet form of courage. The observer who stays present through stillness is often the one who sees the most clearly when the fog finally lifts.`,
+
+        tired: `Tired doesn't mean broken. It means you've been carrying something heavy for long enough that your body is asking you to put it down for a moment. You showed up this month not at your peak — and that's exactly when showing up counts the most.`,
+
+        growing: `Growth rarely announces itself. It happens in the small, unremarkable decisions — to try again, to stay curious, to not settle for who you were last month. You've been in that quiet process this month. The climb is real, even when the summit isn't visible yet.`,
+
+        motivated: `Motivation isn't always loud. Sometimes it looks like getting out of bed and doing the thing anyway. This month you carried a drive that didn't need an audience. That kind of momentum — internal, self-directed, undramatic — is the most durable kind.`,
+
+        calm: `Calm is an achievement in a world designed to overstimulate. You didn't just stumble into stillness this month — you chose it, returned to it, and let it be enough. That's not passivity. That's a kind of mastery most people never reach.`,
+
+        recovering: `Recovery isn't a straight line and you know that better than most. This month you were finding your way back — not to who you were before, but to a version of yourself that's been changed by whatever you've been through. That's not regression. That's becoming.`,
+
+        happy: `Joy carried this month and you didn't take it for granted — you named it, noted it, let yourself feel it fully. That's rarer than it sounds. Many people let happiness pass without acknowledging it. You stopped and said: this is here. That act of noticing makes it last longer.`,
+
+        sad: `Sadness visited often this month, and you didn't run from it. You sat with it, gave it a name, and kept moving. There's a kind of emotional bravery in that — in choosing presence over numbness, in letting the feeling exist without letting it define you.`,
+
+        angry: `Anger showed up most this month and you didn't suppress it — you named it. That matters. The problem with unacknowledged anger isn't the feeling itself; it's where the feeling goes when it has no language. You gave it language. That's the first step toward understanding what it's pointing at.`,
+
+        anxious: `Anxiety is often your nervous system's way of saying something matters too much to ignore. This month, you stayed with that signal rather than silencing it. The fact that you kept returning to check in on yourself, even while carrying that weight, says something important about your resolve.`,
+
+        overthinking: `A busy mind this month — but you didn't disappear into it. You kept one foot in the present, kept logging, kept witnessing the loops and patterns. There's something powerful about watching your own mind without completely becoming it. You did that this month.`,
+
+        lost: `Being lost isn't the opposite of being on a path. Sometimes it's a necessary part of finding one that actually fits. You moved through uncertainty this month and kept returning to yourself — not with answers, but with presence. That's the only compass that ever really worked.`,
+
+        lonely: `Loneliness sat close this month. And yet here you are, still checking in, still naming it, still treating your inner world as worth paying attention to. That practice of self-witness — even in solitude — is itself a form of company. You haven't been as alone as it felt.`,
+
+        grateful: `Gratitude visited most this month and you caught it — which takes a kind of attentiveness that most people lose. This isn't about optimism or positive thinking. It's about noticing what's actually present. You've been practicing that. It changes what you see.`,
+    };
+
+    const core = cores[topMood] || `This month carried its own quiet shape — neither what you planned nor what you feared, but something distinctly yours. You stayed present through it, and that presence is the through-line of every meaningful chapter.`;
+
+    // Build the full story: core narrative + one contextual line
+    // Cap at 120 words
+    const story = `${core} ${streakPhrase}`;
+    const words = story.split(/\s+/);
+    const capped = words.length > 120 ? words.slice(0, 120).join(' ') + '…' : story;
+
+    return { title, body: capped };
+}
+
 function buildMonthlyReflection(monthEntries, moodCounts, streak, monthLabel) {
     const text = generateMonthlyReflectionText(monthEntries, moodCounts, streak, monthLabel);
     const el = document.getElementById('insReflectionText');
@@ -8729,14 +9275,41 @@ function generateMonthlyReflectionText(monthEntries, moodCounts, streak, monthLa
 
 
 /* ── SHARED ACHIEVEMENTS DEFINITION ── */
+/* ── SHARED: render a single achievement as a collectible card ── */
+function renderAchievementCard(a, forceUnlocked) {
+    const unlocked = forceUnlocked !== undefined ? forceUnlocked : a.check();
+    const rarity = (a.rarity || 'COMMON').toLowerCase();
+    const stateClass = unlocked ? `rarity-${rarity}` : 'locked';
+    return `<div class="ins-sum-ach-item ${stateClass}">
+        <div class="ins-sum-ach-icon">${unlocked ? a.icon : '🔒'}</div>
+        <div class="ins-sum-ach-name">${a.name}</div>
+        <div class="ins-sum-ach-rarity">${a.rarity || 'COMMON'}</div>
+        <div class="ins-sum-ach-desc">${a.desc}</div>
+    </div>`;
+}
+
 function getAchievementsList(data, level, moodCounts) {
+    const gens   = data.totalGenerations || 0;
+    const streak = data.streak || 0;
+    const moods  = Object.keys(moodCounts).length;
     return [
-        { id:'first_gen',    icon:'✦', name:'First Expression', desc:'First status', check: () => (data.totalGenerations||0) >= 1 },
-        { id:'first_streak', icon:'🔥', name:'First Streak',     desc:'2-day streak',  check: () => (data.streak||0) >= 2 },
-        { id:'level_up',     icon:'↑↑', name:'Level Up',         desc:'Reach Level 2', check: () => level >= 2 },
-        { id:'explorer',     icon:'◉', name:'Explorer',          desc:'5 moods used',  check: () => Object.keys(moodCounts).length >= 5 },
-        { id:'growing_mind', icon:'🌱', name:'Growing Mind',      desc:'10 generated',  check: () => (data.totalGenerations||0) >= 10 },
-        { id:'deep_diver',   icon:'◈', name:'Deep Diver',         desc:'50 generated',  check: () => (data.totalGenerations||0) >= 50 },
+        // COMMON
+        { id:'first_gen',      icon:'✦',  name:'First Expression',  desc:'Log your first status',        rarity:'COMMON',    check: () => gens >= 1 },
+        { id:'first_streak',   icon:'🔥', name:'First Streak',       desc:'Keep a 2-day streak',          rarity:'COMMON',    check: () => streak >= 2 },
+        { id:'level_up',       icon:'⬆',  name:'Level Up',           desc:'Reach Level 2',                rarity:'COMMON',    check: () => level >= 2 },
+        { id:'three_moods',    icon:'🎭', name:'Mood Sampler',        desc:'Experience 3 different moods', rarity:'COMMON',    check: () => moods >= 3 },
+        // RARE
+        { id:'explorer',       icon:'◉',  name:'Explorer',           desc:'Experience 5 moods',           rarity:'RARE',      check: () => moods >= 5 },
+        { id:'growing_mind',   icon:'🌱', name:'Growing Mind',        desc:'Log 10 expressions',           rarity:'RARE',      check: () => gens >= 10 },
+        { id:'week_streak',    icon:'📅', name:'7 Day Streak',        desc:'Log 7 days in a row',          rarity:'RARE',      check: () => streak >= 7 },
+        { id:'twenty_five',    icon:'⚡', name:'25 Expressions',      desc:'Log 25 expressions',           rarity:'RARE',      check: () => gens >= 25 },
+        // EPIC
+        { id:'deep_diver',     icon:'◈',  name:'Deep Diver',         desc:'Log 50 expressions',           rarity:'EPIC',      check: () => gens >= 50 },
+        { id:'month_streak',   icon:'🏆', name:'30 Day Streak',       desc:'Log 30 days in a row',         rarity:'EPIC',      check: () => streak >= 30 },
+        { id:'mood_master',    icon:'🌈', name:'Mood Master',         desc:'Experience 8 different moods', rarity:'EPIC',      check: () => moods >= 8 },
+        // LEGENDARY
+        { id:'century',        icon:'💎', name:'100 Expressions',     desc:'Log 100 expressions',          rarity:'LEGENDARY', check: () => gens >= 100 },
+        { id:'iron_mind',      icon:'👑', name:'Iron Mind',           desc:'Keep a 60-day streak',         rarity:'LEGENDARY', check: () => streak >= 60 },
     ];
 }
 

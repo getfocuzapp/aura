@@ -379,8 +379,8 @@
             overflow-y: auto; overflow-x: hidden;
             overscroll-behavior: contain;
             display: flex; flex-direction: column;
-            padding: 1.0rem 1.0rem 1.4rem;
-            gap: 0.85rem;
+            padding: 1.0rem 1.0rem 1.0rem;
+            gap: 0.65rem;
             box-shadow:
                 0 0 0 1px rgba(232,213,176,0.06),
                 0 32px 80px rgba(0,0,0,0.92);
@@ -392,10 +392,10 @@
 
         /* ── ACTION STACK ── */
         .modal-btns {
-            display: flex; flex-direction: column; gap: 0.42rem; width: 100%; flex-shrink: 0;
+            display: flex; flex-direction: column; gap: 0.32rem; width: 100%; flex-shrink: 0;
         }
         .mbtn {
-            width: 100%; padding: 0.78rem 1rem;
+            width: 100%; padding: 0.68rem 1rem;
             border-radius: 0.75rem; font-weight: 600;
             font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase;
             cursor: pointer; font-family: 'DM Sans', sans-serif;
@@ -7078,42 +7078,44 @@ function buildMonthlyReportCanvas(reportData) {
             ctx.shadowColor = glow; ctx.shadowBlur = 26;
             ctx.fillStyle = accent;
             ctx.font = '900 140px "Playfair Display"';
-            ctx.fillText(moodPct + '%', W/2, orbY + 308);
+            ctx.fillText(moodPct + '%', W/2, orbY + 316);   // +16 from mood name
             ctx.restore();
 
             ctx.fillStyle = 'rgba(255,255,255,0.45)';
             ctx.font = '700 26px "DM Sans"';
-            ctx.fillText('OF YOUR MONTH', W/2, orbY + 354);
+            ctx.fillText('OF YOUR MONTH', W/2, orbY + 362);
 
             /* 8. Story title — the emotional identity */
             const storyTitleText = reportData.storyTitle || '';
             if (storyTitleText) {
-                ctx.fillStyle = 'rgba(232,213,176,0.7)';
-                ctx.font = '600 20px "DM Sans"';
-                ctx.fillText('EMOTIONAL STORY', W/2, orbY + 416);
-                ctx.fillStyle = 'rgba(255,255,255,0.92)';
-                ctx.font = 'italic 700 44px "Cormorant Garant"';
-                ctx.fillText(storyTitleText, W/2, orbY + 466);
+                ctx.fillStyle = 'rgba(232,213,176,0.55)';
+                ctx.font = '500 22px "DM Sans"';
+                ctx.fillText('EMOTIONAL STORY', W/2, orbY + 410);  // +24 gap from pct label
+                ctx.fillStyle = 'rgba(255,255,255,0.95)';
+                ctx.font = 'italic 700 52px "Cormorant Garant"';
+                ctx.fillText(storyTitleText, W/2, orbY + 472);     // +62 from label
             }
 
-            /* 9. Archetype + Level */
-            ctx.fillStyle = 'rgba(232,213,176,0.85)';
-            ctx.font = '700 32px "DM Sans"';
-            ctx.fillText(`${archetype || 'Emotional Explorer'} · Level ${level || 1}`, W/2, orbY + 524);
+            /* 9. Archetype + Level  (+18 from story title) */
+            ctx.fillStyle = 'rgba(232,213,176,0.80)';
+            ctx.font = '600 30px "DM Sans"';
+            ctx.fillText(`${archetype || 'Emotional Explorer'}  ·  Level ${level || 1}`, W/2, orbY + 528);
 
             /* 10. Thin divider */
-            ctx.strokeStyle = 'rgba(232,213,176,0.18)'; ctx.lineWidth = 1;
+            const dividerY = orbY + 572;
+            ctx.strokeStyle = 'rgba(232,213,176,0.15)'; ctx.lineWidth = 1;
             ctx.beginPath();
-            ctx.moveTo(W*0.2, orbY + 560); ctx.lineTo(W*0.8, orbY + 560);
+            ctx.moveTo(W*0.28, dividerY); ctx.lineTo(W*0.72, dividerY);
             ctx.stroke();
 
-            /* 11. Stats row — 3 stats only (Expressions, Streak, Energy) */
-            const statsY = orbY + 595, statsH = 170, statsW = W * 0.88, statsX = (W-statsW)/2;
+            /* 11. Stats card — 90% width, 24px h-pad, 20px v-pad, r=24 (+32 from divider) */
+            const statsY = dividerY + 50, statsH = 190;
+            const statsW = Math.round(W * 0.90), statsX = (W - statsW) / 2;
             ctx.save();
-            roundedRect(statsX, statsY, statsW, statsH, 28);
+            roundedRect(statsX, statsY, statsW, statsH, 24);
             ctx.fillStyle = 'rgba(255,255,255,0.05)';
             ctx.fill();
-            ctx.strokeStyle = 'rgba(255,255,255,0.09)'; ctx.lineWidth = 2; ctx.stroke();
+            ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = 2; ctx.stroke();
             ctx.restore();
 
             const stats = [
@@ -7123,38 +7125,76 @@ function buildMonthlyReportCanvas(reportData) {
             ];
             const colW = statsW / 3;
             stats.forEach((s, i) => {
-                const cx = statsX + colW * i + colW/2;
+                const cx = statsX + colW * i + colW / 2;
                 ctx.fillStyle = '#fff';
-                ctx.font = '800 50px "DM Sans"';
-                ctx.fillText(s.val, cx, statsY + 82);
-                ctx.fillStyle = 'rgba(232,213,176,0.55)';
-                ctx.font = '600 18px "DM Sans"';
-                ctx.fillText(s.label, cx, statsY + 120);
+                ctx.font = '800 54px "DM Sans"';
+                ctx.fillText(s.val, cx, statsY + 98);
+                ctx.fillStyle = 'rgba(232,213,176,0.50)';
+                ctx.font = '500 20px "DM Sans"';
+                ctx.fillText(s.label, cx, statsY + 146);
                 if (i < 2) {
-                    ctx.strokeStyle = 'rgba(255,255,255,0.09)'; ctx.lineWidth = 2;
+                    ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = 2;
                     ctx.beginPath();
-                    ctx.moveTo(statsX + colW*(i+1), statsY + 30);
-                    ctx.lineTo(statsX + colW*(i+1), statsY + statsH - 30);
+                    ctx.moveTo(statsX + colW*(i+1), statsY + 34);
+                    ctx.lineTo(statsX + colW*(i+1), statsY + statsH - 34);
                     ctx.stroke();
                 }
             });
 
-            /* 12. Short reflection */
-            const reflectionStartY = statsY + statsH + 70;
-            ctx.fillStyle = 'rgba(255,255,255,0.5)';
-            ctx.font = '600 20px "DM Sans"';
-            ctx.fillText('MONTHLY REFLECTION', W/2, reflectionStartY);
+            /* 12. Reflection section (+36 gap from stats card) */
+            const reflectionStartY = statsY + statsH + 52;
 
-            ctx.fillStyle = 'rgba(255,255,255,0.88)';
-            ctx.font = 'italic 600 36px "Cormorant Garant"';
-            const reflLineCount = wrapText(reflection, W/2, reflectionStartY + 56, 820, 50);
-            const reflEndY = reflectionStartY + 56 + reflLineCount * 50;
-
-            /* 13. Footer — single line, no duplicate month */
-            const footerY = Math.max(reflEndY + 80, H - 110);
-            ctx.fillStyle = 'rgba(232,213,176,0.45)';
+            // Header + subtle divider
+            ctx.fillStyle = 'rgba(255,255,255,0.40)';
             ctx.font = '600 22px "DM Sans"';
-            ctx.fillText('AURA Emotional Recap', W/2, footerY);
+            ctx.fillText('MONTHLY REFLECTION', W/2, reflectionStartY);
+            ctx.strokeStyle = 'rgba(232,213,176,0.18)'; ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(W*0.32, reflectionStartY + 20); ctx.lineTo(W*0.68, reflectionStartY + 20);
+            ctx.stroke();
+
+            // Reflection text — 72% width, short paragraphs
+            const reflMaxW = Math.round(W * 0.72);
+            const reflX    = W / 2;
+
+            // Break reflection into short paragraphs (max ~42 chars per line)
+            function splitIntoParagraphs(text) {
+                // Split on sentence boundaries into ≤3 groups
+                const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
+                const paras = [];
+                let current = '';
+                sentences.forEach(s => {
+                    const trimmed = s.trim();
+                    if (!trimmed) return;
+                    if (current && (current + ' ' + trimmed).length > 90) {
+                        paras.push(current.trim());
+                        current = trimmed;
+                    } else {
+                        current = current ? current + ' ' + trimmed : trimmed;
+                    }
+                });
+                if (current.trim()) paras.push(current.trim());
+                return paras.slice(0, 4);
+            }
+
+            ctx.fillStyle = 'rgba(255,255,255,0.85)';
+            ctx.font = 'italic 600 38px "Cormorant Garant"';
+            const reflLineH  = 56;
+            const paraGap    = 36;
+            let   reflCurY   = reflectionStartY + 82;
+
+            const paragraphs = splitIntoParagraphs(reflection);
+            paragraphs.forEach((para, pi) => {
+                const lineCount = wrapText(para, reflX, reflCurY, reflMaxW, reflLineH);
+                reflCurY += lineCount * reflLineH + paraGap;
+            });
+            const reflEndY = reflCurY;
+
+            /* 13. Footer — improved visibility (+40 gap) */
+            const footerY = Math.max(reflEndY + 50, H - 120);
+            ctx.fillStyle = 'rgba(232,213,176,0.55)';
+            ctx.font = '600 24px "DM Sans"';
+            ctx.fillText('AURA  ·  ' + monthLabel.toUpperCase() + ' EMOTIONAL RECAP', W/2, footerY);
 
             resolve(cv);
         }
@@ -9473,6 +9513,598 @@ async function saveToHistory(entry) {
             <span class="nav-lbl">Profile</span>
         </button>
     </nav>
+
+<!-- ═══════════════════════════════════════════════════════
+     AURA ONBOARDING V1.2
+     Shown ONLY to first-time users.
+     Completion stored in localStorage + Firestore.
+═══════════════════════════════════════════════════════ -->
+<style>
+/* ── ONBOARDING SHELL ── */
+#onboardingScreen {
+    position: fixed; inset: 0; z-index: 9999;
+    background: #09090e;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    font-family: 'DM Sans', sans-serif;
+    visibility: hidden; opacity: 0;
+    transition: opacity 0.4s ease;
+}
+#onboardingScreen.ob-visible {
+    visibility: visible; opacity: 1;
+}
+#onboardingScreen.ob-exit {
+    opacity: 0; pointer-events: none;
+}
+
+/* slides container */
+.ob-slides {
+    flex: 1; overflow: hidden;
+    position: relative;
+}
+.ob-slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    padding: 0 24px 28px;
+    opacity: 0; transform: translateX(40px);
+    transition: opacity 0.45s ease, transform 0.45s ease;
+    pointer-events: none;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.ob-slide.ob-active {
+    opacity: 1; transform: translateX(0);
+    pointer-events: all;
+}
+.ob-slide.ob-past {
+    opacity: 0; transform: translateX(-40px);
+}
+
+/* skip */
+.ob-skip {
+    position: absolute; top: 20px; right: 20px;
+    font-size: 12px; color: rgba(232,213,176,.38);
+    letter-spacing: .05em; z-index: 10;
+    background: none; border: none; cursor: pointer;
+    padding: 6px 0;
+}
+.ob-skip:active { opacity: .6; }
+
+/* ── SCREEN 1 — ORB ── */
+.ob-orb-stage {
+    flex: 1; display: flex; align-items: center;
+    justify-content: center; position: relative;
+    min-height: 260px;
+}
+.ob-orb-bg {
+    position: absolute;
+    width: 340px; height: 340px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(109,40,217,.20) 0%, transparent 68%);
+    top: 50%; left: 50%; transform: translate(-50%,-50%);
+    animation: ob-pulse 5s ease-in-out infinite;
+}
+@keyframes ob-pulse {
+    0%,100% { transform: translate(-50%,-50%) scale(1); opacity:.7; }
+    50%      { transform: translate(-50%,-50%) scale(1.08); opacity:1; }
+}
+.ob-orb-ring {
+    position: absolute; border-radius: 50%;
+    border: 1px solid rgba(139,92,246,.14);
+    top: 50%; left: 50%; transform: translate(-50%,-50%);
+}
+.ob-orb-core {
+    width: 210px; height: 210px; border-radius: 50%;
+    background: radial-gradient(circle at 38% 32%, #a78bfa 0%, #6d28d9 42%, #2e1065 75%, #0d0520 100%);
+    box-shadow: 0 0 55px 14px rgba(109,40,217,.35), 0 0 110px 35px rgba(109,40,217,.13);
+    position: relative;
+    animation: ob-breathe 4s ease-in-out infinite;
+}
+@keyframes ob-breathe {
+    0%,100% { box-shadow: 0 0 55px 14px rgba(109,40,217,.35), 0 0 110px 35px rgba(109,40,217,.13); }
+    50%      { box-shadow: 0 0 70px 22px rgba(109,40,217,.50), 0 0 140px 50px rgba(109,40,217,.20); }
+}
+.ob-orb-shine {
+    position: absolute; top: 22%; left: 22%;
+    width: 56%; height: 56%; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, rgba(196,181,253,.55) 0%, transparent 65%);
+}
+.ob-particle {
+    position: absolute; width: 3px; height: 3px;
+    border-radius: 50%; background: rgba(196,181,253,.65);
+    animation: ob-float var(--pd,5s) ease-in-out infinite var(--pdelay,0s);
+}
+@keyframes ob-float {
+    0%,100% { transform: translate(0,0); opacity:.35; }
+    50%      { transform: translate(var(--ptx,8px),var(--pty,-12px)); opacity:.9; }
+}
+.ob-orb-float {
+    animation: ob-levitate 6s ease-in-out infinite;
+}
+@keyframes ob-levitate {
+    0%,100% { transform: translateY(0); }
+    50%      { transform: translateY(-10px); }
+}
+.ob-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px; font-weight: 700;
+    color: #e8d5b0; text-align: center;
+    line-height: 1.2; margin-top: 4px;
+}
+.ob-sub {
+    font-size: 13px; color: rgba(232,213,176,.45);
+    text-align: center; margin-top: 8px;
+    line-height: 1.55;
+}
+
+/* ── CTA BUTTON ── */
+.ob-btn {
+    width: 100%; padding: 16px 0;
+    border-radius: 100px; border: none;
+    font-size: 13px; font-weight: 700;
+    letter-spacing: .08em; text-align: center;
+    cursor: pointer; margin-top: 20px;
+    transition: transform .15s ease, box-shadow .15s ease;
+    flex-shrink: 0;
+}
+.ob-btn:active { transform: scale(.97); }
+.ob-btn-p {
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(109,40,217,.35);
+}
+.ob-btn-p:active { box-shadow: 0 4px 12px rgba(109,40,217,.25); }
+.ob-btn-g {
+    background: linear-gradient(135deg, #e8d5b0, #c4a96e);
+    color: #1a1208;
+    box-shadow: 0 8px 24px rgba(196,160,80,.30);
+}
+.ob-btn-g:active { box-shadow: 0 4px 12px rgba(196,160,80,.20); }
+
+/* ── DOTS ── */
+.ob-dots {
+    display: flex; gap: 7px; justify-content: center;
+    margin-top: 16px; flex-shrink: 0;
+}
+.ob-dot {
+    height: 5px; border-radius: 3px;
+    background: rgba(232,213,176,.15);
+    transition: width .3s ease, background .3s ease;
+}
+.ob-dot.ob-dot-a { width: 22px; background: rgba(232,213,176,.80); }
+.ob-dot.ob-dot-i { width: 5px; }
+
+/* ── SCREEN 2 — CARD ── */
+.ob-s2-header { padding-top: 52px; margin-bottom: 12px; }
+.ob-s2-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 23px; font-weight: 700;
+    color: #e8d5b0; line-height: 1.2;
+}
+.ob-s2-sub {
+    font-size: 12px; color: rgba(232,213,176,.42);
+    margin-top: 6px; line-height: 1.5;
+}
+.ob-card-stage {
+    flex: 1; display: flex; align-items: center;
+    justify-content: center; padding: 8px 0;
+}
+.ob-aura-card {
+    width: 70%; margin: 0 auto;
+    background: linear-gradient(155deg, #2d1260 0%, #1a0a38 50%, #0e0620 100%);
+    border-radius: 24px; padding: 24px 20px 20px;
+    border: 1px solid rgba(139,92,246,.30);
+    position: relative; overflow: hidden;
+    box-shadow: 0 24px 64px rgba(109,40,217,.38),
+                0 0 0 1px rgba(196,181,253,.07),
+                0 0 80px rgba(109,40,217,.12);
+}
+.ob-card-glow-b {
+    position: absolute; bottom: -24px; left: 50%;
+    transform: translateX(-50%);
+    width: 150px; height: 90px;
+    background: radial-gradient(ellipse, rgba(124,252,154,.20) 0%, transparent 70%);
+}
+.ob-card-glow-t {
+    position: absolute; top: -32px; right: -32px;
+    width: 110px; height: 110px;
+    background: radial-gradient(circle, rgba(139,92,246,.28), transparent 70%);
+}
+.ob-card-img {
+    width: 68px; height: 68px; border-radius: 50%;
+    margin: 0 auto 14px; display: block;
+    background: radial-gradient(circle at 38% 32%, #6ee7b7, #059669 50%, #064e3b);
+    box-shadow: 0 0 24px 6px rgba(16,185,129,.38);
+}
+.ob-card-div { height: 1px; background: rgba(232,213,176,.12); margin: 10px 0; }
+.ob-card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px; font-weight: 700;
+    color: #d1fae5; text-align: center; letter-spacing: .04em;
+}
+.ob-card-body {
+    font-size: 11px; color: rgba(209,250,229,.50);
+    text-align: center; margin-top: 6px;
+    line-height: 1.6; font-style: italic;
+}
+.ob-card-foot {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-top: 14px;
+}
+.ob-card-meta { font-size: 9.5px; color: rgba(232,213,176,.28); letter-spacing: .07em; text-transform: uppercase; }
+.ob-card-mood { font-size: 9.5px; background: rgba(16,185,129,.20); color: #6ee7b7; padding: 3px 10px; border-radius: 20px; }
+
+/* ── SCREEN 3 — STACK ── */
+.ob-s3-header { padding-top: 52px; margin-bottom: 12px; }
+.ob-module {
+    background: rgba(255,255,255,.035);
+    border: 1px solid rgba(232,213,176,.09);
+    border-radius: 16px; padding: 14px 15px;
+    margin-bottom: 9px;
+}
+.ob-mod-label {
+    font-size: 9px; text-transform: uppercase;
+    letter-spacing: .10em; color: rgba(232,213,176,.30);
+    margin-bottom: 9px;
+}
+.ob-recap-row { display: flex; align-items: center; gap: 12px; }
+.ob-recap-orb {
+    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+    background: radial-gradient(circle at 38% 35%, #a78bfa, #4c1d95);
+    box-shadow: 0 0 16px 4px rgba(139,92,246,.32);
+}
+.ob-recap-title { font-size: 12px; color: rgba(232,213,176,.80); font-weight: 500; }
+.ob-recap-sub   { font-size: 10px; color: rgba(232,213,176,.35); margin-top: 2px; line-height: 1.35; }
+.ob-story-text  { font-size: 11.5px; color: rgba(232,213,176,.52); line-height: 1.65; font-style: italic; }
+.ob-story-hi    { color: #c4b5fd; font-style: normal; }
+.ob-bars        { display: flex; gap: 5px; align-items: flex-end; height: 38px; margin-top: 8px; }
+.ob-bar         { border-radius: 3px 3px 0 0; flex: 1; }
+.ob-legend      { display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
+.ob-leg-item    { display: flex; align-items: center; gap: 4px; font-size: 9px; color: rgba(232,213,176,.35); }
+.ob-leg-dot     { width: 6px; height: 6px; border-radius: 50%; }
+
+/* ── SCREEN 4 — CHAIN ── */
+.ob-s4-header { padding-top: 52px; margin-bottom: 10px; }
+.ob-chain { display: flex; flex-direction: column; }
+.ob-rank-row {
+    display: flex; align-items: center;
+    gap: 12px; padding: 10px 13px;
+    border-radius: 13px;
+}
+.ob-rank-row.ob-done { opacity: .45; }
+.ob-rank-row.ob-current {
+    background: rgba(139,92,246,.14);
+    border: 1px solid rgba(139,92,246,.32);
+}
+.ob-rank-row.ob-locked { opacity: .22; }
+.ob-rank-orb {
+    width: 36px; height: 36px; border-radius: 50%;
+    flex-shrink: 0; display: flex; align-items: center;
+    justify-content: center; font-size: 16px;
+}
+.ob-rank-name { font-size: 12px; color: rgba(232,213,176,.78); font-weight: 500; }
+.ob-rank-sub  { font-size: 10px; color: rgba(232,213,176,.32); }
+.ob-rank-badge {
+    font-size: 9px; margin-left: auto;
+    padding: 2px 8px; border-radius: 20px; flex-shrink: 0;
+}
+.ob-rank-arr {
+    text-align: center; color: rgba(232,213,176,.18);
+    font-size: 10px; line-height: 1; padding: 1px 0;
+}
+.ob-quiz-card {
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(232,213,176,.14);
+    border-radius: 16px; padding: 15px 15px;
+    margin-top: 10px; position: relative; overflow: hidden;
+}
+.ob-quiz-glow {
+    position: absolute; top: -22px; right: -22px;
+    width: 90px; height: 90px;
+    background: radial-gradient(circle, rgba(139,92,246,.22), transparent 70%);
+}
+.ob-quiz-top { display: flex; align-items: center; gap: 11px; margin-bottom: 9px; }
+.ob-quiz-lock {
+    width: 32px; height: 32px; border-radius: 10px;
+    background: rgba(232,213,176,.07);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+}
+.ob-quiz-coming {
+    font-size: 9px; color: rgba(232,213,176,.32);
+    text-transform: uppercase; letter-spacing: .09em;
+}
+.ob-quiz-title { font-size: 12.5px; color: rgba(232,213,176,.62); font-weight: 500; margin-top: 1px; }
+.ob-quiz-examples { display: flex; gap: 5px; flex-wrap: wrap; }
+.ob-quiz-ex {
+    font-size: 9.5px; color: rgba(196,181,253,.48);
+    background: rgba(139,92,246,.10); padding: 3px 9px;
+    border-radius: 20px; border: 1px solid rgba(139,92,246,.16);
+}
+.ob-social {
+    text-align: center; font-size: 10.5px;
+    color: rgba(232,213,176,.28); margin-top: 12px;
+    letter-spacing: .02em;
+}
+</style>
+
+<!-- ONBOARDING DOM -->
+<div id="onboardingScreen">
+
+  <!-- SCREEN 1 -->
+  <div class="ob-slide ob-active" id="obSlide1">
+    <button class="ob-skip" id="obSkip1">Skip</button>
+    <div class="ob-orb-stage">
+      <div class="ob-orb-bg"></div>
+      <div class="ob-orb-ring" style="width:270px;height:270px;"></div>
+      <div class="ob-orb-ring" style="width:320px;height:320px;opacity:.55;"></div>
+      <div class="ob-orb-float">
+        <div class="ob-orb-core">
+          <div class="ob-orb-shine"></div>
+          <div class="ob-particle" style="top:14%;left:68%;--pd:5s;--pdelay:0s;--ptx:8px;--pty:-11px;"></div>
+          <div class="ob-particle" style="top:72%;left:18%;--pd:6.5s;--pdelay:1s;--ptx:-7px;--pty:-13px;"></div>
+          <div class="ob-particle" style="top:28%;left:14%;--pd:4.5s;--pdelay:.5s;--ptx:-10px;--pty:-8px;"></div>
+          <div class="ob-particle" style="top:80%;left:62%;--pd:7s;--pdelay:1.8s;--ptx:6px;--pty:-12px;"></div>
+          <div class="ob-particle" style="top:50%;left:84%;--pd:5.5s;--pdelay:2.2s;--ptx:11px;--pty:-6px;"></div>
+          <div class="ob-particle" style="top:60%;left:40%;--pd:6s;--pdelay:.8s;--ptx:-5px;--pty:-14px;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="ob-title">Welcome to AURA</div>
+    <div class="ob-sub">Turn emotions into a journey<br>of self-discovery.</div>
+    <button class="ob-btn ob-btn-p" id="obBtn1">GET STARTED</button>
+    <div class="ob-dots">
+      <div class="ob-dot ob-dot-a"></div>
+      <div class="ob-dot ob-dot-i"></div>
+      <div class="ob-dot ob-dot-i"></div>
+      <div class="ob-dot ob-dot-i"></div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2 -->
+  <div class="ob-slide" id="obSlide2">
+    <button class="ob-skip" id="obSkip2">Skip</button>
+    <div class="ob-s2-header">
+      <div class="ob-s2-title">Every Feeling<br>Has a Story</div>
+      <div class="ob-s2-sub">Your emotions become cinematic cards.</div>
+    </div>
+    <div class="ob-card-stage">
+      <div class="ob-aura-card">
+        <div class="ob-card-glow-b"></div>
+        <div class="ob-card-glow-t"></div>
+        <div class="ob-card-img"></div>
+        <div class="ob-card-div"></div>
+        <div class="ob-card-title">THE PATIENT CLIMBER</div>
+        <div class="ob-card-body">"Growth is discomfort in disguise.<br>Roots down. Eyes up."</div>
+        <div class="ob-card-div"></div>
+        <div class="ob-card-foot">
+          <div class="ob-card-meta">Day 1 · Keep Going</div>
+          <div class="ob-card-mood">Growing</div>
+        </div>
+      </div>
+    </div>
+    <button class="ob-btn ob-btn-p" id="obBtn2">CONTINUE</button>
+    <div class="ob-dots">
+      <div class="ob-dot ob-dot-i"></div>
+      <div class="ob-dot ob-dot-a"></div>
+      <div class="ob-dot ob-dot-i"></div>
+      <div class="ob-dot ob-dot-i"></div>
+    </div>
+  </div>
+
+  <!-- SCREEN 3 -->
+  <div class="ob-slide" id="obSlide3">
+    <button class="ob-skip" id="obSkip3">Skip</button>
+    <div class="ob-s3-header">
+      <div class="ob-s2-title" style="font-size:21px;">Discover Patterns<br>You Never Notice</div>
+      <div class="ob-s2-sub">Your emotional journey, visualized.</div>
+    </div>
+    <div class="ob-module">
+      <div class="ob-mod-label">Monthly Recap</div>
+      <div class="ob-recap-row">
+        <div class="ob-recap-orb"></div>
+        <div>
+          <div class="ob-recap-title">June 2026 · Your Month</div>
+          <div class="ob-recap-sub">12 entries · Dominant: Calm · 5-day streak</div>
+        </div>
+      </div>
+    </div>
+    <div class="ob-module">
+      <div class="ob-mod-label">Emotional Story</div>
+      <div class="ob-story-text">"You've felt <span class="ob-story-hi">calm</span> 8 times this month. Something is settling inside you — <span class="ob-story-hi">keep going</span>."</div>
+    </div>
+    <div class="ob-module">
+      <div class="ob-mod-label">Mood Distribution</div>
+      <div class="ob-bars">
+        <div class="ob-bar" style="height:55%;background:#8b5cf6;opacity:.8;"></div>
+        <div class="ob-bar" style="height:90%;background:#8b5cf6;"></div>
+        <div class="ob-bar" style="height:40%;background:#3b82f6;opacity:.75;"></div>
+        <div class="ob-bar" style="height:70%;background:#10b981;opacity:.8;"></div>
+        <div class="ob-bar" style="height:30%;background:#f59e0b;opacity:.65;"></div>
+        <div class="ob-bar" style="height:50%;background:#ef4444;opacity:.6;"></div>
+        <div class="ob-bar" style="height:75%;background:#8b5cf6;opacity:.7;"></div>
+      </div>
+      <div class="ob-legend">
+        <div class="ob-leg-item"><div class="ob-leg-dot" style="background:#8b5cf6;"></div>Calm</div>
+        <div class="ob-leg-item"><div class="ob-leg-dot" style="background:#10b981;"></div>Growing</div>
+        <div class="ob-leg-item"><div class="ob-leg-dot" style="background:#3b82f6;"></div>Lost</div>
+        <div class="ob-leg-item"><div class="ob-leg-dot" style="background:#f59e0b;"></div>Tired</div>
+      </div>
+    </div>
+    <button class="ob-btn ob-btn-p" id="obBtn3">CONTINUE</button>
+    <div class="ob-dots">
+      <div class="ob-dot ob-dot-i"></div>
+      <div class="ob-dot ob-dot-i"></div>
+      <div class="ob-dot ob-dot-a"></div>
+      <div class="ob-dot ob-dot-i"></div>
+    </div>
+  </div>
+
+  <!-- SCREEN 4 -->
+  <div class="ob-slide" id="obSlide4">
+    <button class="ob-skip" id="obSkip4">Skip</button>
+    <div class="ob-s4-header">
+      <div class="ob-s2-title" style="font-size:21px;">Build Your<br>Emotional Identity</div>
+      <div class="ob-s2-sub" style="margin-top:5px;">Every reflection moves you forward.</div>
+    </div>
+    <div class="ob-chain">
+      <div class="ob-rank-row ob-done">
+        <div class="ob-rank-orb" style="background:radial-gradient(circle at 38% 35%,#6366f1,#1e1b4b);">🌱</div>
+        <div><div class="ob-rank-name">Emotional Explorer</div><div class="ob-rank-sub">Starting out</div></div>
+        <div class="ob-rank-badge" style="background:rgba(99,102,241,.15);color:#a5b4fc;">✓</div>
+      </div>
+      <div class="ob-rank-arr">↓</div>
+      <div class="ob-rank-row ob-done">
+        <div class="ob-rank-orb" style="background:radial-gradient(circle at 38% 35%,#8b5cf6,#2e1065);">🌊</div>
+        <div><div class="ob-rank-name">Mind Wanderer</div><div class="ob-rank-sub">7+ reflections</div></div>
+        <div class="ob-rank-badge" style="background:rgba(139,92,246,.15);color:#c4b5fd;">✓</div>
+      </div>
+      <div class="ob-rank-arr">↓</div>
+      <div class="ob-rank-row ob-current">
+        <div class="ob-rank-orb" style="background:radial-gradient(circle at 38% 35%,#a78bfa,#4c1d95);box-shadow:0 0 18px 5px rgba(167,139,250,.42);">✦</div>
+        <div style="flex:1;"><div class="ob-rank-name" style="color:#c4b5fd;">Inner Listener</div><div class="ob-rank-sub">25+ reflections</div></div>
+        <div class="ob-rank-badge" style="background:rgba(139,92,246,.20);color:#a78bfa;">Now</div>
+      </div>
+      <div class="ob-rank-arr">↓</div>
+      <div class="ob-rank-row ob-locked">
+        <div class="ob-rank-orb" style="background:radial-gradient(circle at 38% 35%,#c4b5fd,#6d28d9);">⚡</div>
+        <div><div class="ob-rank-name">Energy Navigator</div><div class="ob-rank-sub">50+ reflections</div></div>
+        <div class="ob-rank-badge" style="background:rgba(232,213,176,.06);color:rgba(232,213,176,.25);">🔒</div>
+      </div>
+      <div class="ob-rank-arr">↓</div>
+      <div class="ob-rank-row ob-locked">
+        <div class="ob-rank-orb" style="background:radial-gradient(circle at 38% 35%,#fbbf24,#92400e);">🔮</div>
+        <div><div class="ob-rank-name">Emotional Sage</div><div class="ob-rank-sub">100+ reflections</div></div>
+        <div class="ob-rank-badge" style="background:rgba(232,213,176,.06);color:rgba(232,213,176,.25);">🔒</div>
+      </div>
+    </div>
+    <div class="ob-quiz-card">
+      <div class="ob-quiz-glow"></div>
+      <div class="ob-quiz-top">
+        <div class="ob-quiz-lock">🔒</div>
+        <div>
+          <div class="ob-quiz-coming">Coming Soon</div>
+          <div class="ob-quiz-title">Emotional Identity Quiz</div>
+        </div>
+      </div>
+      <div class="ob-quiz-examples">
+        <div class="ob-quiz-ex">The Quiet Observer</div>
+        <div class="ob-quiz-ex">The Patient Climber</div>
+        <div class="ob-quiz-ex">The Returning Light</div>
+      </div>
+    </div>
+    <div class="ob-social">Thousands of emotional journeys have already begun.</div>
+    <button class="ob-btn ob-btn-g" id="obBtn4">START MY JOURNEY</button>
+    <div class="ob-dots">
+      <div class="ob-dot ob-dot-i"></div>
+      <div class="ob-dot ob-dot-i"></div>
+      <div class="ob-dot ob-dot-i"></div>
+      <div class="ob-dot ob-dot-a"></div>
+    </div>
+  </div>
+
+</div><!-- /onboardingScreen -->
+
+<script>
+(function() {
+    const OB_KEY = 'aura_onboarding_done';
+    let _obDismissing = false;
+    let _currentSlide = 1;
+    // Stored references to real showApp/showAuth set when onboarding intercepts
+    window._obRealShowApp  = null;
+    window._obRealShowAuth = null;
+
+    function isOnboardingDone() {
+        return localStorage.getItem(OB_KEY) === '1';
+    }
+
+    function markOnboardingDone() {
+        localStorage.setItem(OB_KEY, '1');
+        try {
+            const auth = window.firebaseAuth;
+            const db   = window.firebaseDB;
+            const fns  = window.firebaseFns;
+            if (auth && db && fns && auth.currentUser) {
+                fns.setDoc(fns.doc(db, 'users', auth.currentUser.uid),
+                    { onboardingDone: true }, { merge: true }).catch(() => {});
+            }
+        } catch(e) {}
+    }
+
+    function hideOnboardingEl() {
+        const el = document.getElementById('onboardingScreen');
+        if (!el) return;
+        el.classList.add('ob-exit');
+        setTimeout(() => { el.style.display = 'none'; }, 450);
+    }
+
+    window.obDismiss = function() {
+        if (_obDismissing) return;
+        _obDismissing = true;
+        markOnboardingDone();
+        hideOnboardingEl();
+        // Resume the correct original flow
+        const auth = window.firebaseAuth;
+        if (auth && auth.currentUser && typeof window._obRealShowApp === 'function') {
+            window._obRealShowApp();
+        } else if (typeof window._obRealShowAuth === 'function') {
+            window._obRealShowAuth();
+        }
+    };
+
+    function showOnboarding() {
+        const el = document.getElementById('onboardingScreen');
+        if (el) el.classList.add('ob-visible');
+    }
+
+    function goToSlide(n) {
+        const prev = document.getElementById('obSlide' + _currentSlide);
+        const next = document.getElementById('obSlide' + n);
+        if (!prev || !next) return;
+        prev.classList.remove('ob-active');
+        prev.classList.add('ob-past');
+        requestAnimationFrame(() => next.classList.add('ob-active'));
+        _currentSlide = n;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Wire slide buttons
+        document.getElementById('obBtn1').addEventListener('click', () => goToSlide(2));
+        document.getElementById('obBtn2').addEventListener('click', () => goToSlide(3));
+        document.getElementById('obBtn3').addEventListener('click', () => goToSlide(4));
+        document.getElementById('obBtn4').addEventListener('click', window.obDismiss);
+        ['obSkip1','obSkip2','obSkip3','obSkip4'].forEach(id => {
+            const btn = document.getElementById(id);
+            if (btn) btn.addEventListener('click', window.obDismiss);
+        });
+
+        // Intercept showApp / showAuth AFTER they are defined by the main script
+        // Use a tiny delay so the main script block has finished executing
+        setTimeout(() => {
+            const _origShowApp  = typeof showApp  === 'function' ? showApp  : null;
+            const _origShowAuth = typeof showAuth === 'function' ? showAuth : null;
+
+            window._obRealShowApp  = _origShowApp;
+            window._obRealShowAuth = _origShowAuth;
+
+            window.showApp = function() {
+                if (!isOnboardingDone()) {
+                    showOnboarding();
+                    return;
+                }
+                if (_origShowApp) _origShowApp();
+            };
+
+            window.showAuth = function() {
+                if (!isOnboardingDone()) {
+                    showOnboarding();
+                    return;
+                }
+                if (_origShowAuth) _origShowAuth();
+            };
+        }, 0);
+    });
+})();
+</script>
 
 </body>
 </html>

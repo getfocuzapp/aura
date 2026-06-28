@@ -10303,6 +10303,7 @@ window.checkAndShowWeeklyRitual = checkAndShowWeeklyRitual;
 
 /* Store user data in window for weekly ritual access */
 
+async function saveToHistory(entry) {
     if (!window.firebaseAuth || !window.firebaseAuth.currentUser) return;
     if (!window.firebaseDB   || !window.firebaseFns) return;
     const { doc, updateDoc, arrayUnion } = window.firebaseFns;

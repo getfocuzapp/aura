@@ -6319,7 +6319,7 @@ async function processGeneration() {
     statusTextEl.textContent = displayText + (moodEmoji2 ? ' ' + moodEmoji2 : '');
     const moodSrc = MOOD_SVG[selectedMood];
     moodEmoji.innerHTML = moodSrc
-        ? `<div class="symbol-3d"><div class="sym-layer sym-shadow"></div><div class="sym-layer sym-bg"></div><div class="sym-layer sym-mid"><img src="${moodSrc}" style="width:128px;height:128px;object-fit:contain;display:block;filter:drop-shadow(0 0 22px var(--mood-glow, rgba(255,255,255,0.28)))"/></div><div class="sym-layer sym-top"></div></div>`
+        ? `<div class="symbol-3d"><div class="sym-layer sym-shadow"></div><div class="sym-layer sym-bg"></div><div class="sym-layer sym-mid"><img src="${moodSrc}" style="width:150px;height:150px;object-fit:contain;display:block;filter:drop-shadow(0 0 28px var(--mood-glow, rgba(255,255,255,0.32)))"/></div><div class="sym-layer sym-top"></div></div>`
         : MOOD_EMOJIS[selectedMood] || '';
     moodEmoji.style.setProperty('--mood-glow', MOOD_STYLES[selectedMood]?.moodGlow || 'rgba(255,255,255,0.30)');
     $('statusTitle').textContent = generated.title;
@@ -7989,21 +7989,13 @@ function renderHistoryList(entries) {
             lastGroup = group;
         }
 
-        const color    = getMoodColor(item.mood);
-        const bgTint   = hexToRgba(color, 0.16);
-        const border   = hexToRgba(color, 0.32);
-        const borderL  = hexToRgba(color, 0.85);
-        const glow     = hexToRgba(color, 0.14);
-        const tsColor  = hexToRgba(color, 0.60);
-        const isLatest = index === 0 && (window._allHistoryEntries || [])[0] === item;
-
-        // ── Weekly Ritual entry — special card ──
+        // ── Weekly Ritual entry — special card (must check BEFORE getMoodColor) ──
         if (item.type === 'weekly_ritual') {
-            const wrColor  = '#c084fc';
-            const wrBg     = 'rgba(192,132,252,0.08)';
-            const wrBorder = 'rgba(192,132,252,0.28)';
+            const wrColor   = '#c084fc';
+            const wrBg      = 'rgba(192,132,252,0.08)';
+            const wrBorder  = 'rgba(192,132,252,0.28)';
             const wrBorderL = 'rgba(192,132,252,0.80)';
-            const wrGlow   = 'rgba(192,132,252,0.12)';
+            const wrGlow    = 'rgba(192,132,252,0.12)';
             const div2 = document.createElement('div');
             div2.className = 'history-item';
             div2.style.setProperty('--dot-color', wrColor);
@@ -8028,8 +8020,16 @@ function renderHistoryList(entries) {
                 <div class="history-date" style="color:rgba(192,132,252,0.45)">${new Date(item.date).toLocaleDateString()}</div>
               </div>`;
             list.appendChild(div2);
-            return; // skip normal card rendering for this entry
+            return; // skip normal card rendering
         }
+
+        const color    = getMoodColor(item.mood);
+        const bgTint   = hexToRgba(color, 0.16);
+        const border   = hexToRgba(color, 0.32);
+        const borderL  = hexToRgba(color, 0.85);
+        const glow     = hexToRgba(color, 0.14);
+        const tsColor  = hexToRgba(color, 0.60);
+        const isLatest = index === 0 && (window._allHistoryEntries || [])[0] === item;
 
         const particles = Array.from({length: 10}, () => {
             const x = (Math.random() * 100).toFixed(0);
@@ -8644,15 +8644,24 @@ async function populateInsights(targetYear, targetMonth) {
     const nextBtn = el('insMonthNext');
     if (nextBtn) nextBtn.disabled = isCurrentMonth;
 
-    // Fetch history
+    // Fetch history — always populate _allHistoryEntries as shared source of truth
     let history = window._allHistoryEntries;
     if (!history) {
-        const fetched = await fetchHistoryData();
-        history = fetched.history.slice().reverse();
+        try {
+            const fetched = await fetchHistoryData();
+            // Exclude weekly_ritual from shared history cache too
+            history = fetched.history.slice().reverse();
+            window._allHistoryEntries = history;
+            window._favorites = new Set((fetched.favorites || []).map(Number));
+        } catch(e) {
+            history = [];
+            window._allHistoryEntries = [];
+        }
     }
 
-    // Filter to selected month
+    // Filter to selected month — exclude weekly_ritual aggregated entries
     const monthEntries = (history || []).filter(item => {
+        if (item.type === 'weekly_ritual') return false; // aggregated, not a single check-in
         const d = new Date(item.date);
         return d.getFullYear() === curYear && d.getMonth() === curMonth;
     });
@@ -8670,6 +8679,7 @@ async function populateInsights(targetYear, targetMonth) {
     const prevYear  = prevDate.getFullYear();
     const prevMonth = prevDate.getMonth();
     const prevMonthEntries = (history || []).filter(item => {
+        if (item.type === 'weekly_ritual') return false;
         const d = new Date(item.date);
         return d.getFullYear() === prevYear && d.getMonth() === prevMonth;
     });

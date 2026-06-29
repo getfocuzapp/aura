@@ -4800,6 +4800,7 @@
     <div id="modalOverlay" class="modal-overlay hidden">
         <div class="modal-box">
             <div class="modal-top">
+                <button class="close-btn" id="closeBtn" aria-label="Close">✕</button>
                 <span class="modal-label">Your Status</span>
                 <button class="fav-top-btn" id="closeModalBtn" aria-label="Save to favorites">♥</button>
             </div>
@@ -4846,7 +4847,6 @@
                 <button id="shareBtn"         class="mbtn mbtn-sh hidden">↗ Share Image</button>
                 <button id="copyTextBtn"      class="mbtn mbtn-cp">Copy Text</button>
                 <button id="generateAgainBtn" class="mbtn mbtn-again">Generate Again</button>
-                <button id="closeBtn"         class="mbtn mbtn-close">Close</button>
             </div>
         </div>
     </div>
@@ -6628,25 +6628,28 @@ function buildStatusCanvas() {
                     const atmos = MOOD_ATMOS[mood] || MOOD_ATMOS.tired;
                     const ac    = atmos.accent;
 
-                    // ── 1. Full-bleed cinematic background ──
+                    // ── 1. Full-bleed cinematic background — lifted 15% brighter ──
                     const bgGrad = ctx.createLinearGradient(W/2, 0, W/2, H);
                     bgGrad.addColorStop(0,    atmos.bg1);
                     bgGrad.addColorStop(0.55, atmos.bg2);
                     bgGrad.addColorStop(1,    atmos.bg3);
                     ctx.fillStyle = bgGrad;
                     ctx.fillRect(0, 0, W, H);
+                    // Brightness lift so card isn't too dark
+                    ctx.fillStyle = ac + '0.08)';
+                    ctx.fillRect(0, 0, W, H);
 
                     // ── 2. Radial atmosphere bloom — mood color core ──
-                    const bloom = ctx.createRadialGradient(W/2, H*0.30, 0, W/2, H*0.30, W*0.90);
-                    bloom.addColorStop(0,   ac + '0.20)');
-                    bloom.addColorStop(0.5, ac + '0.07)');
+                    const bloom = ctx.createRadialGradient(W/2, H*0.30, 0, W/2, H*0.30, W*0.85);
+                    bloom.addColorStop(0,   ac + '0.35)');
+                    bloom.addColorStop(0.5, ac + '0.12)');
                     bloom.addColorStop(1,   'rgba(0,0,0,0)');
                     ctx.fillStyle = bloom;
                     ctx.fillRect(0, 0, W, H);
 
                     // Secondary atmosphere — bottom warmth
-                    const bloom2 = ctx.createRadialGradient(W*0.75, H*0.85, 0, W*0.75, H*0.85, W*0.70);
-                    bloom2.addColorStop(0,   ac + '0.10)');
+                    const bloom2 = ctx.createRadialGradient(W*0.75, H*0.85, 0, W*0.75, H*0.85, W*0.62);
+                    bloom2.addColorStop(0,   ac + '0.12)');
                     bloom2.addColorStop(1,   'rgba(0,0,0,0)');
                     ctx.fillStyle = bloom2;
                     ctx.fillRect(0, 0, W, H);
@@ -6698,11 +6701,29 @@ function buildStatusCanvas() {
                     for (let i = 0; i < gData.data.length; i += 4) {
                         const v = Math.random() * 255 | 0;
                         gData.data[i] = gData.data[i+1] = gData.data[i+2] = v;
-                        gData.data[i+3] = 14;
+                        gData.data[i+3] = 11;
                     }
                     gCtx.putImageData(gData, 0, 0);
                     ctx.fillStyle = ctx.createPattern(grainCanvas, 'repeat');
                     ctx.fillRect(0, 0, W, H);
+
+                    // ── 4b. Starfield — faint dots in upper half ──
+                    const starSeeds = [
+                        [0.08,0.04,1.1,0.55],[0.23,0.09,0.8,0.42],[0.67,0.03,1.0,0.50],[0.82,0.12,1.3,0.58],
+                        [0.15,0.19,0.9,0.36],[0.45,0.06,1.0,0.46],[0.91,0.23,0.7,0.40],[0.33,0.14,1.2,0.52],
+                        [0.55,0.20,0.8,0.44],[0.76,0.08,1.0,0.48],[0.04,0.29,0.9,0.36],[0.89,0.33,1.1,0.44],
+                        [0.19,0.36,0.7,0.33],[0.62,0.29,1.1,0.48],[0.38,0.42,0.8,0.36],[0.72,0.39,0.6,0.30],
+                        [0.11,0.45,1.0,0.40],[0.51,0.48,0.9,0.34],[0.85,0.43,1.0,0.42],[0.28,0.51,0.7,0.30],
+                    ];
+                    for (const [fx, fy, fr, fop] of starSeeds) {
+                        const sx = W * fx, sy = H * fy, sr = fr;
+                        const sg = ctx.createRadialGradient(sx, sy, 0, sx, sy, sr * 2.5);
+                        sg.addColorStop(0,   `rgba(255,255,255,${fop})`);
+                        sg.addColorStop(0.5, `rgba(255,255,255,${fop * 0.25})`);
+                        sg.addColorStop(1,   'rgba(0,0,0,0)');
+                        ctx.fillStyle = sg;
+                        ctx.beginPath(); ctx.arc(sx, sy, sr * 2.5, 0, Math.PI * 2); ctx.fill();
+                    }
 
                     // ── 5. Light rays (mood-specific) ──
                     if (atmos.rays) {
@@ -6751,14 +6772,14 @@ function buildStatusCanvas() {
                     ctx.fillStyle = poolG;
                     ctx.fillRect(0, H*0.55, W, H*0.45);
 
-                    // ── 9. Deep vignette — corners always dark ──
-                    const vig = ctx.createRadialGradient(W/2, H/2, W*0.20, W/2, H/2, W*1.05);
+                    // ── 9. Deep vignette — lighter than before ──
+                    const vig = ctx.createRadialGradient(W/2, H/2, W*0.22, W/2, H/2, W*1.05);
                     vig.addColorStop(0,   'rgba(0,0,0,0)');
-                    vig.addColorStop(0.7, 'rgba(0,0,0,0.22)');
-                    vig.addColorStop(1,   'rgba(0,0,0,0.72)');
+                    vig.addColorStop(0.7, 'rgba(0,0,0,0.10)');
+                    vig.addColorStop(1,   'rgba(0,0,0,0.42)');
                     ctx.fillStyle = vig; ctx.fillRect(0, 0, W, H);
 
-                    // ── 10. Collectible inner border frame ──
+                    // ── 10. Glass frame system — replicates DOM CSS card effects ──
                     function roundedRect(x, y, w, h, r) {
                         ctx.beginPath();
                         ctx.moveTo(x+r, y); ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w, y, x+w, y+r);
@@ -6767,94 +6788,175 @@ function buildStatusCanvas() {
                         ctx.lineTo(x, y+r); ctx.quadraticCurveTo(x, y, x+r, y);
                         ctx.closePath();
                     }
-                    const FP = 36; // frame padding
-                    // Outer border
-                    roundedRect(FP, FP, W-FP*2, H-FP*2, 28);
-                    ctx.strokeStyle = ac + '0.22)';
-                    ctx.lineWidth   = 1.5;
-                    ctx.stroke();
-                    // Inner border (double-border collectible feel)
-                    roundedRect(FP+10, FP+10, W-FP*2-20, H-FP*2-20, 20);
-                    ctx.strokeStyle = ac + '0.09)';
-                    ctx.lineWidth   = 1;
-                    ctx.stroke();
+                    const FP = 48; // frame padding — matches captureWrapper border-radius
+                    const FR = 56; // corner radius — matches 28px scaled to 1080px canvas
 
-                    // ── 11. AURA brand mark — top center, whisper light ──
-                    const brandTopPx = Math.round(W * 0.034);
+                    // ── 10a. Outer glow ring — replicates captureWrapper box-shadow ──
+                    // `0 0 0 1px rgba(192,132,252,0.14)` outer purple ring
                     ctx.save();
-                    if ('letterSpacing' in ctx) ctx.letterSpacing = '8px';
-                    ctx.font = '600 ' + brandTopPx + 'px "DM Sans", Arial, sans-serif';
-                    ctx.fillStyle = ac + '0.45)';
-                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                    ctx.shadowColor = ac + '0.30)'; ctx.shadowBlur = 16;
-                    ctx.fillText('✦  A U R A  ✦', W/2, FP + 52);
+                    roundedRect(FP-4, FP-4, W-FP*2+8, H-FP*2+8, FR+4);
+                    ctx.strokeStyle = 'rgba(192,132,252,0.20)';
+                    ctx.lineWidth   = 6;
+                    ctx.shadowColor = 'rgba(192,132,252,0.18)';
+                    ctx.shadowBlur  = 40;
+                    ctx.stroke();
                     ctx.restore();
 
-                    // ── 12. Orb — hero element, 340px, full glow system ──
-                    const orbSize = Math.round(W * 0.315); // ~340px on 1080
-                    const orbX    = W/2;
-                    const orbY    = Math.round(H * 0.285);
+                    // ── 10b. Glass edge highlight — top-left specular (light hits glass at angle) ──
+                    // Replicates the frosted glass top-edge shimmer of backdrop-filter cards
+                    ctx.save();
+                    const glassTop = ctx.createLinearGradient(FP, FP, FP, FP + H * 0.08);
+                    glassTop.addColorStop(0,   'rgba(255,255,255,0.16)');
+                    glassTop.addColorStop(0.4, 'rgba(255,255,255,0.06)');
+                    glassTop.addColorStop(1,   'rgba(255,255,255,0)');
+                    roundedRect(FP, FP, W-FP*2, H-FP*2, FR);
+                    ctx.clip();
+                    ctx.fillStyle = glassTop;
+                    ctx.fillRect(FP, FP, W-FP*2, H * 0.10);
+                    ctx.restore();
 
-                    // Outer atmosphere bloom
-                    const orbAtm = ctx.createRadialGradient(orbX, orbY, 0, orbX, orbY, orbSize * 1.4);
-                    orbAtm.addColorStop(0,   ac + '0.22)');
-                    orbAtm.addColorStop(0.5, ac + '0.08)');
-                    orbAtm.addColorStop(1,   'rgba(0,0,0,0)');
-                    ctx.fillStyle = orbAtm;
+                    // ── 10c. Glass edge highlight — left side specular ──
+                    ctx.save();
+                    const glassLeft = ctx.createLinearGradient(FP, H/2, FP + W*0.04, H/2);
+                    glassLeft.addColorStop(0,   'rgba(255,255,255,0.10)');
+                    glassLeft.addColorStop(1,   'rgba(255,255,255,0)');
+                    roundedRect(FP, FP, W-FP*2, H-FP*2, FR);
+                    ctx.clip();
+                    ctx.fillStyle = glassLeft;
+                    ctx.fillRect(FP, FP, W*0.06, H-FP*2);
+                    ctx.restore();
+
+                    // ── 10d. Main border — replicates sc-inner::before ──
+                    // `border: 1px solid rgba(255,255,255,0.12)` at inset 6px
+                    ctx.save();
+                    roundedRect(FP + 12, FP + 12, W-FP*2-24, H-FP*2-24, FR - 8);
+                    ctx.strokeStyle = 'rgba(255,255,255,0.14)';
+                    ctx.lineWidth   = 2;
+                    ctx.stroke();
+                    ctx.restore();
+
+                    // ── 10e. Inner soft glow — replicates `inset box-shadow 0 0 0 5px rgba(255,255,255,0.04)` ──
+                    ctx.save();
+                    roundedRect(FP + 18, FP + 18, W-FP*2-36, H-FP*2-36, FR - 14);
+                    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+                    ctx.lineWidth   = 10;
+                    ctx.stroke();
+                    ctx.restore();
+
+                    // ── 10f. Mood-colored accent border — subtle tint ──
+                    ctx.save();
+                    roundedRect(FP, FP, W-FP*2, H-FP*2, FR);
+                    ctx.strokeStyle = ac + '0.18)';
+                    ctx.lineWidth   = 3;
+                    ctx.shadowColor = ac + '0.25)';
+                    ctx.shadowBlur  = 24;
+                    ctx.stroke();
+                    ctx.restore();
+
+                    // ── 10g. Inset edge vignette — lighter ──
+                    ctx.save();
+                    roundedRect(FP, FP, W-FP*2, H-FP*2, FR);
+                    ctx.clip();
+                    const edgeVig = ctx.createRadialGradient(W/2, H/2, W*0.26, W/2, H/2, W*0.78);
+                    edgeVig.addColorStop(0,    'rgba(0,0,0,0)');
+                    edgeVig.addColorStop(0.65, 'rgba(0,0,0,0.08)');
+                    edgeVig.addColorStop(1,    'rgba(0,0,0,0.38)');
+                    ctx.fillStyle = edgeVig;
+                    ctx.fillRect(0, 0, W, H);
+                    ctx.restore();
+
+                    // ── 11. AURA brand mark — subtle, inside frame ──
+                    const brandTopPx = Math.round(W * 0.042);
+                    ctx.save();
+                    if ('letterSpacing' in ctx) ctx.letterSpacing = '10px';
+                    ctx.font = '600 ' + brandTopPx + 'px "DM Sans", Arial, sans-serif';
+                    ctx.fillStyle = 'rgba(255,255,255,0.26)';
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.shadowColor = ac + '0.18)'; ctx.shadowBlur = 10;
+                    ctx.fillText('✦  A U R A  ✦', W/2, FP + 66);
+                    ctx.restore();
+
+                    // ── 12. Orb — hero element, matched to DOM card (65% of width) ──
+                    const orbSize = Math.round(W * 0.60);
+                    const orbX    = W/2;
+                    const orbY    = Math.round(H * 0.295);
+
+                    // Deep radial glow BEHIND orb — extra depth
+                    const deepGlow = ctx.createRadialGradient(orbX, orbY, 0, orbX, orbY, orbSize * 1.9);
+                    deepGlow.addColorStop(0,   ac + '0.42)');
+                    deepGlow.addColorStop(0.35, ac + '0.22)');
+                    deepGlow.addColorStop(0.7,  ac + '0.06)');
+                    deepGlow.addColorStop(1,   'rgba(0,0,0,0)');
+                    ctx.fillStyle = deepGlow;
                     ctx.fillRect(0, 0, W, H);
 
-                    // Ring 1
+                    // Halo rings
                     ctx.save();
-                    ctx.strokeStyle = ac + '0.18)';
+                    ctx.strokeStyle = ac + '0.24)';
+                    ctx.lineWidth   = 3;
+                    ctx.beginPath(); ctx.arc(orbX, orbY, orbSize * 0.70, 0, Math.PI*2); ctx.stroke();
+                    ctx.strokeStyle = ac + '0.11)';
                     ctx.lineWidth   = 2;
-                    ctx.beginPath(); ctx.arc(orbX, orbY, orbSize * 0.72, 0, Math.PI*2); ctx.stroke();
-                    // Ring 2
-                    ctx.strokeStyle = ac + '0.09)';
-                    ctx.lineWidth   = 1;
-                    ctx.beginPath(); ctx.arc(orbX, orbY, orbSize * 0.90, 0, Math.PI*2); ctx.stroke();
+                    ctx.beginPath(); ctx.arc(orbX, orbY, orbSize * 0.88, 0, Math.PI*2); ctx.stroke();
                     ctx.restore();
 
                     const cachedImg = MOOD_IMG_CACHE[mood];
                     if (cachedImg && cachedImg.complete && cachedImg.naturalWidth) {
                         const ox = orbX - orbSize/2;
                         const oy = orbY - orbSize/2;
-                        // Glow pass 1 — mood color bloom
+                        // Glow pass — outside clip so glow bleeds outward
                         ctx.save();
                         ctx.shadowColor = moodGlow;
-                        ctx.shadowBlur  = Math.round(orbSize * 0.55);
+                        ctx.shadowBlur  = Math.round(orbSize * 0.72);
+                        ctx.beginPath(); ctx.arc(orbX, orbY, orbSize/2, 0, Math.PI*2);
+                        ctx.strokeStyle = 'rgba(0,0,0,0)'; ctx.lineWidth = 1; ctx.stroke();
+                        ctx.restore();
+                        // Draw image with circular clip
+                        ctx.save();
+                        ctx.beginPath(); ctx.arc(orbX, orbY, orbSize/2, 0, Math.PI*2); ctx.clip();
+                        ctx.shadowColor = moodGlow;
+                        ctx.shadowBlur  = Math.round(orbSize * 0.72);
                         ctx.drawImage(cachedImg, ox, oy, orbSize, orbSize);
-                        // Glow pass 2 — white specular
-                        ctx.shadowColor = 'rgba(255,255,255,0.25)';
+                        ctx.shadowColor = 'rgba(255,255,255,0.28)';
                         ctx.shadowBlur  = Math.round(orbSize * 0.22);
                         ctx.drawImage(cachedImg, ox, oy, orbSize, orbSize);
-                        // Clean draw pass
                         ctx.shadowBlur = 0;
                         ctx.drawImage(cachedImg, ox, oy, orbSize, orbSize);
                         ctx.restore();
                     } else {
-                        ctx.font = Math.round(orbSize * 0.75) + 'px serif';
+                        // Emoji fallback — circular background + emoji
+                        ctx.save();
+                        ctx.beginPath(); ctx.arc(orbX, orbY, orbSize/2, 0, Math.PI*2); ctx.clip();
+                        const orbBg = ctx.createRadialGradient(orbX - orbSize*0.18, orbY - orbSize*0.18, 0, orbX, orbY, orbSize/2);
+                        orbBg.addColorStop(0,   ac + '0.90)');
+                        orbBg.addColorStop(0.6, ac + '0.70)');
+                        orbBg.addColorStop(1,   'rgba(10,0,30,0.95)');
+                        ctx.fillStyle = orbBg;
+                        ctx.fillRect(orbX - orbSize/2, orbY - orbSize/2, orbSize, orbSize);
+                        ctx.restore();
+                        ctx.font = Math.round(orbSize * 0.60) + 'px serif';
                         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                        ctx.shadowColor = moodGlow; ctx.shadowBlur = 60;
+                        ctx.shadowColor = moodGlow; ctx.shadowBlur = Math.round(orbSize * 0.72);
                         ctx.fillText(MOOD_EMOJIS[mood] || '', orbX, orbY);
                         ctx.shadowBlur = 0;
                     }
 
                     // ── 13. Decorative rule ──
-                    const ruleY = Math.round(H * 0.445);
-                    const ruleW = 80;
+                    const ruleY = Math.round(H * 0.520);
+                    const ruleW = 120;
                     const rg = ctx.createLinearGradient(W/2 - ruleW, ruleY, W/2 + ruleW, ruleY);
                     rg.addColorStop(0,   'rgba(255,255,255,0)');
                     rg.addColorStop(0.5, ac + '0.75)');
                     rg.addColorStop(1,   'rgba(255,255,255,0)');
-                    ctx.strokeStyle = rg; ctx.lineWidth = 1.5;
+                    ctx.strokeStyle = rg; ctx.lineWidth = 2;
                     ctx.beginPath(); ctx.moveTo(W/2 - ruleW, ruleY); ctx.lineTo(W/2 + ruleW, ruleY); ctx.stroke();
 
-                    // ── 14. Story title — massive editorial serif ──
+                    // ── 14. Story title — massive editorial serif, matched to DOM ──
                     const actualTitle = ($('statusTitle') ? $('statusTitle').textContent : '') || moodTitle(mood);
                     const titleStr    = actualTitle.toUpperCase();
                     const titleMaxW   = Math.round(W * 0.82);
-                    const titleMaxPx  = Math.round(W * 0.118);
-                    const titleMinPx  = Math.round(W * 0.056);
+                    const titleMaxPx  = Math.round(W * 0.202); // +9% from 0.185
+                    const titleMinPx  = Math.round(W * 0.095);
 
                     function titleW(px, t) {
                         ctx.font = '900 ' + px + 'px "Playfair Display", "Cormorant Garant", Georgia, serif';
@@ -6879,8 +6981,8 @@ function buildStatusCanvas() {
                         while ((titleW(tPx, tLines[0]) > titleMaxW || titleW(tPx, tLines[1]) > titleMaxW) && tPx > titleMinPx) tPx -= 2;
                     }
 
-                    const tLineH   = Math.round(tPx * 1.08);
-                    const tCenterY = Math.round(H * 0.495);
+                    const tLineH   = Math.round(tPx * 1.10);
+                    const tCenterY = Math.round(H * 0.600);
                     const tStartY  = tLines.length > 1 ? tCenterY - Math.round(tLineH * (tLines.length - 1) / 2) : tCenterY;
 
                     ctx.save();
@@ -6890,11 +6992,11 @@ function buildStatusCanvas() {
                     tLines.forEach((line, i) => {
                         const y = tStartY + i * tLineH;
                         // Glow layer
-                        ctx.shadowColor = moodGlow; ctx.shadowBlur = 40; ctx.shadowOffsetY = 0;
+                        ctx.shadowColor = moodGlow; ctx.shadowBlur = 60; ctx.shadowOffsetY = 0;
                         ctx.fillStyle = '#ffffff';
                         ctx.fillText(line, W/2, y);
                         // Crisp layer
-                        ctx.shadowColor = 'rgba(0,0,0,0.90)'; ctx.shadowBlur = 8; ctx.shadowOffsetY = 4;
+                        ctx.shadowColor = 'rgba(0,0,0,0.92)'; ctx.shadowBlur = 12; ctx.shadowOffsetY = 6;
                         ctx.fillText(line, W/2, y);
                         ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
                         ctx.fillStyle = '#ffffff';
@@ -6902,21 +7004,21 @@ function buildStatusCanvas() {
                     });
                     ctx.restore();
 
-                    // ── 15. Quote — italic, editorial, max 18 words ──
+                    // ── 15. Quote — italic, matched to DOM sc-text sizing ──
                     const rawText    = ($('statusText') ? $('statusText').textContent : '') || currentStatus || '';
                     const moodEmoji  = MOOD_EMOJIS[mood] || '';
                     const quoteText  = rawText.endsWith(moodEmoji) ? rawText : rawText + (moodEmoji ? ' ' + moodEmoji : '');
-                    const quotePx    = Math.round(W * 0.052);
+                    const quotePx    = Math.round(W * 0.075); // DOM: ~19px on 230px = ~8.3%, scaled up
                     const quoteLineH = Math.round(quotePx * 1.65);
-                    const quoteMaxW  = Math.round(W * 0.72); // narrower — editorial
+                    const quoteMaxW  = Math.round(W * 0.76);
                     const titleLastY = tStartY + (tLines.length - 1) * tLineH;
-                    const quoteY0    = titleLastY + Math.round(tPx * 0.90);
+                    const quoteY0    = titleLastY + Math.round(tPx * 0.80);
 
                     ctx.save();
                     ctx.font = 'italic 400 ' + quotePx + 'px "Playfair Display", Georgia, serif';
                     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                    ctx.fillStyle = 'rgba(255,255,255,0.82)';
-                    ctx.shadowColor = 'rgba(0,0,0,0.70)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 2;
+                    ctx.fillStyle = 'rgba(255,255,255,0.60)';   // dimmer — title stands out
+                    ctx.shadowColor = 'rgba(0,0,0,0.80)'; ctx.shadowBlur = 14; ctx.shadowOffsetY = 3;
 
                     const qWords = quoteText.split(/\s+/);
                     const qLines = [];
@@ -6931,8 +7033,8 @@ function buildStatusCanvas() {
                     ctx.restore();
 
                     // ── 16. Footer — premium minimal ──
-                    const footerY   = Math.round(H * 0.856);
-                    const footDivW  = 160;
+                    const footerY   = Math.round(H * 0.866); // inside frame (card bottom = H-FP-12 = 1860)
+                    const footDivW  = 180;
                     const fdg = ctx.createLinearGradient(W/2 - footDivW, footerY, W/2 + footDivW, footerY);
                     fdg.addColorStop(0,   'rgba(255,255,255,0)');
                     fdg.addColorStop(0.5, ac + '0.50)');
@@ -6944,24 +7046,24 @@ function buildStatusCanvas() {
                     const rankObj = (typeof getRank === 'function') ? getRank(loadData().xp || 0) : null;
                     const rankLabel = rankObj ? (rankObj.title || rankObj.name || 'Explorer') : 'Explorer';
 
-                    const metaPx = Math.round(W * 0.036);
+                    const metaPx = Math.round(W * 0.044);
                     ctx.save();
-                    if ('letterSpacing' in ctx) ctx.letterSpacing = '4px';
-                    ctx.font = '600 ' + metaPx + 'px "DM Sans", Arial, sans-serif';
-                    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+                    if ('letterSpacing' in ctx) ctx.letterSpacing = '5px';
+                    ctx.font = '400 ' + metaPx + 'px "DM Sans", Arial, sans-serif';
+                    ctx.fillStyle = 'rgba(255,255,255,0.28)';
                     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                    ctx.shadowColor = 'rgba(0,0,0,0.90)'; ctx.shadowBlur = 8;
+                    ctx.shadowColor = 'rgba(0,0,0,0.80)'; ctx.shadowBlur = 8;
                     ctx.fillText(('DAY ' + streak + '  ·  ' + rankLabel).toUpperCase(), W/2, footerY + metaPx*2.0);
                     ctx.restore();
 
-                    const brandPx = Math.round(W * 0.030);
+                    const brandPx = Math.round(W * 0.032);
                     ctx.save();
-                    if ('letterSpacing' in ctx) ctx.letterSpacing = '5px';
+                    if ('letterSpacing' in ctx) ctx.letterSpacing = '6px';
                     ctx.font = '400 ' + brandPx + 'px "DM Sans", Arial, sans-serif';
-                    ctx.fillStyle = ac + '0.35)';
+                    ctx.fillStyle = 'rgba(255,255,255,0.14)';
                     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                    ctx.shadowColor = 'rgba(0,0,0,0.80)'; ctx.shadowBlur = 6;
-                    ctx.fillText('CREATED WITH AURA', W/2, footerY + metaPx*2.0 + brandPx*2.2);
+                    ctx.shadowColor = 'rgba(0,0,0,0.70)'; ctx.shadowBlur = 6;
+                    ctx.fillText('CREATED WITH AURA', W/2, footerY + metaPx*2.0 + brandPx*2.4);
                     ctx.restore();
 
                     resolve(cv);

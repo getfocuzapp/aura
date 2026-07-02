@@ -6774,7 +6774,7 @@ async function processGeneration() {
     statusTextEl.textContent = displayText + (moodEmoji2 ? ' ' + moodEmoji2 : '');
     const moodSrc = MOOD_SVG[selectedMood];
     moodEmoji.innerHTML = moodSrc
-        ? `<div class="symbol-3d"><div class="sym-layer sym-shadow"></div><div class="sym-layer sym-bg"></div><div class="sym-layer sym-mid"><img src="${moodSrc}" style="width:150px;height:150px;object-fit:contain;display:block;filter:drop-shadow(0 0 28px var(--mood-glow, rgba(255,255,255,0.32)))"/></div><div class="sym-layer sym-top"></div></div>`
+        ? `<div class="symbol-3d"><div class="sym-layer sym-shadow"></div><div class="sym-layer sym-bg"></div><div class="sym-layer sym-mid"><img src="${moodSrc}" style="width:150px;height:150px;object-fit:cover;border-radius:50%;display:block;filter:drop-shadow(0 0 28px var(--mood-glow, rgba(255,255,255,0.32)))"/></div><div class="sym-layer sym-top"></div></div>`
         : MOOD_EMOJIS[selectedMood] || '';
     moodEmoji.style.setProperty('--mood-glow', MOOD_STYLES[selectedMood]?.moodGlow || 'rgba(255,255,255,0.30)');
     $('statusTitle').textContent = generated.title;
@@ -6788,12 +6788,14 @@ async function processGeneration() {
     updateXPDisplay();
     updateIdentityPanel();
     _cachedCardBlob = null; // clear old cache
-    setTimeout(() => {
-        const sb = $('shareBtn');
-        sb.classList.remove('hidden');
-        sb.disabled = true;
-        setTimeout(() => { sb.disabled = false; }, 150);
-    }, 150);
+
+    // Show share button immediately but keep both buttons disabled until blob is ready
+    const sb = $('shareBtn');
+    const db = $('downloadBtn');
+    sb.classList.remove('hidden');
+    sb.disabled = true;
+    db.disabled = true;
+
     const watermark = $('watermark');
     if (isPro) watermark.classList.add('hidden');
     else watermark.classList.remove('hidden');
@@ -6802,11 +6804,19 @@ async function processGeneration() {
     window._currentEntryDate = Date.now();
     closeModalBtn.classList.remove('active');
 
-    // Pre-build blob in background so Download/Share are instant when tapped
+    // Pre-build blob — enable share+download only when ready so share never hits canvas inside gesture
     buildStatusCanvas()
         .then(canvas => new Promise(res => canvas.toBlob(res, 'image/png')))
-        .then(blob  => { _cachedCardBlob = blob; })
-        .catch(()   => { /* blob will be built on demand if this fails */ });
+        .then(blob => {
+            _cachedCardBlob = blob;
+            sb.disabled = false;
+            db.disabled = false;
+        })
+        .catch(() => {
+            // Fallback: allow on-demand build
+            sb.disabled = false;
+            db.disabled = false;
+        });
 
     saveToHistory({ mood: selectedMood, title: generated.title, text: generated.text, date: window._currentEntryDate });
 }

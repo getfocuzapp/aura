@@ -837,7 +837,7 @@
             border-radius: 0;
         }
         .sym-mid svg  { width: 150px; height: 150px; display: block; overflow: visible; }
-        .sym-mid img  { width: 150px; height: 150px; object-fit: contain; display: block; }
+        .sym-mid img  { width: 150px; height: 150px; object-fit: cover; border-radius: 50%; display: block; }
         .sym-top {
             transform: translateZ(20px);
             background: radial-gradient(ellipse 55% 48% at 36% 28%, rgba(255,255,255,0.18) 0%, transparent 55%);
@@ -6819,6 +6819,8 @@ async function processGeneration() {
         });
 
     saveToHistory({ mood: selectedMood, title: generated.title, text: generated.text, date: window._currentEntryDate });
+    // Bust insights cache so the page re-fetches fresh data next time it's viewed
+    window._allHistoryEntries = null;
 }
 
 /* ── DAILY LIMIT (Firestore-backed, bypass-proof) ── */
@@ -7867,22 +7869,26 @@ shareBtn.addEventListener('click', async () => {
     const shareText = mood + ' · Identity Status\nGenerated on AURA';
 
     try {
-        if (!_cachedCardBlob) {
-            _cachedCardBlob = await captureCard();
-        }
+        // Blob must already be cached (buttons are disabled until it is).
+        // Emergency fallback build only if cache was somehow lost.
+        if (!_cachedCardBlob) _cachedCardBlob = await captureCard();
         const blob = _cachedCardBlob;
         const file = new File([blob], 'aura-status.png', { type: 'image/png' });
 
-        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({ title: 'My AURA Status', text: shareText, files: [file] })
-                .catch(err => {
-                    if (err.name !== 'AbortError') {
-                        navigator.share({ title: 'My AURA Status', text: shareText }).catch(() => {});
-                    }
-                });
-        } else if (navigator.share) {
-            await navigator.share({ title: 'My AURA Status', text: shareText }).catch(() => {});
+        if (navigator.share) {
+            // Try file share first; fall back to text-only share — never trigger download here
+            const canFile = navigator.canShare && navigator.canShare({ files: [file] });
+            const payload = canFile
+                ? { title: 'My AURA Status', text: shareText, files: [file] }
+                : { title: 'My AURA Status', text: shareText };
+            await navigator.share(payload).catch(err => {
+                // AbortError = user dismissed — silent. Anything else = try text-only
+                if (err.name !== 'AbortError' && canFile) {
+                    navigator.share({ title: 'My AURA Status', text: shareText }).catch(() => {});
+                }
+            });
         } else {
+            // Share API not available at all — download is the only option
             triggerBlobDownload(blob);
         }
     } catch(err) {
@@ -7957,7 +7963,8 @@ shareBtn.addEventListener('click', async () => {
         if (dlBtn)    dlBtn.disabled    = true;
 
         try {
-            const blob = await captureMonthlyReportCard();
+            // Use pre-built blob if available (built on modal open), else fall back to on-demand
+            const blob = window._cachedReportBlob || await captureMonthlyReportCard();
             const file = new File([blob], 'aura-monthly-journey.png', { type: 'image/png' });
             const shareText = `My ${(window._currentReportData || {}).monthLabel || ''} on AURA ✦`;
 
@@ -7967,7 +7974,6 @@ shareBtn.addEventListener('click', async () => {
                         .catch(err => { if (err.name !== 'AbortError') triggerBlobDownload(blob); });
                 } else if (navigator.share) {
                     await navigator.share({ title: 'My AURA Monthly Journey', text: shareText }).catch(() => {});
-                    triggerBlobDownload(blob);
                 } else {
                     triggerBlobDownload(blob);
                 }
@@ -7996,15 +8002,26 @@ shareBtn.addEventListener('click', async () => {
                 populateRecapPreview(window._currentReportData);
                 modal.classList.add('visible');
                 modal.scrollTop = 0;
-                // 150ms delay before share button active — prevents accidental double-tap
-                if (shareBtn) {
-                    shareBtn.disabled = true;
-                    setTimeout(() => { shareBtn.disabled = false; }, 150);
-                }
+
+                // Disable both buttons and pre-build blob immediately on modal open
+                // so share fires synchronously within the gesture (no async gap = no gesture loss)
+                window._cachedReportBlob = null;
+                if (shareBtn) shareBtn.disabled = true;
+                if (dlBtn)    dlBtn.disabled    = true;
+                captureMonthlyReportCard()
+                    .then(blob => {
+                        window._cachedReportBlob = blob;
+                        if (shareBtn) shareBtn.disabled = false;
+                        if (dlBtn)    dlBtn.disabled    = false;
+                    })
+                    .catch(() => {
+                        if (shareBtn) shareBtn.disabled = false;
+                        if (dlBtn)    dlBtn.disabled    = false;
+                    });
             });
         }
-        if (closeBtn && modal)  closeBtn.addEventListener('click',  () => modal.classList.remove('visible'));
-        if (modal) modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('visible'); });
+        if (closeBtn && modal)  closeBtn.addEventListener('click',  () => { modal.classList.remove('visible'); window._cachedReportBlob = null; });
+        if (modal) modal.addEventListener('click', e => { if (e.target === modal) { modal.classList.remove('visible'); window._cachedReportBlob = null; } });
         if (shareBtn) shareBtn.addEventListener('click', () => doShareOrDownload('share'));
         if (dlBtn)    dlBtn.addEventListener('click',    () => doShareOrDownload('download'));
     });
@@ -10457,9 +10474,8 @@ function createWeeklyRitualOverlay() {
     <div class="wr-screen" id="wrScreen4">
         <div class="wr-eyebrow" style="font-size:0.70rem;letter-spacing:0.14em;">✨ YOUR WEEK REVEALED ✨</div>
         <img class="wr-recap-orb-img" id="wrRecapOrb" src="" alt=""/>
-        <div class="wr-recap-mood" id="wrRecapMoodLabel">DOMINANT MOOD</div>
-        <div class="wr-recap-pct" id="wrRecapPct">0%</div>
-        <div class="wr-recap-mood-name" id="wrRecapMoodName">—</div>
+        <div class="wr-recap-mood" id="wrRecapMoodLabel">YOU SAID THIS WEEK...</div>
+        <div class="wr-recap-chosen" id="wrRecapChosen" style="font-family:'Playfair Display',Georgia,serif;font-size:1.08rem;font-style:italic;color:rgba(237,223,192,0.92);line-height:1.5;text-align:center;margin:0.5rem 0 1rem;padding:0 0.5rem;"></div>
         <div class="wr-recap-story-label">EMOTIONAL STORY</div>
         <div class="wr-recap-story-title" id="wrRecapStoryTitle">—</div>
         <div class="wr-stats-row">
@@ -10541,9 +10557,12 @@ function populateWRRecap(weekData) {
     const accent = getMoodAccent(dominantMood);
     document.getElementById('weeklyRitualOverlay').style.setProperty('--wr-accent', accent);
 
-    document.getElementById('wrRecapMoodLabel').textContent = 'DOMINANT MOOD · WEEK ' + weekNum;
-    document.getElementById('wrRecapPct').textContent       = dominantPct + '%';
-    document.getElementById('wrRecapMoodName').textContent  = dominantMood.charAt(0).toUpperCase() + dominantMood.slice(1);
+    document.getElementById('wrRecapMoodLabel').textContent  = 'YOU SAID THIS WEEK...';
+    // Read the statement the user chose on screen 2
+    const chosenBtn = document.querySelector('.wr-choice.selected');
+    const chosenText = chosenBtn ? chosenBtn.textContent.trim() : '';
+    const chosenEl = document.getElementById('wrRecapChosen');
+    if (chosenEl) chosenEl.textContent = chosenText || '"' + reflection + '"';
     document.getElementById('wrRecapStoryTitle').textContent = storyTitle;
     document.getElementById('wrStatExpressions').textContent = entries.length;
     document.getElementById('wrStatEnergy').textContent      = energyScore + '%';

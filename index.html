@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0c0c0f">
     <title>Identity Status Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500;600;700&family=Cormorant+Garant:wght@600;700;800&display=swap" rel="stylesheet">
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
@@ -397,7 +399,8 @@
             border: 1px solid rgba(192,132,252,0.14);
             border-radius: 1.6rem;
             width: 100%; max-width: 24rem;
-            max-height: 92dvh; max-height: 92vh;
+            max-height: calc(100dvh - 5.8rem - env(safe-area-inset-bottom, 0px));
+            max-height: calc(100vh  - 5.8rem - env(safe-area-inset-bottom, 0px));
             overflow-y: auto; overflow-x: hidden;
             overscroll-behavior: contain;
             display: flex; flex-direction: column;
@@ -681,8 +684,11 @@
            If it must be hidden, use: visibility:hidden; position:absolute; left:-9999px; opacity:0 */
         #captureWrapper {
             width: 100%; max-width: 230px; aspect-ratio: 9 / 16;
+            /* Explicit height prevents internal font-swap reflow from expanding the card */
+            height: clamp(330px, calc(230px * 16 / 9), 409px);
             margin: 0 auto; border-radius: 28px; overflow: hidden;
             flex-shrink: 0;
+            contain: strict;
             transition: box-shadow 500ms cubic-bezier(0.16,1,0.3,1), transform 500ms cubic-bezier(0.16,1,0.3,1);
             box-shadow:
                 0 0 0 1px rgba(192,132,252,0.14),
@@ -6773,8 +6779,10 @@ async function processGeneration() {
     const moodEmoji2 = MOOD_EMOJIS[selectedMood] || '';
     statusTextEl.textContent = displayText + (moodEmoji2 ? ' ' + moodEmoji2 : '');
     const moodSrc = MOOD_SVG[selectedMood];
+    const _OBJ_POS = { growing:'43% 50%', motivated:'45% 56%', tired:'45% 50%', calm:'50% 56%', happy:'53% 56%', grinding:'55% 52%' };
+    const _objPos = _OBJ_POS[selectedMood] || '50% 50%';
     moodEmoji.innerHTML = moodSrc
-        ? `<div class="symbol-3d"><div class="sym-layer sym-shadow"></div><div class="sym-layer sym-bg"></div><div class="sym-layer sym-mid"><img src="${moodSrc}" style="width:150px;height:150px;object-fit:cover;border-radius:50%;display:block;filter:drop-shadow(0 0 28px var(--mood-glow, rgba(255,255,255,0.32)))"/></div><div class="sym-layer sym-top"></div></div>`
+        ? `<div class="symbol-3d"><div class="sym-layer sym-shadow"></div><div class="sym-layer sym-bg"></div><div class="sym-layer sym-mid"><img src="${moodSrc}" style="width:150px;height:150px;object-fit:cover;object-position:${_objPos};border-radius:50%;display:block;filter:drop-shadow(0 0 28px var(--mood-glow, rgba(255,255,255,0.32)))"/></div><div class="sym-layer sym-top"></div></div>`
         : MOOD_EMOJIS[selectedMood] || '';
     moodEmoji.style.setProperty('--mood-glow', MOOD_STYLES[selectedMood]?.moodGlow || 'rgba(255,255,255,0.30)');
     $('statusTitle').textContent = generated.title;
@@ -7351,12 +7359,21 @@ function buildStatusCanvas() {
                     if (cachedImg && cachedImg.complete && cachedImg.naturalWidth) {
                         const ox = orbX - orbSize/2;
                         const oy = orbY - orbSize/2;
-                        // Cover-fit crop to a centered square so non-square source art
-                        // (e.g. "growing" at 320x261) never gets stretched into an oval.
+                        // Subject-centered crop offsets (derived from per-image visual center-of-mass analysis)
+                        // Overrides symmetric centering where the orb art is not at the geometric center
+                        const CROP = {
+                            growing:     { isx: 6,  isy: 0  },
+                            motivated:   { isx: 0,  isy: 0  },
+                            tired:       { isx: 0,  isy: 12 },
+                            calm:        { isx: 0,  isy: 16 },
+                            happy:       { isx: 0,  isy: 40 },
+                            grinding:    { isx: 0,  isy: 20 },
+                        };
                         const iw   = cachedImg.naturalWidth, ih = cachedImg.naturalHeight;
                         const side = Math.min(iw, ih);
-                        const isx  = Math.round((iw - side) / 2);
-                        const isy  = Math.round((ih - side) / 2);
+                        const crop = CROP[mood];
+                        const isx  = crop ? crop.isx : Math.round((iw - side) / 2);
+                        const isy  = crop ? crop.isy : Math.round((ih - side) / 2);
                         // Pass 1 — UNCLIPPED glow cast. Drawn off-canvas-edge via shadow only:
                         // we draw the image fully transparent (alpha 0) and let its shadow show,
                         // so the glow takes the exact round silhouette of the orb art with no
@@ -7669,7 +7686,10 @@ function buildMonthlyReportCanvas(reportData) {
                 ctx.beginPath(); ctx.arc(W/2, orbY, orbR, 0, Math.PI*2); ctx.clip();
                 const oIw = orbImg.naturalWidth, oIh = orbImg.naturalHeight;
                 const oSide = Math.min(oIw, oIh);
-                const oIsx = Math.round((oIw - oSide) / 2), oIsy = Math.round((oIh - oSide) / 2);
+                const _OCROP = { growing:{isx:6,isy:0}, motivated:{isx:0,isy:0}, tired:{isx:0,isy:12}, calm:{isx:0,isy:16}, happy:{isx:0,isy:40}, grinding:{isx:0,isy:20} };
+                const _oc = _OCROP[reportData.topMood];
+                const oIsx = _oc ? _oc.isx : Math.round((oIw - oSide) / 2);
+                const oIsy = _oc ? _oc.isy : Math.round((oIh - oSide) / 2);
                 ctx.drawImage(orbImg, oIsx, oIsy, oSide, oSide, W/2 - orbR, orbY - orbR, orbR*2, orbR*2);
                 ctx.restore();
             } else {

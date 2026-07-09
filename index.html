@@ -4259,7 +4259,11 @@
         .ep-top { display: flex; align-items: flex-start; gap: 0.85rem; position: relative; z-index: 1; }
         .ep-orb-wrap { position: relative; flex-shrink: 0; }
         .ep-orb {
-            width: 76px; height: 76px; border-radius: 50%; object-fit: contain;
+            width: 76px; height: 76px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            background: radial-gradient(circle at 36% 30%, rgba(255,255,255,0.9) 0%, var(--ep-glow, rgba(232,213,176,0.55)) 46%, rgba(20,16,10,0.9) 100%);
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.10) inset;
+            font-size: 1.9rem; color: rgba(20,16,10,0.85); line-height: 1;
             filter: drop-shadow(0 0 14px var(--ep-glow, rgba(232,213,176,0.35)));
             animation: epOrbPulse 3.5s ease-in-out infinite;
         }
@@ -4745,6 +4749,14 @@
             0%   { transform: scale(0.40); opacity: 0; }
             50%  { opacity: 1; }
             100% { transform: scale(1); opacity: 1; }
+        }
+        .evo-orb-icon {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.6rem; line-height: 1; color: rgba(255,255,255,0.92);
+            text-shadow: 0 0 20px rgba(255,255,255,0.55), 0 2px 8px rgba(0,0,0,0.35);
+            transform: scale(0.45); opacity: 0; pointer-events: none;
+            animation: evoOrbGrow 1500ms cubic-bezier(0.16,1,0.3,1) 150ms forwards;
         }
         .evo-orb-halo {
             position: absolute; inset: -20%; border-radius: 50%;
@@ -6067,7 +6079,7 @@ const startTrialBtn    = $('startTrialBtn');
 const today = () => new Date().toISOString().split('T')[0];
 
 /* ── XP SYSTEM ── */
-const defaultAuraData = { xp: 0, streak: 0, lastUsed: null, unlockedMilestones: [], moodCounts: {}, totalGenerations: 0 };
+const defaultAuraData = { xp: 0, streak: 0, lastUsed: null, unlockedMilestones: [], moodCounts: {}, totalGenerations: 0, claimedAchievements: [] };
 
 function saveData(data) {
     localStorage.setItem('aura_data', JSON.stringify(data));
@@ -6078,6 +6090,7 @@ function loadData() {
         const stored = localStorage.getItem('aura_data');
         const d = stored ? JSON.parse(stored) : { ...defaultAuraData };
         if (!Array.isArray(d.unlockedMilestones)) d.unlockedMilestones = [];
+        if (!Array.isArray(d.claimedAchievements)) d.claimedAchievements = [];
         return d;
     } catch(e) {
         return { ...defaultAuraData };
@@ -6086,11 +6099,11 @@ function loadData() {
 
 /* ── FIRESTORE PROGRESSION SYNC (debounced, non-blocking) ── */
 let _syncTimer = null;
-function syncProgressionToFirestore(data) {
+function syncProgressionToFirestore(data, immediate) {
     if (!window.firebaseAuth?.currentUser) return;
     if (!window.firebaseDB || !window.firebaseFns) return;
     clearTimeout(_syncTimer);
-    _syncTimer = setTimeout(async () => {
+    const doWrite = async () => {
         try {
             const { doc, updateDoc } = window.firebaseFns;
             const uid = window.firebaseAuth.currentUser.uid;
@@ -6101,6 +6114,7 @@ function syncProgressionToFirestore(data) {
                 lastUsed:            data.lastUsed || null,
                 rank:                rank.title,
                 unlockedMilestones:  data.unlockedMilestones || [],
+                claimedAchievements: data.claimedAchievements || [],
                 moodCounts:          data.moodCounts || {},
                 totalGenerations:    data.totalGenerations || 0,
                 lastActive:          Date.now(),
@@ -6109,7 +6123,14 @@ function syncProgressionToFirestore(data) {
             // Silent fail — localStorage is the fallback cache
             console.warn('Firestore sync failed (non-critical):', e.code || e.message);
         }
-    }, 1200); // 1.2s debounce — batches rapid updates
+    };
+    if (immediate) {
+        // Rank-up events skip the debounce entirely — closes the race window where a
+        // quick reload right after evolving could fetch a stale pre-evolution doc.
+        doWrite();
+    } else {
+        _syncTimer = setTimeout(doWrite, 1200); // 1.2s debounce — batches rapid updates
+    }
 }
 
 function addXP(amount, mood) {
@@ -6138,17 +6159,17 @@ function addXP(amount, mood) {
 /* ── EMOTIONAL RANK SYSTEM ── */
 const EMOTIONAL_RANKS = [
     { min: 0,   title: 'Emotional Explorer',  icon: '◦',  glow: 'rgba(180,180,220,0.35)' },
-    { min: 20,  title: 'Mind Wanderer',        icon: '◈',  glow: 'rgba(160,160,230,0.38)' },
+    { min: 20,  title: 'Mind Wanderer',        icon: '◇',  glow: 'rgba(160,160,230,0.38)' },
     { min: 50,  title: 'Inner Listener',       icon: '◉',  glow: 'rgba(148,120,220,0.42)' },
-    { min: 90,  title: 'Energy Navigator',     icon: '✦',  glow: 'rgba(200,160,80,0.48)'  },
+    { min: 90,  title: 'Energy Navigator',     icon: '◆',  glow: 'rgba(200,160,80,0.48)'  },
     { min: 140, title: 'Emotional Architect',  icon: '✦',  glow: 'rgba(210,170,90,0.52)'  },
     { min: 200, title: 'Chaos Walker',         icon: '◈',  glow: 'rgba(130,100,215,0.45)' },
     { min: 280, title: 'Soul Strategist',      icon: '✧',  glow: 'rgba(220,185,100,0.56)' },
     { min: 380, title: 'Mind Alchemist',       icon: '✴',  glow: 'rgba(235,210,140,0.65)' },
-    { min: 500, title: 'Emotional Oracle',     icon: '✧',  glow: 'rgba(230,200,120,0.60)' },
-    { min: 700, title: 'Aura Ascendant',       icon: '✴',  glow: 'rgba(240,220,160,0.70)' },
+    { min: 500, title: 'Emotional Oracle',     icon: '✵',  glow: 'rgba(230,200,120,0.60)' },
+    { min: 700, title: 'Aura Ascendant',       icon: '✳',  glow: 'rgba(240,220,160,0.70)' },
     { min: 1000,title: 'Emotional Sovereign',  icon: '❋',  glow: 'rgba(245,230,180,0.75)' },
-    { min: 1500,title: 'Inner Cosmos',         icon: '❋',  glow: 'rgba(255,245,210,0.80)' },
+    { min: 1500,title: 'Inner Cosmos',         icon: '✺',  glow: 'rgba(255,245,210,0.80)' },
 ];
 
 function getRank(xp) {
@@ -6224,7 +6245,7 @@ function updateXPDisplay() {
         showIdentityEvolution(EMOTIONAL_RANKS[_lastRankIndex], rank, xp, level);
 
         // Sync new rank to Firestore (single write, non-blocking)
-        syncProgressionToFirestore({ ...data, rank: rank.title });
+        syncProgressionToFirestore({ ...data, rank: rank.title }, true);
     }
 
     _lastRankIndex = rank.index;
@@ -6289,11 +6310,12 @@ function showIdentityEvolution(prevRank, newRank, xp, level) {
 
     $('evoPrevIdentity').textContent = prevRank.title;
     $('evoNewIdentity').textContent  = newRank.title;
+    $('evoOrbIcon').textContent      = newRank.icon || '✦';
     $('evoDesc').textContent         = quote;
     $('evoLevelPill').textContent    = 'Level ' + level;
     $('evoXPEarned').textContent     = '+0 XP Earned';
 
-    _evoData = { prevTitle: prevRank.title, newTitle: newRank.title, quote, level, xp, tier };
+    _evoData = { prevTitle: prevRank.title, newTitle: newRank.title, quote, level, xp, tier, icon: newRank.icon || '✦' };
 
     // Reset & restart all CSS animations on every child (so back-to-back evolutions replay cleanly)
     card.querySelectorAll('*').forEach(node => {
@@ -6353,6 +6375,17 @@ document.addEventListener('click', async (e) => {
     const btn = $('evoShareBtn');
     btn.disabled = true;
     btn.textContent = 'Preparing…';
+
+    // Hard safety net — button must never stay stuck, even if a promise never settles
+    let settled = false;
+    const safetyTimer = setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        btn.textContent = 'Share My Evolution';
+        btn.disabled = !_evoReady;
+        _isEvoSharing = false;
+    }, 8000);
+
     try {
         const canvas = await buildEvolutionCanvas(_evoData);
         const blob = await new Promise((res, rej) =>
@@ -6362,27 +6395,39 @@ document.addEventListener('click', async (e) => {
         const shareText = "I've evolved into " + _evoData.newTitle + ' on AURA ✨';
 
         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({ title: 'My AURA Evolution', text: shareText, files: [file] })
-                .catch(err => {
-                    if (err.name !== 'AbortError') {
-                        navigator.share({ title: 'My AURA Evolution', text: shareText }).catch(() => {});
-                    }
-                });
-        } else if (navigator.share) {
-            await navigator.share({ title: 'My AURA Evolution', text: shareText }).catch(() => {});
+            try {
+                await navigator.share({ title: 'My AURA Evolution', text: shareText, files: [file] });
+                btn.textContent = '✓ Shared';
+            } catch (err) {
+                if (err.name === 'AbortError') {
+                    // User dismissed the share sheet — not an error
+                    btn.textContent = 'Share My Evolution';
+                } else {
+                    // Any other failure — fall back to download directly.
+                    // (Do NOT call navigator.share() again here: a second call without a
+                    // fresh user gesture can return a promise that never settles on some
+                    // browsers, which is what caused the button to hang on "Preparing…".)
+                    triggerBlobDownload(blob);
+                    btn.textContent = '✓ Saved';
+                }
+            }
         } else {
             triggerBlobDownload(blob);
+            btn.textContent = '✓ Saved';
         }
-        btn.textContent = '✓ Shared';
     } catch(err) {
         console.error('Evolution share error:', err);
         btn.textContent = 'Failed';
     } finally {
-        setTimeout(() => {
-            btn.textContent = 'Share My Evolution';
-            btn.disabled = !_evoReady;
-            _isEvoSharing = false;
-        }, 1400);
+        if (!settled) {
+            settled = true;
+            clearTimeout(safetyTimer);
+            setTimeout(() => {
+                btn.textContent = 'Share My Evolution';
+                btn.disabled = !_evoReady;
+                _isEvoSharing = false;
+            }, 1400);
+        }
     }
 });
 
@@ -6391,7 +6436,7 @@ function buildEvolutionCanvas(evoData) {
         document.fonts.load('900 60px "Playfair Display"').catch(() => {});
         document.fonts.load('italic 600 38px "Cormorant Garant"').catch(() => {});
 
-        const { newTitle, quote, level, tier } = evoData;
+        const { newTitle, quote, level, tier, icon } = evoData;
         const W = 1080, H = 1920;
         const cv = document.createElement('canvas');
         cv.width = W; cv.height = H;
@@ -6464,6 +6509,16 @@ function buildEvolutionCanvas(evoData) {
         ctx.strokeStyle = tier.ring2;
         ctx.beginPath(); ctx.arc(W/2, orbY, orbR + 56, 0, Math.PI*2); ctx.stroke();
         ctx.restore();
+
+        // Rank icon glyph, centered inside the orb
+        ctx.save();
+        ctx.fillStyle = 'rgba(255,255,255,0.94)';
+        ctx.font = '400 130px "DM Sans", sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.shadowColor = 'rgba(255,255,255,0.6)'; ctx.shadowBlur = 22;
+        ctx.fillText(icon || '✦', W/2, orbY + 4);
+        ctx.restore();
+        ctx.textBaseline = 'alphabetic';
 
         /* 7. Identity title */
         ctx.fillStyle = '#fff';
@@ -6776,6 +6831,8 @@ async function processGeneration() {
     currentStatus = generated.text;
 
     const displayText = generated.text.replace('{streak}', addXP(1, selectedMood).streak);
+    // Check for newly-unlocked achievements now that moodCounts/totalGenerations/streak are updated
+    setTimeout(() => checkAndClaimAchievements(), 50);
     const moodEmoji2 = MOOD_EMOJIS[selectedMood] || '';
     statusTextEl.textContent = displayText + (moodEmoji2 ? ' ' + moodEmoji2 : '');
     const moodSrc = MOOD_SVG[selectedMood];
@@ -8345,13 +8402,22 @@ async function loadUserData(uid) {
 /* ── FIREBASE: APPLY REMOTE PROGRESSION → LOCAL CACHE + UI ── */
 function updateUIWithUserData(remote) {
     try {
-        // Firestore is authoritative — write remote values into local cache
         const local = loadData();
-        local.xp     = (typeof remote.xp     === 'number') ? remote.xp     : local.xp;
-        local.streak = (typeof remote.streak  === 'number') ? remote.streak : local.streak;
+        // Remote sync is debounced (1.2s) — a fast reload/tab-close right after a rank-up
+        // can fetch a Firestore doc written BEFORE that debounce fired, which would
+        // silently revert real progress. Never let remote regress a monotonic value —
+        // always take the higher of local vs remote.
+        local.xp     = (typeof remote.xp     === 'number') ? Math.max(remote.xp, local.xp)         : local.xp;
+        local.streak = (typeof remote.streak === 'number') ? Math.max(remote.streak, local.streak) : local.streak;
         local.lastUsed = remote.lastUsed || local.lastUsed || null;
         local.unlockedMilestones = Array.isArray(remote.unlockedMilestones)
             ? remote.unlockedMilestones : (local.unlockedMilestones || []);
+        // Union merge (never overwrite) — a claim recorded on either side must survive,
+        // otherwise an achievement could re-trigger and re-award XP after a stale fetch.
+        local.claimedAchievements = Array.from(new Set([
+            ...(local.claimedAchievements  || []),
+            ...(Array.isArray(remote.claimedAchievements) ? remote.claimedAchievements : []),
+        ]));
         // Seed daily count cache from Firestore (prevents bypass on fresh device)
         if (remote.dailyDate && remote.dailyCount !== undefined) {
             localStorage.setItem('aura_dailyCount', remote.dailyCount.toString());
@@ -8360,11 +8426,15 @@ function updateUIWithUserData(remote) {
         if (remote.isPro || TEST_MODE) { isPro = true; window.isPro = true; }
         saveData(local); // write to localStorage cache
 
-        // Restore milestone state so toasts don't re-fire
-        // Use Firestore rank title (authoritative) to seed _lastRankIndex cross-device
-        const rankFromFirestore = EMOTIONAL_RANKS.findIndex(r => r.title === remote.rank);
-        _lastRankIndex = rankFromFirestore >= 0 ? rankFromFirestore : getRank(local.xp).index;
+        // Derive rank index from the corrected (max'd) xp — never trust remote.rank
+        // string directly, since it can also be stale from the same debounce race.
+        _lastRankIndex = getRank(local.xp).index;
         localStorage.setItem('aura_lastRankIdx', _lastRankIndex);
+        // If local xp was ahead of remote, push the corrected value back to Firestore
+        // immediately so the stale doc doesn't cause the same revert again next load.
+        if (local.xp > (remote.xp || 0)) {
+            syncProgressionToFirestore(local);
+        }
 
         _lastStreakMilestone  = local.unlockedMilestones
             .filter(m => typeof m === 'number')
@@ -8379,6 +8449,7 @@ function updateUIWithUserData(remote) {
         updateXPDisplay();
         updateStreakUI(local.streak);
         updateIdentityPanel();
+        setTimeout(() => checkAndClaimAchievements(), 300);
     } catch (e) {
         console.warn('updateUIWithUserData error:', e.message);
     }
@@ -9099,7 +9170,7 @@ function applyHistoryFilters() {
                 <div class="ep-particles" id="epParticles"></div>
                 <div class="ep-top">
                     <div class="ep-orb-wrap">
-                        <img class="ep-orb" id="proOrbImg" src="" alt=""/>
+                        <div class="ep-orb" id="proOrbImg"></div>
                         <div class="ep-orb-glow" id="epOrbGlow"></div>
                     </div>
                     <div class="ep-info">
@@ -9119,7 +9190,7 @@ function applyHistoryFilters() {
                     </div>
                 </div>
                 <div class="ep-next-rank" id="epNextRank">
-                    <div class="ep-next-icon">✦</div>
+                    <div class="ep-next-icon" id="epNextIcon">✦</div>
                     <div>
                         <div class="ep-next-rank-label">Next Rank</div>
                         <div class="ep-next-rank-name" id="proNextRankName">Mind Wanderer</div>
@@ -9919,6 +9990,49 @@ function getAchievementsList(data, level, moodCounts) {
     ];
 }
 
+/* ── ACHIEVEMENT REWARDS ── */
+const ACHIEVEMENT_XP_REWARD = { COMMON: 5, RARE: 15, EPIC: 30, LEGENDARY: 75 };
+
+// Checks all achievements against current stats; awards XP + claims any newly
+// unlocked ones exactly once (idempotent via data.claimedAchievements).
+// Call after any stat-changing event (generation, streak update, Firestore sync).
+function checkAndClaimAchievements() {
+    const data  = loadData();
+    const rank  = getRank(data.xp);
+    const level = rank.index + 1;
+    const moodCounts = data.moodCounts || {};
+    const list  = getAchievementsList(data, level, moodCounts);
+    const claimed = new Set(data.claimedAchievements || []);
+    const newlyUnlocked = [];
+
+    list.forEach(a => {
+        if (!claimed.has(a.id) && a.check()) {
+            const reward = ACHIEVEMENT_XP_REWARD[a.rarity] || 5;
+            data.xp += reward;
+            claimed.add(a.id);
+            newlyUnlocked.push({ ...a, reward });
+        }
+    });
+
+    if (newlyUnlocked.length) {
+        data.claimedAchievements = Array.from(claimed);
+        saveData(data);
+        // Immediate flush — same data-loss protection as rank-up events
+        syncProgressionToFirestore(data, true);
+        updateXPDisplay();     // may itself trigger Identity Evolution if this crosses a rank threshold
+        updateIdentityPanel();
+
+        // Stagger toasts so multiple simultaneous unlocks don't overlap
+        newlyUnlocked.forEach((a, i) => {
+            setTimeout(() => {
+                showMilestoneToast(a.icon, a.name + ' Unlocked', '+' + a.reward + ' XP · ' + a.rarity);
+            }, i * 1600);
+        });
+    }
+
+    return newlyUnlocked;
+}
+
 function populateProfile() {
     const data   = loadData();
     const xp     = data.xp;
@@ -9927,7 +10041,8 @@ function populateProfile() {
     const level  = rank.index + 1;
     const pct    = next ? Math.round(((xp - rank.min) / (next.min - rank.min)) * 100) : 100;
     const dom    = getDominantMood(data.moodCounts);
-    const glow   = dom ? (MOOD_GLOW_VARS[dom] || 'rgba(232,213,176,0.28)') : 'rgba(232,213,176,0.18)';
+    // Passport represents RANK identity, not mood — glow now derives from the rank itself
+    const glow   = rank.glow || 'rgba(232,213,176,0.28)';
     const el     = (id) => document.getElementById(id);
 
     // ── S1: EMOTIONAL PASSPORT ──
@@ -9937,12 +10052,13 @@ function populateProfile() {
     if (epOrbGlow) epOrbGlow.style.background = `radial-gradient(circle, ${glow} 0%, transparent 70%)`;
 
     const proOrb = el('proOrbImg');
-    if (proOrb) { proOrb.src = dom ? (MOOD_SVG[dom] || '') : ''; }
+    if (proOrb) { proOrb.textContent = rank.icon || '✦'; }
     if (el('proRankName'))   el('proRankName').textContent   = rank.title;
     if (el('proLevel'))      el('proLevel').textContent      = 'Lv. ' + level;
     if (el('proXpText'))     el('proXpText').textContent     = xp + ' / ' + (next ? next.min : '∞') + ' XP';
     if (el('proNextLabel'))  el('proNextLabel').textContent  = 'Next Rank: ' + (next ? next.min : '∞') + ' XP';
     if (el('proNextRankName')) el('proNextRankName').textContent = next ? next.title : 'Max Rank Reached';
+    if (el('epNextIcon'))      el('epNextIcon').textContent      = next ? (next.icon || '✦') : '✓';
 
     // Animate XP bar
     requestAnimationFrame(() => {
@@ -9989,13 +10105,12 @@ function populateProfile() {
     const moodCounts = data.moodCounts || {};
     const evoPath = el('evoPath');
     if (evoPath) {
-        const icons = ['◦','◈','◉','✦','✦','◈','✧','✴','✧','✴','❋','❋'];
         evoPath.innerHTML = EMOTIONAL_RANKS.slice(0, Math.min(rank.index+3, EMOTIONAL_RANKS.length))
             .map((r, i) => {
                 let state = i < rank.index ? 'done' : i === rank.index ? 'current' : 'locked';
                 const chip = state === 'current' ? '<span class="evo-chip">Current</span>' : '';
                 return `<div class="evo-item">
-                    <div class="evo-dot ${state}">${icons[i]||'◦'}</div>
+                    <div class="evo-dot ${state}">${r.icon || '◦'}</div>
                     <div class="evo-info">
                         <span class="evo-rank-name ${state}">${r.title}${chip}</span>
                     </div>
@@ -10024,10 +10139,11 @@ function populateProfile() {
         const ACHIEVEMENTS = getAchievementsList(data, level, moodCounts);
         achEl.innerHTML = ACHIEVEMENTS.map(a => {
             const unlocked = a.check();
+            const reward   = ACHIEVEMENT_XP_REWARD[a.rarity] || 5;
             return `<div class="ach-item ${unlocked?'unlocked':'locked'}">
                 <div class="ach-badge ${unlocked?'unlocked':'locked'}">${a.icon}</div>
                 <div class="ach-name">${a.name}</div>
-                <div class="ach-status">${unlocked?'Unlocked':'Locked'}</div>
+                <div class="ach-status">${unlocked ? ('+' + reward + ' XP') : 'Locked'}</div>
             </div>`;
         }).join('');
     }
@@ -10073,10 +10189,13 @@ function getWeekEntries() {
         // Read from cached Firestore data (already loaded into memory by loadUserData)
         const cached = window._cachedUserData;
         if (!cached || !Array.isArray(cached.history)) return [];
-        const cutoff = new Date();
-        cutoff.setDate(cutoff.getDate() - 7);
-        const cutoffStr = cutoff.toISOString().slice(0,10);
-        return cached.history.filter(e => e.date && e.date >= cutoffStr);
+        const cutoffMs = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        return cached.history.filter(e => {
+            if (!e.date) return false;
+            // Handle both Unix timestamp (number) and ISO date string
+            const ms = typeof e.date === 'number' ? e.date : new Date(e.date).getTime();
+            return ms >= cutoffMs;
+        });
     } catch(e) { return []; }
 }
 
@@ -10086,7 +10205,7 @@ function shouldShowWeeklyRitual() {
     const shownWeek = localStorage.getItem(WR_SHOWN_KEY);
     if (shownWeek === thisWeek) return false;              // already shown this week
     const entries = getWeekEntries();
-    return entries.length >= 7;                            // need 7+ entries in last 7 days
+    return entries.length >= 3;                            // 3+ entries in last 7 days (was 7 — never triggered)
 }
 
 /* ── Mark ritual shown for this week ── */
@@ -11539,6 +11658,7 @@ async function saveToHistory(entry) {
                     <div class="evo-particle"></div><div class="evo-particle"></div>
                 </div>
                 <div class="evo-orb"></div>
+                <div class="evo-orb-icon" id="evoOrbIcon"></div>
             </div>
 
             <div class="evo-eyebrow">✨ You've Evolved</div>

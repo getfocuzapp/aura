@@ -874,6 +874,11 @@
             letter-spacing: 0.04em;
             text-transform: uppercase;
             line-height: 1.05;
+            max-width: 90%;
+            margin: 0 auto;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            text-align: center;
             background: linear-gradient(180deg, #ffffff 0%, rgba(255,255,255,0.90) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -2761,7 +2766,8 @@
             box-shadow: 0 0 24px rgba(232,213,176,0.12);
         }
         .ins-prog-stage.next { opacity: 0.6; }
-        .ins-prog-icon { font-size: 1.6rem; margin-bottom: 0.45rem; color: #f0e4c8; }
+        .ins-prog-icon { display: flex; align-items: center; justify-content: center; margin-bottom: 0.45rem; color: #f0e4c8; }
+        .ins-prog-icon svg { width: 1.7rem; height: 1.7rem; }
         .ins-prog-stage-label {
             font-family: 'DM Sans', sans-serif;
             font-size: 0.6rem; font-weight: 700;
@@ -4259,14 +4265,15 @@
         .ep-top { display: flex; align-items: flex-start; gap: 0.85rem; position: relative; z-index: 1; }
         .ep-orb-wrap { position: relative; flex-shrink: 0; }
         .ep-orb {
-            width: 76px; height: 76px; border-radius: 50%;
+            width: 120px; height: 120px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             background: radial-gradient(circle at 36% 30%, rgba(255,255,255,0.9) 0%, var(--ep-glow, rgba(232,213,176,0.55)) 46%, rgba(20,16,10,0.9) 100%);
             box-shadow: 0 0 0 1px rgba(255,255,255,0.10) inset;
-            font-size: 1.9rem; color: rgba(20,16,10,0.85); line-height: 1;
+            color: rgba(20,16,10,0.85); line-height: 1;
             filter: drop-shadow(0 0 14px var(--ep-glow, rgba(232,213,176,0.35)));
             animation: epOrbPulse 3.5s ease-in-out infinite;
         }
+        .ep-orb svg { width: 3.4rem; height: 3.4rem; }
         @keyframes epOrbPulse {
             0%,100% { filter: drop-shadow(0 0 14px var(--ep-glow, rgba(232,213,176,0.35))); }
             50%      { filter: drop-shadow(0 0 24px var(--ep-glow, rgba(232,213,176,0.60))); }
@@ -4334,8 +4341,9 @@
             width: 32px; height: 32px; border-radius: 50%;
             background: rgba(232,213,176,0.06); border: 1px solid rgba(232,213,176,0.15);
             display: flex; align-items: center; justify-content: center;
-            font-size: 0.72rem; color: rgba(232,213,176,0.45); flex-shrink: 0;
+            color: rgba(232,213,176,0.45); flex-shrink: 0;
         }
+        .ep-next-icon svg { width: 16px; height: 16px; }
         .ep-next-rank-label {
             font-family: 'DM Sans', sans-serif; font-size: 0.38rem;
             color: rgba(232,213,176,0.28); letter-spacing: 0.16em; text-transform: uppercase;
@@ -4490,9 +4498,10 @@
         .evo-dot {
             width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
             display: flex; align-items: center; justify-content: center;
-            font-size: 0.65rem; position: relative; z-index: 1;
+            position: relative; z-index: 1;
             transition: all 300ms ease;
         }
+        .evo-dot svg { width: 16px; height: 16px; }
         .evo-dot.current {
             background: linear-gradient(135deg, rgba(232,213,176,0.20), rgba(232,213,176,0.10));
             border: 1.5px solid rgba(232,213,176,0.45);
@@ -4564,6 +4573,16 @@
         }
         .achievements-header { margin-bottom: 0.75rem; }
         .achievements-grid {
+            display: flex; flex-direction: column; gap: 1.1rem;
+        }
+        .ach-tier-section { display: flex; flex-direction: column; gap: 0.6rem; }
+        .ach-tier-label {
+            font-family: 'DM Sans', sans-serif; font-size: 0.58rem; font-weight: 700;
+            letter-spacing: 0.16em; text-transform: uppercase;
+            display: flex; align-items: center; gap: 0.4rem;
+        }
+        .ach-tier-label::after { content: ''; flex: 1; height: 1px; background: currentColor; opacity: 0.18; }
+        .ach-tier-row {
             display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.45rem;
         }
         .ach-item { display: flex; flex-direction: column; align-items: center; gap: 0.28rem; }
@@ -4573,9 +4592,9 @@
             font-size: 1.3rem; transition: all 300ms ease;
         }
         .ach-badge.unlocked {
-            background: linear-gradient(135deg, rgba(232,213,176,0.14), rgba(200,160,40,0.10));
-            border: 1px solid rgba(232,213,176,0.24);
-            box-shadow: 0 0 16px rgba(232,213,176,0.12);
+            background: linear-gradient(135deg, var(--tier-a, rgba(232,213,176,0.14)), var(--tier-b, rgba(200,160,40,0.10)));
+            border: 1px solid var(--tier-border, rgba(232,213,176,0.24));
+            box-shadow: 0 0 16px var(--tier-glow, rgba(232,213,176,0.12));
         }
         .ach-badge.locked {
             background: rgba(232,213,176,0.03);
@@ -4592,6 +4611,11 @@
         }
         .ach-item.unlocked .ach-name  { color: rgba(232,213,176,0.65); }
         .ach-item.unlocked .ach-status { color: rgba(100,200,120,0.60); }
+        /* Rarity tier accent colors */
+        .ach-tier-common   { color: rgba(190,190,205,0.85); }
+        .ach-tier-rare     { color: rgba(120,170,255,0.85); }
+        .ach-tier-epic     { color: rgba(180,120,245,0.85); }
+        .ach-tier-legendary{ color: rgba(240,195,90,0.90); }
 
         /* ── FAVORITE HEART BUTTON ON CARD ── */
         .hc-fav-btn {
@@ -4753,11 +4777,12 @@
         .evo-orb-icon {
             position: absolute; inset: 0;
             display: flex; align-items: center; justify-content: center;
-            font-size: 2.6rem; line-height: 1; color: rgba(255,255,255,0.92);
-            text-shadow: 0 0 20px rgba(255,255,255,0.55), 0 2px 8px rgba(0,0,0,0.35);
+            color: rgba(255,255,255,0.92);
+            filter: drop-shadow(0 0 12px rgba(255,255,255,0.55)) drop-shadow(0 2px 6px rgba(0,0,0,0.40));
             transform: scale(0.45); opacity: 0; pointer-events: none;
             animation: evoOrbGrow 1500ms cubic-bezier(0.16,1,0.3,1) 150ms forwards;
         }
+        .evo-orb-icon svg { width: 4.6rem; height: 4.6rem; }
         .evo-orb-halo {
             position: absolute; inset: -20%; border-radius: 50%;
             background: radial-gradient(circle, var(--evo-glow) 0%, transparent 70%);
@@ -6055,6 +6080,40 @@ function sanitize(str) {
 
 /* ── ELEMENTS ── */
 const $ = id => document.getElementById(id);
+
+// Shrinks a title element's font-size (via CSS custom property multiplier) until its
+// rendered width fits inside its container — mirrors buildStatusCanvas()'s own
+// shrink-before-wrap logic so the live DOM preview matches the exported PNG,
+// instead of relying on CSS-only wrapping which can look inconsistent for long
+// single words (e.g. "DISCONNECTED") that have no natural break point.
+function fitTitleToCard(el) {
+    if (!el) return;
+    el.style.fontSize = '';
+    requestAnimationFrame(() => {
+        const parent = el.parentElement;
+        if (!parent) return;
+        const maxWidth = parent.clientWidth * 0.90; // matches CSS max-width:90%
+
+        // Measure the TRUE natural (unwrapped) width — with overflow-wrap active,
+        // scrollWidth would otherwise always report as "fitting" since the box
+        // wraps to contain it, which would silently skip the shrink logic entirely.
+        const prevWhiteSpace = el.style.whiteSpace;
+        el.style.whiteSpace = 'nowrap';
+
+        const computed = getComputedStyle(el);
+        let px = parseFloat(computed.fontSize);
+        const minPx = px * 0.62; // floor — never shrink below ~62% of the clamp() max
+        let guard = 0;
+        while (el.scrollWidth > maxWidth && px > minPx && guard < 30) {
+            px -= 1;
+            el.style.fontSize = px + 'px';
+            guard++;
+        }
+
+        // Restore wrapping — acts as a safety net if even minPx still doesn't fit
+        el.style.whiteSpace = prevWhiteSpace || '';
+    });
+}
 const moodBtns         = document.querySelectorAll('.mood-btn');
 const generateBtn      = $('generateBtn');
 const loadingOverlay   = $('loadingOverlay');
@@ -6158,19 +6217,92 @@ function addXP(amount, mood) {
 
 /* ── EMOTIONAL RANK SYSTEM ── */
 const EMOTIONAL_RANKS = [
-    { min: 0,   title: 'Emotional Explorer',  icon: '◦',  glow: 'rgba(180,180,220,0.35)' },
-    { min: 20,  title: 'Mind Wanderer',        icon: '◇',  glow: 'rgba(160,160,230,0.38)' },
-    { min: 50,  title: 'Inner Listener',       icon: '◉',  glow: 'rgba(148,120,220,0.42)' },
-    { min: 90,  title: 'Energy Navigator',     icon: '◆',  glow: 'rgba(200,160,80,0.48)'  },
-    { min: 140, title: 'Emotional Architect',  icon: '✦',  glow: 'rgba(210,170,90,0.52)'  },
-    { min: 200, title: 'Chaos Walker',         icon: '◈',  glow: 'rgba(130,100,215,0.45)' },
-    { min: 280, title: 'Soul Strategist',      icon: '✧',  glow: 'rgba(220,185,100,0.56)' },
-    { min: 380, title: 'Mind Alchemist',       icon: '✴',  glow: 'rgba(235,210,140,0.65)' },
-    { min: 500, title: 'Emotional Oracle',     icon: '✵',  glow: 'rgba(230,200,120,0.60)' },
-    { min: 700, title: 'Aura Ascendant',       icon: '✳',  glow: 'rgba(240,220,160,0.70)' },
-    { min: 1000,title: 'Emotional Sovereign',  icon: '❋',  glow: 'rgba(245,230,180,0.75)' },
-    { min: 1500,title: 'Inner Cosmos',         icon: '✺',  glow: 'rgba(255,245,210,0.80)' },
+    { min: 0,   title: 'Emotional Explorer',  icon: '◦',  iconKey: 'ring',      glow: 'rgba(180,180,220,0.35)' },
+    { min: 20,  title: 'Mind Wanderer',        icon: '◇',  iconKey: 'diamond',   glow: 'rgba(160,160,230,0.38)' },
+    { min: 50,  title: 'Inner Listener',       icon: '◉',  iconKey: 'target',    glow: 'rgba(148,120,220,0.42)' },
+    { min: 90,  title: 'Energy Navigator',     icon: '◆',  iconKey: 'triangle',  glow: 'rgba(200,160,80,0.48)'  },
+    { min: 140, title: 'Emotional Architect',  icon: '✦',  iconKey: 'blueprint', glow: 'rgba(210,170,90,0.52)'  },
+    { min: 200, title: 'Chaos Walker',         icon: '◈',  iconKey: 'zigzag',    glow: 'rgba(130,100,215,0.45)' },
+    { min: 280, title: 'Soul Strategist',      icon: '✧',  iconKey: 'hexagon',   glow: 'rgba(220,185,100,0.56)' },
+    { min: 380, title: 'Mind Alchemist',       icon: '✴',  iconKey: 'hourglass', glow: 'rgba(235,210,140,0.65)' },
+    { min: 500, title: 'Emotional Oracle',     icon: '✵',  iconKey: 'burst',     glow: 'rgba(230,200,120,0.60)' },
+    { min: 700, title: 'Aura Ascendant',       icon: '✳',  iconKey: 'chevrons',  glow: 'rgba(240,220,160,0.70)' },
+    { min: 1000,title: 'Emotional Sovereign',  icon: '❋',  iconKey: 'crown',     glow: 'rgba(245,230,180,0.75)' },
+    { min: 1500,title: 'Inner Cosmos',         icon: '✺',  iconKey: 'starburst', glow: 'rgba(255,245,210,0.80)' },
 ];
+
+/* ── RANK ICON SYSTEM — bold geometric line icons (replaces Unicode glyphs) ──
+   Each shape defined once in a 0-100 viewBox for SVG (DOM), and once as Canvas2D
+   draw instructions using the same coordinates (shifted to origin-centered) so the
+   exact same icon appears identically in the live UI and the exported share card. */
+const RANK_ICON_SVG = {
+    ring:      '<circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" stroke-width="9"/>',
+    diamond:   '<path d="M50,16 L84,50 L50,84 L16,50 Z" fill="none" stroke="currentColor" stroke-width="9" stroke-linejoin="round"/>',
+    target:    '<circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" stroke-width="8"/><circle cx="50" cy="50" r="7" fill="currentColor"/>',
+    triangle:  '<path d="M50,14 L86,80 L14,80 Z" fill="none" stroke="currentColor" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>',
+    blueprint: '<rect x="21" y="21" width="58" height="58" fill="none" stroke="currentColor" stroke-width="8"/><path d="M21,21 L79,79" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>',
+    zigzag:    '<path d="M16,72 L36,28 L52,60 L68,22 L84,52" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>',
+    hexagon:   '<path d="M50,18 L77.7,34 L77.7,66 L50,82 L22.3,66 L22.3,34 Z" fill="none" stroke="currentColor" stroke-width="9" stroke-linejoin="round"/>',
+    hourglass: '<path d="M25,20 L75,20 L50,50 L75,80 L25,80 L50,50 Z" fill="none" stroke="currentColor" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>',
+    burst:     '<circle cx="50" cy="50" r="13" fill="none" stroke="currentColor" stroke-width="8"/><line x1="68" y1="50" x2="84" y2="50" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><line x1="59" y1="65.6" x2="67" y2="79.4" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><line x1="41" y1="65.6" x2="33" y2="79.4" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><line x1="32" y1="50" x2="16" y2="50" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><line x1="41" y1="34.4" x2="33" y2="20.6" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><line x1="59" y1="34.4" x2="67" y2="20.6" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>',
+    chevrons:  '<path d="M25,55 L50,32 L75,55" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><path d="M25,75 L50,52 L75,75" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>',
+    crown:     '<path d="M16,72 L16,42 L32,56 L50,26 L68,56 L84,42 L84,72 Z" fill="none" stroke="currentColor" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>',
+    starburst: '<path d="M50,14 L56.1,35.2 L75.5,24.5 L64.8,43.9 L86,50 L64.8,56.1 L75.5,75.5 L56.1,64.8 L50,86 L43.9,64.8 L24.5,75.5 L35.2,56.1 L14,50 L35.2,43.9 L24.5,24.5 L43.9,35.2 Z" fill="none" stroke="currentColor" stroke-width="7" stroke-linejoin="round"/>',
+    check:     '<path d="M20,52 L42,74 L80,28" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>',
+};
+
+// Returns a self-contained inline SVG string for a rank icon (DOM use)
+function rankIconSVG(key) {
+    const shape = RANK_ICON_SVG[key] || RANK_ICON_SVG.ring;
+    return '<svg viewBox="0 0 100 100" width="100%" height="100%" style="display:block">' + shape + '</svg>';
+}
+
+// Draws the same icon geometry on a Canvas2D context (share-card use).
+// radiusPx corresponds to the ~36-unit outer extent used in the SVG viewBox.
+function drawRankIcon(ctx, key, cx, cy, radiusPx, color) {
+    const s = radiusPx / 36;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(s, s);
+    ctx.strokeStyle = color; ctx.fillStyle = color;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    const draw = {
+        ring:      () => { ctx.lineWidth = 9; ctx.beginPath(); ctx.arc(0,0,30,0,Math.PI*2); ctx.stroke(); },
+        diamond:   () => { ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(0,-34); ctx.lineTo(34,0); ctx.lineTo(0,34); ctx.lineTo(-34,0); ctx.closePath(); ctx.stroke(); },
+        target:    () => { ctx.lineWidth = 8; ctx.beginPath(); ctx.arc(0,0,30,0,Math.PI*2); ctx.stroke(); ctx.beginPath(); ctx.arc(0,0,7,0,Math.PI*2); ctx.fill(); },
+        triangle:  () => { ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(0,-36); ctx.lineTo(36,30); ctx.lineTo(-36,30); ctx.closePath(); ctx.stroke(); },
+        blueprint: () => { ctx.lineWidth = 8; ctx.strokeRect(-29,-29,58,58); ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(-29,-29); ctx.lineTo(29,29); ctx.stroke(); },
+        zigzag:    () => { ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(-34,22); ctx.lineTo(-14,-22); ctx.lineTo(2,10); ctx.lineTo(18,-28); ctx.lineTo(34,2); ctx.stroke(); },
+        hexagon:   () => { ctx.lineWidth = 9; ctx.beginPath(); const pts=[[0,-32],[27.7,-16],[27.7,16],[0,32],[-27.7,16],[-27.7,-16]]; pts.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y)); ctx.closePath(); ctx.stroke(); },
+        hourglass: () => { ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(-25,-30); ctx.lineTo(25,-30); ctx.lineTo(0,0); ctx.lineTo(25,30); ctx.lineTo(-25,30); ctx.lineTo(0,0); ctx.closePath(); ctx.stroke(); },
+        burst:     () => {
+            ctx.lineWidth = 8; ctx.beginPath(); ctx.arc(0,0,13,0,Math.PI*2); ctx.stroke();
+            ctx.lineWidth = 7;
+            for (let i = 0; i < 6; i++) {
+                const a = i * Math.PI / 3;
+                ctx.beginPath(); ctx.moveTo(18*Math.cos(a), 18*Math.sin(a)); ctx.lineTo(34*Math.cos(a), 34*Math.sin(a)); ctx.stroke();
+            }
+        },
+        chevrons:  () => {
+            ctx.lineWidth = 9;
+            ctx.beginPath(); ctx.moveTo(-25,5); ctx.lineTo(0,-18); ctx.lineTo(25,5); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(-25,25); ctx.lineTo(0,2); ctx.lineTo(25,25); ctx.stroke();
+        },
+        crown:     () => { ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(-34,22); ctx.lineTo(-34,-8); ctx.lineTo(-18,6); ctx.lineTo(0,-24); ctx.lineTo(18,6); ctx.lineTo(34,-8); ctx.lineTo(34,22); ctx.closePath(); ctx.stroke(); },
+        starburst: () => {
+            ctx.lineWidth = 7; ctx.beginPath();
+            for (let i = 0; i < 16; i++) {
+                const a = -Math.PI/2 + i * Math.PI/8;
+                const r = i % 2 === 0 ? 36 : 16;
+                const x = r * Math.cos(a), y = r * Math.sin(a);
+                i ? ctx.lineTo(x,y) : ctx.moveTo(x,y);
+            }
+            ctx.closePath(); ctx.stroke();
+        },
+    };
+    (draw[key] || draw.ring)();
+    ctx.restore();
+}
 
 function getRank(xp) {
     for (let i = EMOTIONAL_RANKS.length - 1; i >= 0; i--) {
@@ -6298,6 +6430,14 @@ function showIdentityEvolution(prevRank, newRank, xp, level) {
     const card     = $('evoCard');
     if (!overlay || !card) return;
 
+    // Evolution takes priority — force-close Weekly Ritual if it's currently open so its
+    // text can't bleed through the semi-transparent Evolution backdrop underneath it.
+    const wrOverlay = document.getElementById('weeklyRitualOverlay');
+    if (wrOverlay && wrOverlay.classList.contains('wr-visible')) {
+        wrOverlay.classList.remove('wr-visible');
+        wrOverlay.classList.add('wr-exit');
+    }
+
     const tier  = getEvoTier(newRank.index);
     const quote = EVOLUTION_QUOTES[newRank.title] || 'You keep growing, one reflection at a time.';
 
@@ -6310,12 +6450,12 @@ function showIdentityEvolution(prevRank, newRank, xp, level) {
 
     $('evoPrevIdentity').textContent = prevRank.title;
     $('evoNewIdentity').textContent  = newRank.title;
-    $('evoOrbIcon').textContent      = newRank.icon || '✦';
+    $('evoOrbIcon').innerHTML        = rankIconSVG(newRank.iconKey);
     $('evoDesc').textContent         = quote;
     $('evoLevelPill').textContent    = 'Level ' + level;
     $('evoXPEarned').textContent     = '+0 XP Earned';
 
-    _evoData = { prevTitle: prevRank.title, newTitle: newRank.title, quote, level, xp, tier, icon: newRank.icon || '✦' };
+    _evoData = { prevTitle: prevRank.title, newTitle: newRank.title, quote, level, xp, tier, iconKey: newRank.iconKey || 'ring' };
 
     // Reset & restart all CSS animations on every child (so back-to-back evolutions replay cleanly)
     card.querySelectorAll('*').forEach(node => {
@@ -6436,7 +6576,7 @@ function buildEvolutionCanvas(evoData) {
         document.fonts.load('900 60px "Playfair Display"').catch(() => {});
         document.fonts.load('italic 600 38px "Cormorant Garant"').catch(() => {});
 
-        const { newTitle, quote, level, tier, icon } = evoData;
+        const { newTitle, quote, level, tier, iconKey } = evoData;
         const W = 1080, H = 1920;
         const cv = document.createElement('canvas');
         cv.width = W; cv.height = H;
@@ -6510,15 +6650,11 @@ function buildEvolutionCanvas(evoData) {
         ctx.beginPath(); ctx.arc(W/2, orbY, orbR + 56, 0, Math.PI*2); ctx.stroke();
         ctx.restore();
 
-        // Rank icon glyph, centered inside the orb
+        // Rank icon, centered inside the orb — vector-drawn, matches the live UI exactly
         ctx.save();
-        ctx.fillStyle = 'rgba(255,255,255,0.94)';
-        ctx.font = '400 130px "DM Sans", sans-serif';
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.shadowColor = 'rgba(255,255,255,0.6)'; ctx.shadowBlur = 22;
-        ctx.fillText(icon || '✦', W/2, orbY + 4);
+        drawRankIcon(ctx, iconKey, W/2, orbY, orbR * 0.42, 'rgba(255,255,255,0.94)');
         ctx.restore();
-        ctx.textBaseline = 'alphabetic';
 
         /* 7. Identity title */
         ctx.fillStyle = '#fff';
@@ -6843,6 +6979,7 @@ async function processGeneration() {
         : MOOD_EMOJIS[selectedMood] || '';
     moodEmoji.style.setProperty('--mood-glow', MOOD_STYLES[selectedMood]?.moodGlow || 'rgba(255,255,255,0.30)');
     $('statusTitle').textContent = generated.title;
+    fitTitleToCard($('statusTitle'));
     applyMoodStyle(selectedMood);
     updateCI();
     const currentData = loadData();
@@ -9499,11 +9636,11 @@ async function populateInsights(targetYear, targetMonth) {
     {
         const curXp     = data.xp || 0;
         const nextRank  = getNextRank(curXp);
-        if (el('insProgCurIcon'))  el('insProgCurIcon').textContent  = heroRank.icon || '◦';
+        if (el('insProgCurIcon'))  el('insProgCurIcon').innerHTML  = rankIconSVG(heroRank.iconKey);
         if (el('insProgCurName'))  el('insProgCurName').textContent  = heroRank.title || 'Emotional Explorer';
 
         if (nextRank) {
-            if (el('insProgNextIcon')) el('insProgNextIcon').textContent = nextRank.icon || '✦';
+            if (el('insProgNextIcon')) el('insProgNextIcon').innerHTML = rankIconSVG(nextRank.iconKey);
             if (el('insProgNextName')) el('insProgNextName').textContent = nextRank.title;
 
             const xpNeeded = Math.max(0, nextRank.min - curXp);
@@ -9515,7 +9652,7 @@ async function populateInsights(targetYear, targetMonth) {
         } else {
             // Max rank reached
             const nextStageEl = document.querySelector('.ins-prog-stage.next');
-            if (el('insProgNextIcon')) el('insProgNextIcon').textContent = '❋';
+            if (el('insProgNextIcon')) el('insProgNextIcon').innerHTML = rankIconSVG('starburst');
             if (el('insProgNextName')) el('insProgNextName').textContent = 'Peak Reached';
             if (el('insProgBarFill'))  el('insProgBarFill').style.width = '100%';
             if (el('insProgXpNeeded')) el('insProgXpNeeded').textContent = "You've reached the highest stage of emotional evolution.";
@@ -10021,6 +10158,13 @@ function checkAndClaimAchievements() {
         syncProgressionToFirestore(data, true);
         updateXPDisplay();     // may itself trigger Identity Evolution if this crosses a rank threshold
         updateIdentityPanel();
+        // If the Profile tab is currently open, refresh it too — otherwise its passport/
+        // XP bar/Recent Evolution timeline would show stale pre-reward data until the
+        // user manually leaves and returns to that tab.
+        const profileEl = $('profileModal');
+        if (profileEl && profileEl.classList.contains('visible') && typeof populateProfile === 'function') {
+            populateProfile();
+        }
 
         // Stagger toasts so multiple simultaneous unlocks don't overlap
         newlyUnlocked.forEach((a, i) => {
@@ -10052,13 +10196,13 @@ function populateProfile() {
     if (epOrbGlow) epOrbGlow.style.background = `radial-gradient(circle, ${glow} 0%, transparent 70%)`;
 
     const proOrb = el('proOrbImg');
-    if (proOrb) { proOrb.textContent = rank.icon || '✦'; }
+    if (proOrb) { proOrb.innerHTML = rankIconSVG(rank.iconKey); }
     if (el('proRankName'))   el('proRankName').textContent   = rank.title;
     if (el('proLevel'))      el('proLevel').textContent      = 'Lv. ' + level;
     if (el('proXpText'))     el('proXpText').textContent     = xp + ' / ' + (next ? next.min : '∞') + ' XP';
     if (el('proNextLabel'))  el('proNextLabel').textContent  = 'Next Rank: ' + (next ? next.min : '∞') + ' XP';
     if (el('proNextRankName')) el('proNextRankName').textContent = next ? next.title : 'Max Rank Reached';
-    if (el('epNextIcon'))      el('epNextIcon').textContent      = next ? (next.icon || '✦') : '✓';
+    if (el('epNextIcon'))      el('epNextIcon').innerHTML      = rankIconSVG(next ? next.iconKey : 'check');
 
     // Animate XP bar
     requestAnimationFrame(() => {
@@ -10110,7 +10254,7 @@ function populateProfile() {
                 let state = i < rank.index ? 'done' : i === rank.index ? 'current' : 'locked';
                 const chip = state === 'current' ? '<span class="evo-chip">Current</span>' : '';
                 return `<div class="evo-item">
-                    <div class="evo-dot ${state}">${r.icon || '◦'}</div>
+                    <div class="evo-dot ${state}">${rankIconSVG(r.iconKey)}</div>
                     <div class="evo-info">
                         <span class="evo-rank-name ${state}">${r.title}${chip}</span>
                     </div>
@@ -10133,17 +10277,36 @@ function populateProfile() {
         }).join('');
     }
 
-    // ── S7: ACHIEVEMENTS ──
+    // ── S7: ACHIEVEMENTS — grouped by rarity tier ──
     const achEl = el('proAchievements');
     if (achEl) {
         const ACHIEVEMENTS = getAchievementsList(data, level, moodCounts);
-        achEl.innerHTML = ACHIEVEMENTS.map(a => {
-            const unlocked = a.check();
-            const reward   = ACHIEVEMENT_XP_REWARD[a.rarity] || 5;
-            return `<div class="ach-item ${unlocked?'unlocked':'locked'}">
-                <div class="ach-badge ${unlocked?'unlocked':'locked'}">${a.icon}</div>
-                <div class="ach-name">${a.name}</div>
-                <div class="ach-status">${unlocked ? ('+' + reward + ' XP') : 'Locked'}</div>
+        const TIER_ORDER = ['COMMON', 'RARE', 'EPIC', 'LEGENDARY'];
+        const TIER_VARS = {
+            COMMON:    { a:'rgba(190,190,205,0.14)', b:'rgba(150,150,170,0.10)', border:'rgba(190,190,205,0.28)', glow:'rgba(190,190,205,0.14)' },
+            RARE:      { a:'rgba(120,170,255,0.16)', b:'rgba(90,140,230,0.10)',  border:'rgba(120,170,255,0.32)', glow:'rgba(120,170,255,0.18)' },
+            EPIC:      { a:'rgba(180,120,245,0.18)', b:'rgba(150,90,220,0.12)',  border:'rgba(180,120,245,0.36)', glow:'rgba(180,120,245,0.22)' },
+            LEGENDARY: { a:'rgba(240,195,90,0.22)',  b:'rgba(230,175,60,0.14)',  border:'rgba(240,195,90,0.42)',  glow:'rgba(240,195,90,0.30)'  },
+        };
+        achEl.innerHTML = TIER_ORDER.map(tier => {
+            const items = ACHIEVEMENTS.filter(a => a.rarity === tier);
+            if (!items.length) return '';
+            const v = TIER_VARS[tier];
+            const rows = items.map(a => {
+                const unlocked = a.check();
+                const reward   = ACHIEVEMENT_XP_REWARD[a.rarity] || 5;
+                const style = unlocked
+                    ? `style="--tier-a:${v.a};--tier-b:${v.b};--tier-border:${v.border};--tier-glow:${v.glow}"`
+                    : '';
+                return `<div class="ach-item ${unlocked?'unlocked':'locked'}">
+                    <div class="ach-badge ${unlocked?'unlocked':'locked'}" ${style}>${a.icon}</div>
+                    <div class="ach-name">${a.name}</div>
+                    <div class="ach-status">${unlocked ? ('+' + reward + ' XP') : 'Locked'}</div>
+                </div>`;
+            }).join('');
+            return `<div class="ach-tier-section">
+                <div class="ach-tier-label ach-tier-${tier.toLowerCase()}">${tier}</div>
+                <div class="ach-tier-row">${rows}</div>
             </div>`;
         }).join('');
     }
@@ -10344,12 +10507,12 @@ function createWeeklyRitualOverlay() {
         50%      { opacity: 0.7; transform: scale(1.06); }
     }
     .wr-orb-core {
-        width: 120px; height: 120px; border-radius: 50%;
+        width: 150px; height: 150px; border-radius: 50%;
         background: radial-gradient(circle at 38% 32%, #a78bfa, #6d28d9 50%, #1a0a38);
         box-shadow: 0 0 50px 14px rgba(109,40,217,0.40);
         animation: wrOrbBreathe 4s ease-in-out infinite;
         display: flex; align-items: center; justify-content: center;
-        font-size: 2.5rem;
+        font-size: 3.1rem;
     }
     @keyframes wrOrbBreathe {
         0%,100% { box-shadow: 0 0 50px 14px rgba(109,40,217,0.40); transform: scale(1); }
@@ -10450,7 +10613,7 @@ function createWeeklyRitualOverlay() {
         border-radius: 100px; margin-bottom: 1.4rem;
     }
     .wr-recap-orb-img {
-        width: 100px; height: 100px; object-fit: contain;
+        width: 150px; height: 150px; object-fit: contain;
         filter: drop-shadow(0 0 32px var(--wr-glow, rgba(192,132,252,0.70)));
         animation: wrOrbFloat 5s ease-in-out infinite;
         margin-bottom: 1.2rem;
@@ -10683,8 +10846,12 @@ function populateWRRecap(weekData) {
     const storyTitle = getWeeklyStoryTitle(dominantMood);
     const reflection  = WEEKLY_REFLECTIONS[dominantMood] || 'This week was yours. Every feeling counted.';
 
-    // Store for sharing
-    window._wrData = { ...weekData, storyTitle, reflection };
+    // Read the statement the user chose on screen 2
+    const chosenBtn = document.querySelector('.wr-choice.selected');
+    const chosenText = chosenBtn ? chosenBtn.textContent.trim() : '';
+
+    // Store for sharing — now includes chosenText, which the old share card never had access to
+    window._wrData = { ...weekData, storyTitle, reflection, chosenText };
 
     // Orb
     const orbEl = document.getElementById('wrRecapOrb');
@@ -10697,9 +10864,6 @@ function populateWRRecap(weekData) {
     document.getElementById('weeklyRitualOverlay').style.setProperty('--wr-accent', accent);
 
     document.getElementById('wrRecapMoodLabel').textContent  = 'YOU SAID THIS WEEK...';
-    // Read the statement the user chose on screen 2
-    const chosenBtn = document.querySelector('.wr-choice.selected');
-    const chosenText = chosenBtn ? chosenBtn.textContent.trim() : '';
     const chosenEl = document.getElementById('wrRecapChosen');
     if (chosenEl) chosenEl.textContent = chosenText || '"' + reflection + '"';
     document.getElementById('wrRecapStoryTitle').textContent = storyTitle;
@@ -10875,69 +11039,72 @@ async function buildWRShareCard() {
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, H);
 
-    // Helper: centered text
+    ctx.textAlign = 'center';
     const ct = (text, x, y) => { ctx.fillText(text, x, y); };
+
+    // Every block below advances `y` by its own measured height + a margin —
+    // nothing is positioned from a fixed H*fraction, so content can never collide
+    // regardless of how long the chosen statement, story title, or reflection are.
+    let y = 150;
 
     // ── BADGE ──
     ctx.fillStyle = 'rgba(192,132,252,0.15)';
-    roundRect2(ctx, W/2 - 200, 100, 400, 70, 35);
+    roundRect2(ctx, W/2 - 220, y - 46, 440, 74, 37);
     ctx.fill();
     ctx.fillStyle = '#c084fc';
-    ctx.font = '700 28px "DM Sans"';
-    ctx.textAlign = 'center';
-    ct('✨ YOUR WEEK REVEALED ✨', W/2, 144);
+    ctx.font = '700 30px "DM Sans"';
+    ct('✨ YOUR WEEK REVEALED ✨', W/2, y);
+    y += 90;
 
-    // ── ORBS (decorative circles) ──
-    const orbGrad = ctx.createRadialGradient(W/2, H*0.32, 0, W/2, H*0.32, 260);
+    // ── ORB ──
+    const orbSize = 420;
+    const orbGrad = ctx.createRadialGradient(W/2, y + orbSize/2, 0, W/2, y + orbSize/2, orbSize*0.72);
     orbGrad.addColorStop(0, glow.replace(/[\d.]+\)$/, '0.55)'));
     orbGrad.addColorStop(0.5, glow.replace(/[\d.]+\)$/, '0.20)'));
     orbGrad.addColorStop(1, 'transparent');
     ctx.fillStyle = orbGrad;
-    ctx.beginPath(); ctx.arc(W/2, H*0.30, 260, 0, Math.PI*2); ctx.fill();
-
-    // Load orb image
+    ctx.beginPath(); ctx.arc(W/2, y + orbSize/2, orbSize*0.72, 0, Math.PI*2); ctx.fill();
     try {
         const orbSrc = MOOD_SVG[mood];
         if (orbSrc) {
             await new Promise((res) => {
                 const img = new Image(); img.crossOrigin = 'anonymous';
-                img.onload = () => { ctx.drawImage(img, W/2-180, H*0.18, 360, 360); res(); };
+                img.onload = () => { ctx.drawImage(img, W/2 - orbSize/2, y, orbSize, orbSize); res(); };
                 img.onerror = res;
                 img.src = orbSrc;
             });
         }
     } catch(e) {}
+    y += orbSize + 70;
 
-    // ── BIG PERCENTAGE ──
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#eddfc0';
-    ctx.font = '900 260px "Playfair Display"';
-    ct(d.dominantPct + '%', W/2, H*0.58);
-
+    // ── "YOU SAID THIS WEEK..." + chosen statement ──
     ctx.fillStyle = 'rgba(237,223,192,0.45)';
-    ctx.font = '700 44px "DM Sans"';
-    ct('OF YOUR WEEK', W/2, H*0.62);
+    ctx.font = '700 32px "DM Sans"';
+    ct('YOU SAID THIS WEEK...', W/2, y);
+    y += 60;
 
-    // ── MOOD NAME ──
-    ctx.fillStyle = accent;
-    ctx.font = '900 88px "Playfair Display"';
-    ct(mood.charAt(0).toUpperCase() + mood.slice(1), W/2, H*0.70);
+    ctx.fillStyle = 'rgba(237,223,192,0.92)';
+    ctx.font = 'italic 500 46px "Playfair Display", Georgia, serif';
+    const chosenLines = wrapTextCanvas(ctx, d.chosenText || ('"' + d.reflection + '"'), W/2, y, W*0.78, 60);
+    y += chosenLines * 60 + 70;
 
-    // ── STORY TITLE ──
+    // ── "EMOTIONAL STORY" + title ──
     ctx.fillStyle = 'rgba(237,223,192,0.40)';
-    ctx.font = '600 36px "DM Sans"';
-    ct('EMOTIONAL STORY', W/2, H*0.755);
+    ctx.font = '600 32px "DM Sans"';
+    ct('EMOTIONAL STORY', W/2, y);
+    y += 66;
 
     ctx.fillStyle = '#eddfc0';
-    ctx.font = 'italic 700 72px "Playfair Display"';
-    ct(d.storyTitle, W/2, H*0.81);
+    ctx.font = 'italic 700 68px "Playfair Display"';
+    ct(d.storyTitle, W/2, y);
+    y += 100;
 
     // ── STATS ROW ──
-    const statsW = 840, statsH = 180, statsX = (W-statsW)/2, statsY = H*0.845;
+    const statsW = 860, statsH = 170, statsX = (W-statsW)/2, statsY = y;
     ctx.fillStyle = 'rgba(255,255,255,0.04)';
-    roundRect2(ctx, statsX, statsY, statsW, statsH, 28); ctx.fill();
+    roundRect2(ctx, statsX, statsY, statsW, statsH, 26); ctx.fill();
     ctx.strokeStyle = 'rgba(255,255,255,0.07)'; ctx.lineWidth = 2;
-    roundRect2(ctx, statsX, statsY, statsW, statsH, 28); ctx.stroke();
+    roundRect2(ctx, statsX, statsY, statsW, statsH, 26); ctx.stroke();
 
     const statItems = [
         { val: String(d.entries.length), lbl: 'ENTRIES' },
@@ -10947,27 +11114,50 @@ async function buildWRShareCard() {
     const colW2 = statsW / 3;
     statItems.forEach((s, i) => {
         const cx = statsX + colW2 * i + colW2 / 2;
-        ctx.fillStyle = '#fff'; ctx.font = '800 72px "DM Sans"';
-        ct(s.val, cx, statsY + 108);
-        ctx.fillStyle = 'rgba(237,223,192,0.40)'; ctx.font = '600 28px "DM Sans"';
-        ct(s.lbl, cx, statsY + 152);
+        ctx.fillStyle = '#fff'; ctx.font = '800 68px "DM Sans"';
+        ct(s.val, cx, statsY + 96);
+        ctx.fillStyle = 'rgba(237,223,192,0.40)'; ctx.font = '600 26px "DM Sans"';
+        ct(s.lbl, cx, statsY + 138);
         if (i < 2) {
             ctx.strokeStyle = 'rgba(255,255,255,0.07)'; ctx.lineWidth = 2;
-            ctx.beginPath(); ctx.moveTo(statsX + colW2*(i+1), statsY+28);
-            ctx.lineTo(statsX + colW2*(i+1), statsY+statsH-28); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(statsX + colW2*(i+1), statsY+26);
+            ctx.lineTo(statsX + colW2*(i+1), statsY+statsH-26); ctx.stroke();
         }
     });
+    y = statsY + statsH + 60;
+
+    // ── TOP 3 MOOD PILLS ──
+    const pillPad = 28, pillH = 62, pillGap = 20;
+    ctx.font = '600 30px "DM Sans"';
+    const pillWidths = d.top3.map(({mood: m, pct}) => {
+        const label = (MOOD_EMOJIS[m] || '') + ' ' + m + ' ' + pct + '%';
+        return { label, w: ctx.measureText(label).width + pillPad * 2 };
+    });
+    const totalPillsW = pillWidths.reduce((s, p) => s + p.w, 0) + pillGap * (pillWidths.length - 1);
+    let pillX = W/2 - totalPillsW/2;
+    pillWidths.forEach(p => {
+        ctx.fillStyle = 'rgba(192,132,252,0.10)';
+        roundRect2(ctx, pillX, y, p.w, pillH, pillH/2); ctx.fill();
+        ctx.strokeStyle = 'rgba(192,132,252,0.22)'; ctx.lineWidth = 2;
+        roundRect2(ctx, pillX, y, p.w, pillH, pillH/2); ctx.stroke();
+        ctx.fillStyle = 'rgba(237,223,192,0.85)';
+        ctx.textAlign = 'center';
+        ct(p.label, pillX + p.w/2, y + pillH/2 + 10);
+        pillX += p.w + pillGap;
+    });
+    y += pillH + 70;
 
     // ── REFLECTION ──
     ctx.fillStyle = 'rgba(237,223,192,0.65)';
-    ctx.font = 'italic 600 42px "Playfair Display"';
-    const reflY = H*0.940;
-    wrapTextCanvas(ctx, `"${d.reflection}"`, W/2, reflY, W*0.72, 60);
+    ctx.font = 'italic 500 40px "Playfair Display"';
+    const reflLines = wrapTextCanvas(ctx, `"${d.reflection}"`, W/2, y, W*0.74, 58);
+    y += reflLines * 58 + 90;
 
-    // ── FOOTER ──
+    // ── FOOTER (always at least 60px below content, never overlapping) ──
+    const footerY = Math.max(y, H - 90);
     ctx.fillStyle = 'rgba(237,223,192,0.28)';
-    ctx.font = '600 32px "DM Sans"';
-    ct('AURA  ·  EMOTIONAL JOURNEY', W/2, H - 70);
+    ctx.font = '600 30px "DM Sans"';
+    ct('AURA  ·  EMOTIONAL JOURNEY', W/2, footerY);
 
     return new Promise(res => canvas.toBlob(res, 'image/png'));
 }
@@ -10983,7 +11173,7 @@ function roundRect2(ctx, x, y, w, h, r) {
     ctx.closePath();
 }
 
-/* ── Canvas text wrap helper ── */
+/* ── Canvas text wrap helper — returns number of lines drawn ── */
 function wrapTextCanvas(ctx, text, x, y, maxW, lineH) {
     const words = text.split(' ');
     let line = '', count = 0;
@@ -10995,11 +11185,22 @@ function wrapTextCanvas(ctx, text, x, y, maxW, lineH) {
         } else { line = test; }
     });
     if (line) ctx.fillText(line, x, y + count * lineH);
+    return count + 1; // total lines drawn
 }
 
 /* ── ENTRY POINT: check and show ritual ── */
-function checkAndShowWeeklyRitual() {
+function checkAndShowWeeklyRitual(retriesLeft) {
+    if (retriesLeft === undefined) retriesLeft = 15;
     if (!shouldShowWeeklyRitual()) return;
+
+    // If Identity Evolution is currently on screen, wait for it to finish rather than
+    // stacking the Weekly Ritual overlay on top (same ghosting bug from the other side).
+    const evoOverlay = document.getElementById('evoOverlay');
+    if (evoOverlay && evoOverlay.classList.contains('show')) {
+        if (retriesLeft > 0) setTimeout(() => checkAndShowWeeklyRitual(retriesLeft - 1), 1000);
+        return;
+    }
+
     const entries  = getWeekEntries();
     const weekData = computeWeeklyData(entries);
     createWeeklyRitualOverlay();

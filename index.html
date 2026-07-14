@@ -11,7 +11,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAkOvsrQzbCicxylWgLBSIMO-RcNbTH4DQ",
@@ -30,7 +30,7 @@
         window.firebaseAuth   = auth;
         window.firebaseDB     = db;
         window.googleProvider = provider;
-        window.firebaseFns    = { signInWithPopup, signOut, onAuthStateChanged, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove };
+        window.firebaseFns    = { signInWithPopup, signOut, onAuthStateChanged, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, collection, query, where, orderBy, limit, getDocs };
 
         // Auth state — fires as soon as Firebase resolves
         // authStateReady() resolves ONCE when Firebase has fully determined
@@ -6063,6 +6063,12 @@ const STATUSES = {
 
 /* ── STATE ── */
 const TEST_MODE = true; // TESTING — set false before production
+if (TEST_MODE) {
+    console.warn(
+        '%c⚠️ TEST_MODE IS ON — Pro is unlocked for everyone. Set TEST_MODE = false before launch.',
+        'background:#ff3b30;color:#fff;font-weight:700;font-size:13px;padding:6px 10px;border-radius:4px;'
+    );
+}
 let authResolved    = false;
 let authInitializing = true;
 let selectedMood = null, currentStatus = null, isLoading = false, isDownloading = false, isSharing = false;
@@ -8488,13 +8494,14 @@ async function loadUserData(uid) {
         const snap = await getDoc(ref);
         if (!snap.exists()) {
             // New user — create complete doc with all progression fields
+            // (history now lives in a subcollection, not a field here — see saveToHistory)
             const newDoc = {
                 xp: 0, streak: 0, lastUsed: null,
                 rank: 'Emotional Explorer',
                 unlockedMilestones: [],
                 moodCounts: {}, totalGenerations: 0,
                 dailyCount: 0, dailyDate: '',
-                history: [], isPro: false,
+                isPro: false,
                 favorites: [],
                 joinedDate: Date.now(),
                 lastActive: Date.now(),
@@ -8522,10 +8529,24 @@ async function loadUserData(uid) {
             // Firestore is authoritative — always use remote values
             window._cachedUserData = remote;  // cache for weekly ritual
             if (typeof updateUIWithUserData === 'function') updateUIWithUserData(remote);
-            // Check weekly ritual after data is ready (small delay so UI settles)
-            setTimeout(() => {
-                if (typeof checkAndShowWeeklyRitual === 'function') checkAndShowWeeklyRitual();
-            }, 1800);
+
+            // Pre-fetch ONLY the last 7 days of history — getWeekEntries() needs no
+            // more than this, so scoping the query here (instead of the generic
+            // fetchHistoryData(), which reads up to 500 documents) cuts the read cost
+            // of this once-per-session check from up to 500 docs down to however many
+            // entries actually exist in the last week — typically single digits.
+            // The ritual check is chained AFTER this resolves (not raced against a
+            // fixed timer) so it can never fire before history is ready.
+            const _wrCutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+            fetchRecentHistory(_wrCutoff).then(history => {
+                window._cachedUserData = { ...window._cachedUserData, history };
+            }).catch(() => {
+                window._cachedUserData = { ...window._cachedUserData, history: [] };
+            }).finally(() => {
+                setTimeout(() => {
+                    if (typeof checkAndShowWeeklyRitual === 'function') checkAndShowWeeklyRitual();
+                }, 500); // small delay so UI settles after history is actually ready
+            });
         }
     } catch (e) {
         console.warn('loadUserData error (using local cache):', e.code || e.message);
@@ -8642,14 +8663,57 @@ function getMoodIconMini(mood) {
 }
 
 /* ── SHARED: FETCH RAW HISTORY + FAVORITES FROM FIRESTORE ── */
+const HISTORY_FETCH_LIMIT = 500; // generous cap — far more than any single view renders at once
+
+// Scoped fetch for callers that only need a recent date window (e.g. Weekly Ritual's
+// 7-day check) — reads only the documents that actually fall in range instead of
+// pulling up to HISTORY_FETCH_LIMIT documents on every single app session.
+// Single-field range filter, so this doesn't require a composite index.
+async function fetchRecentHistory(sinceMs) {
+    if (!window.firebaseAuth?.currentUser) return [];
+    const { doc, collection, query, where, getDocs } = window.firebaseFns;
+    const uid = window.firebaseAuth.currentUser.uid;
+    try {
+        const snap = await getDocs(query(
+            collection(window.firebaseDB, 'users', uid, 'history'),
+            where('date', '>=', sinceMs)
+        ));
+        return snap.docs.map(d => d.data());
+    } catch (e) {
+        return [];
+    }
+}
+
 async function fetchHistoryData() {
     if (!window.firebaseAuth?.currentUser) return { history: [], favorites: [] };
-    const { doc, getDoc } = window.firebaseFns;
-    const uid  = window.firebaseAuth.currentUser.uid;
-    const snap = await getDoc(doc(window.firebaseDB, 'users', uid));
-    const data = snap.data() || {};
+    const { doc, getDoc, collection, query, orderBy, limit, getDocs } = window.firebaseFns;
+    const uid = window.firebaseAuth.currentUser.uid;
+
+    const [userSnap, historySnap] = await Promise.all([
+        getDoc(doc(window.firebaseDB, 'users', uid)),
+        getDocs(query(
+            collection(window.firebaseDB, 'users', uid, 'history'),
+            orderBy('date', 'desc'),
+            limit(HISTORY_FETCH_LIMIT)
+        )).catch(() => ({ docs: [] })), // tolerate empty/missing subcollection gracefully
+    ]);
+
+    const data = userSnap.data() || {};
+    // Subcollection is fetched newest-first (for the LIMIT to keep the *recent* end,
+    // not the oldest); reverse to restore the oldest-first order the rest of the app
+    // already expects (matching the old array-field contract exactly).
+    let history = historySnap.docs.map(d => d.data()).reverse();
+
+    // Backward compatibility: merge in any entries still sitting in the legacy array
+    // field from before this migration, so nothing already written is silently lost.
+    // New writes never touch that field again going forward.
+    if (Array.isArray(data.history) && data.history.length) {
+        const seen = new Set(history.map(h => h.date));
+        data.history.forEach(h => { if (!seen.has(h.date)) history.unshift(h); });
+    }
+
     return {
-        history:   Array.isArray(data.history)   ? data.history   : [],
+        history,
         favorites: Array.isArray(data.favorites) ? data.favorites : []
     };
 }
@@ -10995,12 +11059,12 @@ function closeWeeklyRitual() {
 /* ── Archive weekly ritual to history ── */
 async function archiveWeeklyRitual(weekData) {
     if (!window.firebaseAuth?.currentUser || !window.firebaseDB || !window.firebaseFns) return;
-    const { doc, updateDoc, arrayUnion } = window.firebaseFns;
+    const { doc, setDoc } = window.firebaseFns;
     const uid = window.firebaseAuth.currentUser.uid;
     const entry = {
         type:        'weekly_ritual',
         weekNum:     weekData.weekNum,
-        date:        new Date().toISOString().slice(0,10),
+        date:        Date.now(), // Unix ms, matching mood-card entries — was an ISO string before, a second inconsistency this fixes
         dominantMood: weekData.dominantMood,
         dominantPct:  weekData.dominantPct,
         storyTitle:   window._wrData?.storyTitle || '',
@@ -11011,7 +11075,14 @@ async function archiveWeeklyRitual(weekData) {
         top3:         weekData.top3,
     };
     try {
-        await updateDoc(doc(window.firebaseDB, 'users', uid), { history: arrayUnion(entry) });
+        // Same subcollection as saveToHistory() — History tab already expects both
+        // entry types mixed together (renders weekly_ritual as a distinct card),
+        // while Insights already filters type==='weekly_ritual' out for month analytics.
+        // ID keyed by week number, not timestamp — naturally idempotent, since only
+        // one archive should ever exist per week (a retried call overwrites cleanly
+        // instead of the old arrayUnion behavior, which could duplicate on retry).
+        const entryId = 'wr_' + weekData.weekNum;
+        await setDoc(doc(window.firebaseDB, 'users', uid, 'history', entryId), entry);
     } catch(e) { console.log('archiveWeeklyRitual error:', e); }
 }
 
@@ -11220,10 +11291,18 @@ window.checkAndShowWeeklyRitual = checkAndShowWeeklyRitual;
 async function saveToHistory(entry) {
     if (!window.firebaseAuth || !window.firebaseAuth.currentUser) return;
     if (!window.firebaseDB   || !window.firebaseFns) return;
-    const { doc, updateDoc, arrayUnion } = window.firebaseFns;
+    const { doc, setDoc } = window.firebaseFns;
     const uid = window.firebaseAuth.currentUser.uid;
     try {
-        await updateDoc(doc(window.firebaseDB, 'users', uid), { history: arrayUnion(entry) });
+        // Subcollection instead of an array field on the user doc — no per-document
+        // size ceiling (Firestore's 1MiB limit was a real risk for long-term users
+        // under the old arrayUnion pattern), and reads can be bounded/paginated
+        // instead of always pulling the user's entire history.
+        // Deterministic doc ID (the entry's own timestamp) makes the write naturally
+        // idempotent — a retried write after a dropped connection can't create a
+        // duplicate entry the way arrayUnion-on-retry silently could.
+        const entryId = String(entry.date);
+        await setDoc(doc(window.firebaseDB, 'users', uid, 'history', entryId), entry);
     } catch (e) {
         console.log('saveToHistory error:', e);
     }

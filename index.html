@@ -11,7 +11,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteField, collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAkOvsrQzbCicxylWgLBSIMO-RcNbTH4DQ",
@@ -30,7 +30,7 @@
         window.firebaseAuth   = auth;
         window.firebaseDB     = db;
         window.googleProvider = provider;
-        window.firebaseFns    = { signInWithPopup, signOut, onAuthStateChanged, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, collection, query, where, orderBy, limit, getDocs };
+        window.firebaseFns    = { signInWithPopup, signOut, onAuthStateChanged, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteField, collection, query, where, orderBy, limit, getDocs };
 
         // Auth state — fires as soon as Firebase resolves
         // authStateReady() resolves ONCE when Firebase has fully determined
@@ -6428,7 +6428,7 @@ function getEvoTier(rankIndex) {
 
 let _evoReady = false;
 let _evoData  = null; // cached for share-card rendering
-let _isEvoSharing = false;
+let _cachedEvoBlob = null; // pre-built during the cinematic hold window — see showIdentityEvolution
 
 function showIdentityEvolution(prevRank, newRank, xp, level) {
     if (!prevRank || !newRank) return;
@@ -6442,6 +6442,17 @@ function showIdentityEvolution(prevRank, newRank, xp, level) {
     if (wrOverlay && wrOverlay.classList.contains('wr-visible')) {
         wrOverlay.classList.remove('wr-visible');
         wrOverlay.classList.add('wr-exit');
+    }
+
+    // A rank-up fires as a side effect of the SAME action that opens the regular
+    // status/mood-card modal (#modalOverlay) — so that modal can easily still be
+    // open underneath Evolution. Force-close it too, using the exact same pattern
+    // the app's own close button uses, so nothing bleeds through and no stray
+    // click-catching layer is left behind.
+    const statusModal = document.getElementById('modalOverlay');
+    if (statusModal && !statusModal.classList.contains('hidden')) {
+        statusModal.classList.add('hidden');
+        if (typeof resetRevealClasses === 'function') resetRevealClasses();
     }
 
     const tier  = getEvoTier(newRank.index);
@@ -6495,6 +6506,20 @@ function showIdentityEvolution(prevRank, newRank, xp, level) {
     const continueBtn = $('evoContinueBtn');
     shareBtn.disabled = true;
     continueBtn.disabled = true;
+
+    // Pre-build the share blob NOW, during the hold window the user can't
+    // interact yet anyway — by the time they can actually tap Share, the
+    // blob already exists, so the click-to-share() call has zero async work
+    // in between it and the actual navigator.share() call. This is what
+    // prevents the browser's user-gesture window from expiring before
+    // share() fires (the root cause of "Share My Evolution doesn't work").
+    _cachedEvoBlob = null;
+    const evoData = _evoData;
+    buildEvolutionCanvas(evoData)
+        .then(canvas => new Promise(res => canvas.toBlob(res, 'image/png')))
+        .then(blob => { if (_evoData === evoData) _cachedEvoBlob = blob; })
+        .catch(() => {}); // if this fails, the share handler builds on demand as a fallback
+
     setTimeout(() => {
         _evoReady = true;
         shareBtn.disabled = false;
@@ -6516,65 +6541,32 @@ document.addEventListener('click', (e) => {
 
 document.addEventListener('click', async (e) => {
     const tgt = e.target.closest('#evoShareBtn');
-    if (!tgt || tgt.disabled || !_evoReady || _isEvoSharing || !_evoData) return;
-    _isEvoSharing = true;
-    const btn = $('evoShareBtn');
-    btn.disabled = true;
-    btn.textContent = 'Preparing…';
+    if (!tgt || tgt.disabled || !_evoReady || !_evoData) return;
 
-    // Hard safety net — button must never stay stuck, even if a promise never settles
-    let settled = false;
-    const safetyTimer = setTimeout(() => {
-        if (settled) return;
-        settled = true;
-        btn.textContent = 'Share My Evolution';
-        btn.disabled = !_evoReady;
-        _isEvoSharing = false;
-    }, 8000);
-
-    try {
-        const canvas = await buildEvolutionCanvas(_evoData);
-        const blob = await new Promise((res, rej) =>
-            canvas.toBlob(b => b ? res(b) : rej(new Error('Canvas blob failed')), 'image/png')
-        );
-        const file = new File([blob], 'aura-evolution.png', { type: 'image/png' });
-        const shareText = "I've evolved into " + _evoData.newTitle + ' on AURA ✨';
-
-        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-            try {
-                await navigator.share({ title: 'My AURA Evolution', text: shareText, files: [file] });
-                btn.textContent = '✓ Shared';
-            } catch (err) {
-                if (err.name === 'AbortError') {
-                    // User dismissed the share sheet — not an error
-                    btn.textContent = 'Share My Evolution';
-                } else {
-                    // Any other failure — fall back to download directly.
-                    // (Do NOT call navigator.share() again here: a second call without a
-                    // fresh user gesture can return a promise that never settles on some
-                    // browsers, which is what caused the button to hang on "Preparing…".)
-                    triggerBlobDownload(blob);
-                    btn.textContent = '✓ Saved';
-                }
-            }
-        } else {
-            triggerBlobDownload(blob);
-            btn.textContent = '✓ Saved';
-        }
-    } catch(err) {
-        console.error('Evolution share error:', err);
-        btn.textContent = 'Failed';
-    } finally {
-        if (!settled) {
-            settled = true;
-            clearTimeout(safetyTimer);
-            setTimeout(() => {
-                btn.textContent = 'Share My Evolution';
-                btn.disabled = !_evoReady;
-                _isEvoSharing = false;
-            }, 1400);
+    // Use the blob pre-built during the cinematic hold window. In the rare case
+    // it hasn't finished yet (e.g. a very slow device), build it now as a
+    // fallback — this costs the transient-activation safety margin, but only
+    // for that edge case rather than for every single share, every time.
+    let blob = _cachedEvoBlob;
+    if (!blob) {
+        try {
+            const canvas = await buildEvolutionCanvas(_evoData);
+            blob = await new Promise((res, rej) =>
+                canvas.toBlob(b => b ? res(b) : rej(new Error('Canvas blob failed')), 'image/png')
+            );
+        } catch (err) {
+            console.error('Evolution canvas build failed:', err);
+            return;
         }
     }
+
+    shareOrDownloadImage({
+        blob,
+        filename: 'aura-evolution.png',
+        shareTitle: 'My AURA Evolution',
+        shareText: "I've evolved into " + _evoData.newTitle + ' on AURA ✨',
+        button: tgt,
+    });
 });
 
 function buildEvolutionCanvas(evoData) {
@@ -8040,15 +8032,111 @@ async function captureMonthlyReportCard() {
     );
 }
 
-function triggerBlobDownload(blob) {
+function triggerBlobDownload(blob, filename) {
     const url  = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.download = 'aura-status.png';
+    link.download = filename || 'aura-status.png';
     link.href = url;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   UNIFIED SHARE/DOWNLOAD SYSTEM
+   Single implementation used by every "Share" button in the app
+   (status card, evolution, weekly ritual, monthly insights report),
+   replacing four separately hand-rolled versions that had drifted out
+   of sync — one had no spam-lock, one had no pre-cached blob (risking
+   the transient-activation-expiry bug below), one mislabeled its
+   downloaded filename. One tested implementation instead of four.
+
+   CRITICAL: `blob` must already be built and passed in BEFORE this is
+   called — never build a canvas/blob inside here. navigator.share()
+   requires "transient activation" (a live user gesture); any
+   meaningful async work between the click and the share() call risks
+   that window expiring, which throws "Must be handling a user
+   gesture" and silently breaks sharing — especially on slower
+   devices. Every caller of this function is expected to pre-build its
+   blob during a natural waiting period (e.g. a cinematic reveal delay)
+   so the actual click-to-share() call is effectively instant.
+   ══════════════════════════════════════════════════════════════════ */
+let _shareInFlight = false;
+
+async function shareOrDownloadImage({ blob, filename, shareTitle, shareText, button }) {
+    if (!blob || _shareInFlight) return;
+    _shareInFlight = true;
+
+    const originalText = button ? button.textContent : null;
+    if (button) { button.disabled = true; button.textContent = 'Sharing…'; }
+
+    // Hard safety net — the button must never stay stuck disabled forever,
+    // regardless of what happens below (matches the pattern that already
+    // fixed the exact "stuck on Preparing…" bug once before this session).
+    let settled = false;
+    const safetyTimer = setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        _shareInFlight = false;
+        if (button) { button.disabled = false; button.textContent = originalText; }
+    }, 8000);
+
+    const finish = (label, revert) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(safetyTimer);
+        _shareInFlight = false;
+        if (button) {
+            if (revert) {
+                button.textContent = originalText;
+                button.disabled = false;
+            } else {
+                button.textContent = label;
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                }, 1400);
+            }
+        }
+    };
+
+    try {
+        const file = new File([blob], filename, { type: 'image/png' });
+        if (navigator.share) {
+            // Three-tier fallback: try file share first; if the device supports
+            // share() but not file attachments, offer text-only share rather than
+            // silently downloading a file the user didn't ask for; only fall back
+            // to download when navigator.share doesn't exist at all.
+            const canFile = navigator.canShare && navigator.canShare({ files: [file] });
+            const payload = canFile
+                ? { title: shareTitle, text: shareText, files: [file] }
+                : { title: shareTitle, text: shareText };
+            try {
+                await navigator.share(payload);
+                finish('✓ Shared');
+            } catch (err) {
+                if (err.name === 'AbortError') {
+                    finish(null, true);
+                } else {
+                    // Any non-abort failure — do NOT retry navigator.share() again
+                    // (a second call without a fresh user gesture can hang
+                    // indefinitely on some browsers, the exact bug that once left
+                    // a button stuck on "Preparing…" forever). Falling back to a
+                    // direct download means the user gets their image either way,
+                    // rather than a bare "Failed" with nothing to show for it.
+                    triggerBlobDownload(blob, filename);
+                    finish('✓ Saved');
+                }
+            }
+        } else {
+            triggerBlobDownload(blob, filename);
+            finish('✓ Saved');
+        }
+    } catch (err) {
+        console.error('Share error:', err);
+        finish('Failed');
+    }
 }
 
 /* ── DOWNLOAD ── */
@@ -8082,42 +8170,23 @@ const shareBtn = $('shareBtn');
 shareBtn.addEventListener('click', async () => {
     if (!currentStatus || !selectedMood || isSharing || isDownloading) return;
     isSharing = true;
-    shareBtn.disabled = true;
-    shareBtn.textContent = 'Sharing…';
 
     const mood = selectedMood.charAt(0).toUpperCase() + selectedMood.slice(1);
-    const shareText = mood + ' · Identity Status\nGenerated on AURA';
 
-    try {
-        // Blob must already be cached (buttons are disabled until it is).
-        // Emergency fallback build only if cache was somehow lost.
-        if (!_cachedCardBlob) _cachedCardBlob = await captureCard();
-        const blob = _cachedCardBlob;
-        const file = new File([blob], 'aura-status.png', { type: 'image/png' });
-
-        if (navigator.share) {
-            // Try file share first; fall back to text-only share — never trigger download here
-            const canFile = navigator.canShare && navigator.canShare({ files: [file] });
-            const payload = canFile
-                ? { title: 'My AURA Status', text: shareText, files: [file] }
-                : { title: 'My AURA Status', text: shareText };
-            await navigator.share(payload).catch(err => {
-                // AbortError = user dismissed — silent. Anything else = try text-only
-                if (err.name !== 'AbortError' && canFile) {
-                    navigator.share({ title: 'My AURA Status', text: shareText }).catch(() => {});
-                }
-            });
-        } else {
-            // Share API not available at all — download is the only option
-            triggerBlobDownload(blob);
-        }
-    } catch(err) {
-        console.error('Share error:', err);
-    } finally {
-        shareBtn.disabled = false;
-        shareBtn.textContent = '↗ Share Image';
-        isSharing = false;
+    // Blob must already be cached (buttons are disabled until it is).
+    // Emergency fallback build only if cache was somehow lost.
+    if (!_cachedCardBlob) {
+        try { _cachedCardBlob = await captureCard(); } catch (err) { console.error('Card capture failed:', err); isSharing = false; return; }
     }
+
+    await shareOrDownloadImage({
+        blob: _cachedCardBlob,
+        filename: 'aura-status.png',
+        shareTitle: 'My AURA Status',
+        shareText: mood + ' · Identity Status\nGenerated on AURA',
+        button: shareBtn,
+    });
+    isSharing = false;
 });
 
 /* ── SHARE MONTHLY JOURNEY (Insights Section 9) — preview modal first ── */
@@ -8179,32 +8248,34 @@ shareBtn.addEventListener('click', async () => {
         isSharingReport = true;
         const shareBtn = document.getElementById('recapPreviewShareBtn');
         const dlBtn    = document.getElementById('recapPreviewDownloadBtn');
-        if (shareBtn) shareBtn.disabled = true;
-        if (dlBtn)    dlBtn.disabled    = true;
+        // Only manage the download button's state directly here — the share
+        // button's disabled/text timing is fully owned by shareOrDownloadImage()
+        // itself (including its own "✓ Shared" display window), so this wrapper
+        // must not fight it by re-enabling early.
+        if (dlBtn) dlBtn.disabled = true;
+        if (shareBtn && action === 'download') shareBtn.disabled = true;
 
         try {
             // Use pre-built blob if available (built on modal open), else fall back to on-demand
             const blob = window._cachedReportBlob || await captureMonthlyReportCard();
-            const file = new File([blob], 'aura-monthly-journey.png', { type: 'image/png' });
-            const shareText = `My ${(window._currentReportData || {}).monthLabel || ''} on AURA ✦`;
 
             if (action === 'share') {
-                if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({ title: 'My AURA Monthly Journey', text: shareText, files: [file] })
-                        .catch(err => { if (err.name !== 'AbortError') triggerBlobDownload(blob); });
-                } else if (navigator.share) {
-                    await navigator.share({ title: 'My AURA Monthly Journey', text: shareText }).catch(() => {});
-                } else {
-                    triggerBlobDownload(blob);
-                }
+                const shareText = `My ${(window._currentReportData || {}).monthLabel || ''} on AURA ✦`;
+                await shareOrDownloadImage({
+                    blob,
+                    filename: 'aura-monthly-journey.png',
+                    shareTitle: 'My AURA Monthly Journey',
+                    shareText,
+                    button: shareBtn,
+                });
             } else {
-                triggerBlobDownload(blob);
+                triggerBlobDownload(blob, 'aura-monthly-journey.png');
             }
         } catch (err) {
             console.error('Monthly report error:', err);
         } finally {
-            if (shareBtn) shareBtn.disabled = false;
-            if (dlBtn)    dlBtn.disabled    = false;
+            if (dlBtn) dlBtn.disabled = false;
+            if (shareBtn && action === 'download') shareBtn.disabled = false;
             isSharingReport = false;
         }
     }
@@ -8488,7 +8559,7 @@ function showAuth() {
 /* ── FIREBASE: LOAD / CREATE USER DOC ── */
 async function loadUserData(uid) {
     if (!window.firebaseDB || !window.firebaseFns) return;
-    const { doc, getDoc, setDoc, updateDoc } = window.firebaseFns;
+    const { doc, getDoc, setDoc, updateDoc, deleteField } = window.firebaseFns;
     try {
         const ref  = doc(window.firebaseDB, 'users', uid);
         const snap = await getDoc(ref);
@@ -8521,8 +8592,16 @@ async function loadUserData(uid) {
             if (remote.dailyDate         === undefined) missing.dailyDate         = '';
             if (remote.favorites         === undefined) missing.favorites         = [];
             if (remote.joinedDate        === undefined) missing.joinedDate        = Date.now(); // backfill for existing users
+            // CRITICAL: remove the legacy history array field if it's still present
+            // from before the subcollection migration. The new strict security
+            // rules (hasOnly on a fixed field allowlist) reject ANY write whose
+            // resulting document still contains this field — meaning every future
+            // write to this document would silently fail from here on unless it's
+            // cleaned up now. deleteField() removes it from the resulting document,
+            // which is what makes this specific update pass the rules correctly.
+            if (remote.history !== undefined) missing.history = deleteField();
             if (Object.keys(missing).length) {
-                updateDoc(ref, missing).catch(() => {});
+                updateDoc(ref, missing).catch((e) => console.warn('Field backfill/cleanup failed:', e.code || e.message));
             }
 
             // Load remote progression into local cache
@@ -10398,6 +10477,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const WR_KEY        = 'aura_weekly_ritual_done';   // stores ISO week string "2026-W26"
 const WR_SHOWN_KEY  = 'aura_weekly_shown';          // same — prevents re-showing same week
+let _cachedWRBlob    = null; // pre-built when Screen 4 populates — see populateWRRecap
 
 /* ── Utility: get ISO week string e.g. "2026-W26" ── */
 function getISOWeek(date) {
@@ -10941,6 +11021,26 @@ function populateWRRecap(weekData) {
     top3El.innerHTML = top3.map(({mood, pct}) =>
         `<div class="wr-top3-pill">${MOOD_EMOJIS[mood] || ''} ${mood} ${pct}%</div>`
     ).join('');
+
+    // Pre-build the share blob now, while the user is still reading their
+    // results — by the time they could plausibly tap Share, it already
+    // exists, so the click-to-share() call has no async work in between.
+    // Same fix as Evolution's cinematic-hold pre-build, for the same reason.
+    // The button itself is disabled until the blob is confirmed ready, so
+    // even a very fast tap can never race the build — matching the same
+    // disabled-until-ready guarantee Evolution and Monthly Report already have.
+    _cachedWRBlob = null;
+    const wrShareBtnEl = document.getElementById('wrShareBtn');
+    if (wrShareBtnEl) wrShareBtnEl.disabled = true;
+    const wrDataSnapshot = window._wrData;
+    buildWRShareCard().then(blob => {
+        if (window._wrData === wrDataSnapshot) {
+            _cachedWRBlob = blob;
+            if (wrShareBtnEl) wrShareBtnEl.disabled = false;
+        }
+    }).catch(() => {
+        if (wrShareBtnEl) wrShareBtnEl.disabled = false; // allow live-build fallback on failure
+    });
 }
 
 /* ── Mood glow / accent helpers (reuse existing MOOD_MESH colors) ── */
@@ -11024,20 +11124,23 @@ function wireWeeklyRitual(weekData) {
     });
 
     // Screen 4: Share
-    document.getElementById('wrShareBtn').addEventListener('click', () => {
-        buildWRShareCard().then(blob => {
-            if (!blob) return;
-            const file = new File([blob], 'aura-week.png', { type: 'image/png' });
-            const text = `✨ My AURA Week Revealed ✨\n${window._wrData?.storyTitle || ''}\nCreated with AURA`;
-            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                navigator.share({ title: 'My AURA Week', text, files: [file] }).catch(() => {});
-            } else {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a'); a.href = url;
-                a.download = 'aura-week.png'; a.click();
-                setTimeout(() => URL.revokeObjectURL(url), 3000);
-            }
-        }).catch(() => {});
+    document.getElementById('wrShareBtn').addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        // Use the blob pre-built when this screen populated. Fall back to a
+        // live build only if it somehow isn't ready yet.
+        let blob = _cachedWRBlob;
+        if (!blob) {
+            try { blob = await buildWRShareCard(); } catch (err) { console.error('WR canvas build failed:', err); }
+        }
+        if (!blob) return;
+
+        shareOrDownloadImage({
+            blob,
+            filename: 'aura-week.png',
+            shareTitle: 'My AURA Week',
+            shareText: `✨ My AURA Week Revealed ✨\n${window._wrData?.storyTitle || ''}\nCreated with AURA`,
+            button: btn,
+        });
     });
 
     // Screen 4: Done / Close

@@ -4922,6 +4922,172 @@
 
         @keyframes evoFadeUp { to { opacity: 1; transform: translateY(0); } }
 
+        /* ══════════════════════════════════════════════════════════
+           NOTIFICATIONS SETTINGS PAGE — Daily Emotional Ritual
+           ══════════════════════════════════════════════════════════ */
+        .notif-gear-btn {
+            width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(232,213,176,0.06); border: 1px solid rgba(232,213,176,0.14);
+            color: rgba(232,213,176,0.55); cursor: pointer;
+            transition: all 200ms ease;
+        }
+        .notif-gear-btn:active { transform: scale(0.92); background: rgba(232,213,176,0.12); }
+        .notif-gear-btn svg { width: 17px; height: 17px; }
+
+        .notif-page {
+            position: fixed; inset: 0; z-index: 9000;
+            background: linear-gradient(180deg, #0c0812 0%, #08060d 100%);
+            display: none; flex-direction: column;
+            overflow-y: auto; -webkit-overflow-scrolling: touch;
+        }
+        .notif-page.visible { display: flex; animation: notifPageIn 400ms cubic-bezier(0.16,1,0.3,1) both; }
+        @keyframes notifPageIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+        .notif-header {
+            display: flex; align-items: center; gap: 0.85rem;
+            padding: 1.3rem 1.3rem 1rem; flex-shrink: 0;
+        }
+        .notif-back-btn {
+            width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(232,213,176,0.06); border: 1px solid rgba(232,213,176,0.14);
+            color: rgba(232,213,176,0.65); cursor: pointer;
+        }
+        .notif-back-btn:active { transform: scale(0.92); }
+        .notif-back-btn svg { width: 18px; height: 18px; }
+        .notif-header-text { flex: 1; }
+        .notif-title { font-family: 'Playfair Display', Georgia, serif; font-size: 1.35rem; font-weight: 700; color: #eddfc0; }
+        .notif-subtitle { font-family: 'DM Sans', sans-serif; font-size: 0.72rem; color: rgba(232,213,176,0.40); margin-top: 0.15rem; }
+
+        .notif-body { padding: 0.4rem 1.3rem 3rem; display: flex; flex-direction: column; gap: 1rem; }
+
+        .notif-card {
+            background: linear-gradient(145deg, rgba(30,16,52,0.98) 0%, rgba(14,10,28,0.98) 100%);
+            border: 1px solid rgba(192,132,252,0.20);
+            border-radius: 1.4rem; padding: 1.2rem;
+            position: relative; overflow: hidden;
+            box-shadow: 0 8px 40px rgba(80,20,180,0.22), 0 0 0 1px rgba(192,132,252,0.08), inset 0 1px 0 rgba(192,132,252,0.10);
+            transition: opacity 350ms ease, transform 350ms ease;
+        }
+        .notif-card::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(ellipse 90% 60% at 25% 0%, rgba(192,132,252,0.09) 0%, transparent 65%);
+            pointer-events: none;
+        }
+        .notif-card-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; position: relative; z-index: 1; }
+        .notif-card-text { flex: 1; min-width: 0; }
+        .notif-card-title { font-family: 'DM Sans', sans-serif; font-size: 0.98rem; font-weight: 700; color: rgba(237,223,192,0.92); }
+        .notif-card-desc { font-family: 'DM Sans', sans-serif; font-size: 0.78rem; color: rgba(237,223,192,0.42); line-height: 1.5; margin-top: 0.3rem; }
+
+        /* Toggle switch */
+        .notif-toggle {
+            width: 48px; height: 28px; border-radius: 999px; flex-shrink: 0; cursor: pointer;
+            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.10);
+            position: relative; transition: background 300ms ease, border-color 300ms ease;
+        }
+        .notif-toggle.on { background: linear-gradient(135deg, #a78bfa, #7c3aed); border-color: rgba(167,139,250,0.6); }
+        .notif-toggle-knob {
+            position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; border-radius: 50%;
+            background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+            transition: transform 300ms cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .notif-toggle.on .notif-toggle-knob { transform: translateX(20px); }
+
+        /* Reminder time row (conditionally visible) */
+        .notif-time-section {
+            max-height: 0; opacity: 0; overflow: hidden;
+            transition: max-height 400ms cubic-bezier(0.16,1,0.3,1), opacity 300ms ease, margin-top 400ms ease;
+        }
+        .notif-time-section.expanded { max-height: 200px; opacity: 1; margin-top: 1rem; }
+        .notif-time-trigger {
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(192,132,252,0.16);
+            border-radius: 1rem; padding: 0.9rem 1.1rem; cursor: pointer;
+            position: relative;
+        }
+        .notif-time-label { font-family: 'DM Sans', sans-serif; font-size: 0.76rem; color: rgba(237,223,192,0.45); font-weight: 600; letter-spacing: 0.04em; }
+        .notif-time-value { font-family: 'Playfair Display', Georgia, serif; font-size: 1.3rem; font-weight: 700; color: #eddfc0; margin-top: 0.15rem; }
+        .notif-time-input {
+            position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; border: none;
+        }
+        .notif-time-chevron { color: rgba(192,132,252,0.55); flex-shrink: 0; }
+        .notif-time-chevron svg { width: 18px; height: 18px; }
+
+        /* Quiet-hours warning */
+        .notif-quiet-warning {
+            display: none; align-items: flex-start; gap: 0.6rem;
+            background: rgba(240,180,90,0.08); border: 1px solid rgba(240,180,90,0.22);
+            border-radius: 0.9rem; padding: 0.75rem 0.9rem; margin-top: 0.8rem;
+        }
+        .notif-quiet-warning.show { display: flex; animation: notifFadeIn 300ms ease both; }
+        @keyframes notifFadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+        .notif-quiet-warning-icon { flex-shrink: 0; color: #f0b45a; margin-top: 0.1rem; }
+        .notif-quiet-warning-icon svg { width: 16px; height: 16px; }
+        .notif-quiet-warning-text { font-family: 'DM Sans', sans-serif; font-size: 0.72rem; color: rgba(240,200,150,0.85); line-height: 1.5; }
+        .notif-quiet-warning-actions { display: flex; gap: 0.5rem; margin-top: 0.6rem; }
+        .notif-quiet-btn {
+            font-family: 'DM Sans', sans-serif; font-size: 0.68rem; font-weight: 700;
+            padding: 0.4rem 0.8rem; border-radius: 0.6rem; cursor: pointer; letter-spacing: 0.02em;
+        }
+        .notif-quiet-btn-keep { background: rgba(240,180,90,0.16); border: 1px solid rgba(240,180,90,0.30); color: #f0c896; }
+        .notif-quiet-btn-change { background: transparent; border: 1px solid rgba(255,255,255,0.14); color: rgba(255,255,255,0.55); }
+
+        /* Permission-denied friendly card */
+        .notif-permission-card {
+            display: none; align-items: flex-start; gap: 0.7rem;
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 1.1rem; padding: 1rem;
+        }
+        .notif-permission-card.show { display: flex; animation: notifFadeIn 400ms ease both; }
+        .notif-permission-icon { flex-shrink: 0; color: rgba(192,132,252,0.6); margin-top: 0.1rem; }
+        .notif-permission-icon svg { width: 18px; height: 18px; }
+        .notif-permission-text { font-family: 'DM Sans', sans-serif; font-size: 0.76rem; color: rgba(237,223,192,0.55); line-height: 1.55; }
+        .notif-permission-text strong { color: rgba(237,223,192,0.85); }
+
+        .notif-section-label {
+            font-family: 'DM Sans', sans-serif; font-size: 0.60rem; font-weight: 700;
+            letter-spacing: 0.18em; text-transform: uppercase; color: rgba(232,213,176,0.32);
+            padding: 0 0.2rem; margin-top: 0.4rem;
+        }
+
+        /* ── One-time gentle invitation to enable reminders ──
+           Non-blocking, dismissible, appears once, above the bottom nav —
+           never a modal, matching "gentle invitation, never an alarm". */
+        .notif-invite {
+            position: fixed; left: 1rem; right: 1rem; bottom: 5.2rem; z-index: 400;
+            background: linear-gradient(145deg, rgba(30,16,52,0.98) 0%, rgba(14,10,28,0.98) 100%);
+            border: 1px solid rgba(192,132,252,0.24);
+            border-radius: 1.3rem; padding: 1.05rem 1.1rem;
+            box-shadow: 0 10px 40px rgba(80,20,180,0.30), 0 0 0 1px rgba(192,132,252,0.10);
+            display: none; align-items: flex-start; gap: 0.7rem;
+            max-width: 26rem; margin: 0 auto;
+        }
+        .notif-invite.show { display: flex; animation: notifInviteUp 500ms cubic-bezier(0.16,1,0.3,1) both; }
+        @keyframes notifInviteUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+        .notif-invite-icon {
+            flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(192,132,252,0.12); color: rgba(212,175,255,0.85);
+        }
+        .notif-invite-icon svg { width: 17px; height: 17px; }
+        .notif-invite-body { flex: 1; min-width: 0; }
+        .notif-invite-title { font-family: 'DM Sans', sans-serif; font-size: 0.86rem; font-weight: 700; color: rgba(237,223,192,0.92); }
+        .notif-invite-desc { font-family: 'DM Sans', sans-serif; font-size: 0.74rem; color: rgba(237,223,192,0.45); line-height: 1.45; margin-top: 0.2rem; }
+        .notif-invite-actions { display: flex; gap: 0.55rem; margin-top: 0.7rem; }
+        .notif-invite-btn {
+            font-family: 'DM Sans', sans-serif; font-size: 0.74rem; font-weight: 700;
+            padding: 0.45rem 0.9rem; border-radius: 0.7rem; cursor: pointer; letter-spacing: 0.01em;
+        }
+        .notif-invite-btn-enable { background: linear-gradient(135deg, #a78bfa, #7c3aed); border: none; color: #fff; }
+        .notif-invite-btn-later  { background: transparent; border: 1px solid rgba(255,255,255,0.14); color: rgba(255,255,255,0.55); }
+        .notif-invite-close {
+            flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            background: transparent; color: rgba(255,255,255,0.30); cursor: pointer;
+        }
+        .notif-invite-close svg { width: 13px; height: 13px; }
+
 </style>
 </head>
 <body>
@@ -6925,8 +7091,8 @@ closeModalBtn.addEventListener('click', async () => {
     const nowFav = await toggleFavorite(dateVal);
     closeModalBtn.classList.toggle('active', nowFav);
 });
-closeBtn.addEventListener('click',      () => { modalOverlay.classList.add('hidden'); resetRevealClasses(); });
-modalOverlay.addEventListener('click',  e  => { if (e.target === modalOverlay) { modalOverlay.classList.add('hidden'); resetRevealClasses(); } });
+closeBtn.addEventListener('click',      () => { modalOverlay.classList.add('hidden'); resetRevealClasses(); maybeShowNotifInvite(); });
+modalOverlay.addEventListener('click',  e  => { if (e.target === modalOverlay) { modalOverlay.classList.add('hidden'); resetRevealClasses(); maybeShowNotifInvite(); } });
 
 /* ── PAYWALL CLOSE ── */
 closePaywallBtn.addEventListener('click', () => paywallOverlay.classList.add('hidden'));
@@ -8660,6 +8826,17 @@ function updateUIWithUserData(remote) {
             localStorage.setItem('aura_dailyCount', remote.dailyCount.toString());
             localStorage.setItem('aura_dailyDate',  remote.dailyDate);
         }
+        // Seed notification prefs cache from Firestore (cross-device sync) — only
+        // if remote actually has the field, so a same-session local toggle never
+        // gets clobbered by a load that happened to run around the same time.
+        if (remote.notifEnabled !== undefined) {
+            const notifPrefs = loadNotifPrefs();
+            notifPrefs.enabled       = remote.notifEnabled === true;
+            notifPrefs.time          = typeof remote.notifTime === 'string' ? remote.notifTime : notifPrefs.time;
+            notifPrefs.lastShownDate = typeof remote.notifLastShownDate === 'string' ? remote.notifLastShownDate : notifPrefs.lastShownDate;
+            notifPrefs.lastMsgIdx    = typeof remote.notifLastMsgIdx === 'number' ? remote.notifLastMsgIdx : notifPrefs.lastMsgIdx;
+            localStorage.setItem('aura_notifPrefs', JSON.stringify(notifPrefs));
+        }
         if (remote.isPro || TEST_MODE) { isPro = true; window.isPro = true; }
         saveData(local); // write to localStorage cache
 
@@ -9441,6 +9618,9 @@ function applyHistoryFilters() {
                 <h2 class="profile-title">Profile</h2>
                 <p class="profile-subtitle">Your emotional identity</p>
             </div>
+            <button class="notif-gear-btn" id="notifGearBtn" aria-label="Notification settings">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+            </button>
         </div>
 
         <div class="profile-body">
@@ -10318,6 +10498,349 @@ function checkAndClaimAchievements() {
     }
 
     return newlyUnlocked;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   DAILY EMOTIONAL RITUAL — Notification System
+   ══════════════════════════════════════════════════════════════════
+   Runs in one of two modes, detected automatically at runtime:
+
+   1. NATIVE (once wrapped as an app via Capacitor + the
+      @capacitor/local-notifications plugin): true OS-level scheduled
+      notifications that fire even while the app is fully closed,
+      using Android's AlarmManager under the hood. Detected via
+      `window.Capacitor?.Plugins?.LocalNotifications`.
+
+   2. WEB (plain browser / PWA, used during development and testing):
+      the Web Notifications API has no standardized way to schedule a
+      future-dated notification that fires while the tab is closed —
+      this is a real platform limitation, not a bug. Instead, this
+      mode checks "has today's reminder time passed and the user
+      hasn't checked in yet" every time the app opens or comes to the
+      foreground, plus once a minute while the tab stays open. This is
+      the same approach essentially all local-reminder PWAs use.
+
+   Both modes share the exact same settings, message pool, and
+   quiet-hours logic — only the final "tell the OS to fire this" call
+   differs, so no rework is needed when the app gets wrapped.
+   ══════════════════════════════════════════════════════════════════ */
+
+const DAILY_REMINDER_MESSAGES = [
+    "How has your heart been today?",
+    "Take one quiet minute for yourself.",
+    "Every feeling deserves a place to exist.",
+    "Small reflections create lasting growth.",
+    "Your emotional journey continues today.",
+    "Today's emotions are tomorrow's wisdom.",
+    "Pause. Reflect. Continue.",
+    "How are you really feeling?",
+    "A moment of honesty with yourself, today.",
+    "What's been sitting with you today?",
+    "You don't have to have it figured out — just noticed.",
+    "Your feelings are data, not verdicts.",
+    "One breath. One check-in. One you.",
+    "Nothing to fix right now — just notice.",
+    "What would today's you want tomorrow's you to know?",
+    "Even quiet days deserve a moment of reflection.",
+    "You've carried today. What did it feel like?",
+    "Naming a feeling is the first step to understanding it.",
+    "A gentle nudge to come back to yourself.",
+    "What shifted in you today?",
+    "Your inner world is worth a few seconds.",
+    "Not every day needs a big feeling — just an honest one.",
+    "Check in before you check out for the day.",
+    "How did today sit with you?",
+    "A small pause can hold a lot.",
+    "You're allowed to feel exactly how you feel.",
+    "What's one word for today?",
+    "Your emotions have been trying to tell you something.",
+    "Today deserves a moment of reflection.",
+    "This is your reminder to just be honest, for a second.",
+    "What's underneath the surface today?",
+    "A little reflection goes a long way.",
+    "You made it through today — how did it feel?",
+    "Your feelings don't need to be loud to matter.",
+    "Time to hear yourself out.",
+    "What's one thing your heart wants you to know?",
+    "Today's version of you has something to say.",
+    "Slow down for a second — how are you?",
+];
+
+/* ── Local prefs storage (mirrors the local-cache-first pattern used
+   throughout the app — see loadData/saveData) ── */
+function loadNotifPrefs() {
+    try {
+        const stored = localStorage.getItem('aura_notifPrefs');
+        const p = stored ? JSON.parse(stored) : {};
+        return {
+            enabled:         p.enabled === true,
+            time:            typeof p.time === 'string' ? p.time : '21:00', // 24hr HH:MM, matches <input type="time">
+            lastShownDate:   typeof p.lastShownDate === 'string' ? p.lastShownDate : '',
+            lastMsgIdx:      typeof p.lastMsgIdx === 'number' ? p.lastMsgIdx : -1,
+            permissionAsked: p.permissionAsked === true,
+            // Local-only, not synced to Firestore — low-stakes UI state (has the
+            // one-time invite card been dismissed/acted on). Reappearing once on a
+            // new device if the user hasn't decided yet is a non-issue, so this
+            // doesn't need its own security-rules field.
+            invitationShown: p.invitationShown === true,
+        };
+    } catch(e) {
+        return { enabled: false, time: '21:00', lastShownDate: '', lastMsgIdx: -1, permissionAsked: false, invitationShown: false };
+    }
+}
+
+function saveNotifPrefs(prefs) {
+    localStorage.setItem('aura_notifPrefs', JSON.stringify(prefs));
+    syncNotifPrefsToFirestore(prefs);
+}
+
+async function syncNotifPrefsToFirestore(prefs) {
+    if (!window.firebaseAuth?.currentUser) return;
+    if (!window.firebaseDB || !window.firebaseFns) return;
+    try {
+        const { doc, updateDoc } = window.firebaseFns;
+        const uid = window.firebaseAuth.currentUser.uid;
+        await updateDoc(doc(window.firebaseDB, 'users', uid), {
+            notifEnabled:        prefs.enabled,
+            notifTime:           prefs.time,
+            notifLastShownDate:  prefs.lastShownDate,
+            notifLastMsgIdx:     prefs.lastMsgIdx,
+        });
+    } catch(e) {
+        console.warn('Notif prefs sync failed (non-critical):', e.code || e.message);
+    }
+}
+
+/* ── Quiet hours: 11:00 PM – 7:00 AM (wraps midnight) ── */
+function isQuietHours(hhmm) {
+    const [h, m] = hhmm.split(':').map(Number);
+    const mins = h * 60 + m;
+    const quietStart = 23 * 60;      // 11:00 PM
+    const quietEnd    = 7 * 60;      // 7:00 AM
+    return mins >= quietStart || mins < quietEnd;
+}
+
+/* ── Pick a rotating message, avoiding yesterday's repeat ── */
+function getNextReminderMessage(prefs) {
+    const pool = DAILY_REMINDER_MESSAGES;
+    let idx;
+    do {
+        idx = Math.floor(Math.random() * pool.length);
+    } while (pool.length > 1 && idx === prefs.lastMsgIdx);
+    return { text: pool[idx], idx };
+}
+
+/* ── Permission request — ONLY ever called from the toggle-on action,
+   never on app launch, per spec ── */
+async function requestNotifPermission() {
+    // Native (Capacitor) path
+    if (window.Capacitor?.Plugins?.LocalNotifications) {
+        try {
+            const result = await window.Capacitor.Plugins.LocalNotifications.requestPermissions();
+            return result.display === 'granted' ? 'granted' : 'denied';
+        } catch(e) { return 'denied'; }
+    }
+    // Web path
+    if (!('Notification' in window)) return 'unsupported';
+    if (Notification.permission === 'granted') return 'granted';
+    if (Notification.permission === 'denied')  return 'denied';
+    try {
+        const result = await Notification.requestPermission();
+        return result === 'granted' ? 'granted' : 'denied';
+    } catch(e) { return 'denied'; }
+}
+
+function getNotifPermissionState() {
+    if (window.Capacitor?.Plugins?.LocalNotifications) return null; // checked async only, via requestNotifPermission
+    if (!('Notification' in window)) return 'unsupported';
+    return Notification.permission; // 'granted' | 'denied' | 'default'
+}
+
+/* ── Dispatch — fires immediately (used by the web catch-up check);
+   on native, this is a same-moment "schedule for right now" call,
+   which is exactly equivalent to firing immediately ── */
+async function fireLocalNotification(title, body) {
+    if (window.Capacitor?.Plugins?.LocalNotifications) {
+        try {
+            await window.Capacitor.Plugins.LocalNotifications.schedule({
+                notifications: [{
+                    id: Math.floor(Date.now() % 2147483647),
+                    title, body,
+                    schedule: { at: new Date(Date.now() + 500) },
+                }],
+            });
+        } catch(e) { console.warn('Native notification failed:', e); }
+        return;
+    }
+    if ('Notification' in window && Notification.permission === 'granted') {
+        try { new Notification(title, { body, tag: 'aura-daily-ritual' }); }
+        catch(e) { console.warn('Web notification failed:', e); }
+    }
+}
+
+/* ── Core check-and-fire logic — the actual "missed check-in" rule ── */
+function maybeShowDailyReminder() {
+    const prefs = loadNotifPrefs();
+    if (!prefs.enabled) return;
+
+    const now = new Date();
+    const hhmm = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+    const todayStr = today(); // reuses the app's existing YYYY-MM-DD day boundary, matching streak/check-in logic
+
+    if (prefs.lastShownDate === todayStr) return; // already handled today
+    if (hhmm < prefs.time) return;                // not due yet today
+
+    // If the user already checked in today (matches the existing streak
+    // system's own definition of "checked in"), skip silently — but still
+    // mark today as handled so this doesn't re-check every minute for the
+    // rest of the day.
+    const data = loadData();
+    if (data.lastUsed === todayStr) {
+        prefs.lastShownDate = todayStr;
+        saveNotifPrefs(prefs);
+        return;
+    }
+
+    const { text, idx } = getNextReminderMessage(prefs);
+    fireLocalNotification('AURA', text);
+
+    prefs.lastShownDate = todayStr;
+    prefs.lastMsgIdx = idx;
+    saveNotifPrefs(prefs);
+}
+
+let _notifWatcherStarted = false;
+function startNotifWatcher() {
+    if (_notifWatcherStarted) return;
+    _notifWatcherStarted = true;
+    maybeShowDailyReminder(); // check immediately on load
+    setInterval(maybeShowDailyReminder, 60000); // and every minute while the tab stays open
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') maybeShowDailyReminder();
+    });
+}
+
+/* ── Settings page wiring ── */
+document.addEventListener('DOMContentLoaded', () => {
+    const gearBtn      = document.getElementById('notifGearBtn');
+    const backBtn       = document.getElementById('notifBackBtn');
+    const page           = document.getElementById('notifPage');
+    const dailyToggle    = document.getElementById('notifDailyToggle');
+    const timeSection    = document.getElementById('notifTimeSection');
+    const timeValue      = document.getElementById('notifTimeValue');
+    const timeInput      = document.getElementById('notifTimeInput');
+    const quietWarning    = document.getElementById('notifQuietWarning');
+    const quietKeepBtn    = document.getElementById('notifQuietKeep');
+    const quietChangeBtn  = document.getElementById('notifQuietChange');
+    const permissionCard  = document.getElementById('notifPermissionCard');
+
+    if (!gearBtn || !page) return; // markup not present — nothing to wire
+
+    function formatTime12h(hhmm) {
+        const [h, m] = hhmm.split(':').map(Number);
+        const period = h >= 12 ? 'PM' : 'AM';
+        const h12 = h % 12 === 0 ? 12 : h % 12;
+        return h12 + ':' + String(m).padStart(2,'0') + ' ' + period;
+    }
+
+    function renderFromPrefs() {
+        const prefs = loadNotifPrefs();
+        dailyToggle.classList.toggle('on', prefs.enabled);
+        dailyToggle.setAttribute('aria-checked', String(prefs.enabled));
+        timeSection.classList.toggle('expanded', prefs.enabled);
+        timeValue.textContent = formatTime12h(prefs.time);
+        timeInput.value = prefs.time;
+        quietWarning.classList.toggle('show', prefs.enabled && isQuietHours(prefs.time));
+
+        const permState = getNotifPermissionState();
+        permissionCard.classList.toggle('show', prefs.enabled && permState === 'denied');
+    }
+
+    gearBtn.addEventListener('click', () => {
+        renderFromPrefs();
+        page.classList.add('visible');
+    });
+    backBtn.addEventListener('click', () => page.classList.remove('visible'));
+
+    dailyToggle.addEventListener('click', async () => {
+        const prefs = loadNotifPrefs();
+        const turningOn = !prefs.enabled;
+
+        if (turningOn) {
+            // Permission requested ONLY here, on explicit user action — never on app launch.
+            const result = await requestNotifPermission();
+            prefs.permissionAsked = true;
+            if (result === 'denied') {
+                prefs.enabled = true; // reflect the user's intent even if permission is denied —
+                saveNotifPrefs(prefs); // the friendly explanation card covers this state, and we
+                renderFromPrefs();      // never re-prompt automatically (Notification.permission
+                return;                 // stays 'denied' until the user changes it in device settings)
+            }
+        }
+
+        prefs.enabled = turningOn;
+        saveNotifPrefs(prefs);
+        renderFromPrefs();
+        if (turningOn) startNotifWatcher();
+    });
+
+    timeInput.addEventListener('change', () => {
+        const prefs = loadNotifPrefs();
+        prefs.time = timeInput.value;
+        saveNotifPrefs(prefs);
+        renderFromPrefs();
+    });
+
+    quietKeepBtn.addEventListener('click', () => quietWarning.classList.remove('show'));
+    quietChangeBtn.addEventListener('click', () => {
+        quietWarning.classList.remove('show');
+        try { timeInput.showPicker && timeInput.showPicker(); } catch(e) {}
+    });
+
+    // If reminders were already enabled from a previous session, start the
+    // watcher on load (still no permission prompt here — permission was
+    // already resolved the first time the user turned this on).
+    const initialPrefs = loadNotifPrefs();
+    if (initialPrefs.enabled) startNotifWatcher();
+
+    // ── Gentle invitation card wiring ──
+    const inviteEl      = document.getElementById('notifInvite');
+    const inviteEnable   = document.getElementById('notifInviteEnable');
+    const inviteLater     = document.getElementById('notifInviteLater');
+    const inviteCloseBtn  = document.getElementById('notifInviteClose');
+
+    function dismissInvite() {
+        if (!inviteEl) return;
+        inviteEl.classList.remove('show');
+        const prefs = loadNotifPrefs();
+        prefs.invitationShown = true;
+        saveNotifPrefs(prefs);
+    }
+
+    if (inviteEnable) inviteEnable.addEventListener('click', async () => {
+        const result = await requestNotifPermission(); // explicit user action — correct place to ask
+        const prefs = loadNotifPrefs();
+        prefs.permissionAsked = true;
+        prefs.enabled = true; // reflect intent even if denied — friendly card in Settings covers that state
+        prefs.invitationShown = true;
+        saveNotifPrefs(prefs);
+        if (result !== 'denied') startNotifWatcher();
+        inviteEl.classList.remove('show');
+    });
+    if (inviteLater)    inviteLater.addEventListener('click', dismissInvite);
+    if (inviteCloseBtn) inviteCloseBtn.addEventListener('click', dismissInvite);
+});
+
+function maybeShowNotifInvite() {
+    const inviteEl = document.getElementById('notifInvite');
+    if (!inviteEl) return;
+    const prefs = loadNotifPrefs();
+    if (prefs.enabled || prefs.invitationShown) return;
+    const data = loadData();
+    if ((data.totalGenerations || 0) < 3) return;
+    // Small delay so it never competes with the card-close animation itself —
+    // appears once the home screen has visibly settled.
+    setTimeout(() => inviteEl.classList.add('show'), 900);
 }
 
 function populateProfile() {
@@ -12024,6 +12547,92 @@ async function saveToHistory(entry) {
     });
 })();
 </script>
+
+    <!-- Gentle one-time invitation to enable daily reminders — non-blocking,
+         appears after the user's 3rd generation, never shown again once
+         dismissed or acted on. -->
+    <div id="notifInvite" class="notif-invite">
+        <div class="notif-invite-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        </div>
+        <div class="notif-invite-body">
+            <div class="notif-invite-title">Want a gentle daily reminder?</div>
+            <div class="notif-invite-desc">A soft check-in to reflect, whenever you'd like.</div>
+            <div class="notif-invite-actions">
+                <button class="notif-invite-btn notif-invite-btn-enable" id="notifInviteEnable">Enable</button>
+                <button class="notif-invite-btn notif-invite-btn-later" id="notifInviteLater">Not now</button>
+            </div>
+        </div>
+        <button class="notif-invite-close" id="notifInviteClose" aria-label="Dismiss">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+    </div>
+
+    <!-- Notifications settings page — direct child of body, outside appRoot,
+         same reasoning as the Evolution overlay: never affected by
+         #appRoot { visibility: hidden } auth gate -->
+    <div id="notifPage" class="notif-page">
+        <div class="notif-header">
+            <button class="notif-back-btn" id="notifBackBtn" aria-label="Back to Profile">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <div class="notif-header-text">
+                <div class="notif-title">Daily Ritual</div>
+                <div class="notif-subtitle">Gentle reminders, on your terms</div>
+            </div>
+        </div>
+
+        <div class="notif-body">
+            <div class="notif-section-label">Reflection</div>
+
+            <div class="notif-card" id="notifDailyCard">
+                <div class="notif-card-row">
+                    <div class="notif-card-text">
+                        <div class="notif-card-title">Daily Emotional Reminder</div>
+                        <div class="notif-card-desc">Receive a gentle reminder each day to reflect on your emotions.</div>
+                    </div>
+                    <div class="notif-toggle" id="notifDailyToggle" role="switch" aria-checked="false">
+                        <div class="notif-toggle-knob"></div>
+                    </div>
+                </div>
+
+                <div class="notif-time-section" id="notifTimeSection">
+                    <div class="notif-time-trigger">
+                        <div>
+                            <div class="notif-time-label">Reminder Time</div>
+                            <div class="notif-time-value" id="notifTimeValue">9:00 PM</div>
+                        </div>
+                        <div class="notif-time-chevron">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                        </div>
+                        <input type="time" class="notif-time-input" id="notifTimeInput" value="21:00" aria-label="Reminder time">
+                    </div>
+
+                    <div class="notif-quiet-warning" id="notifQuietWarning">
+                        <div class="notif-quiet-warning-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+                        </div>
+                        <div style="flex:1">
+                            <div class="notif-quiet-warning-text">Late-night reminders may interrupt your rest. Are you sure you want this time?</div>
+                            <div class="notif-quiet-warning-actions">
+                                <button class="notif-quiet-btn notif-quiet-btn-keep" id="notifQuietKeep">Keep it</button>
+                                <button class="notif-quiet-btn notif-quiet-btn-change" id="notifQuietChange">Choose another time</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="notif-permission-card" id="notifPermissionCard">
+                        <div class="notif-permission-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+                        </div>
+                        <div class="notif-permission-text">
+                            <strong>Notifications are turned off</strong> for AURA in your device settings. You can enable them anytime from Settings to receive your daily reminder.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Identity Evolution full-screen experience — direct child of body, outside appRoot
          so it's never affected by #appRoot { visibility: hidden } auth gate -->

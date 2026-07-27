@@ -10,8 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500;600;700&family=Cormorant+Garant:wght@600;700;800&display=swap" rel="stylesheet">
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteField, collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, deleteUser, reauthenticateWithPopup } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteField, deleteDoc, collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAkOvsrQzbCicxylWgLBSIMO-RcNbTH4DQ",
@@ -30,7 +30,7 @@
         window.firebaseAuth   = auth;
         window.firebaseDB     = db;
         window.googleProvider = provider;
-        window.firebaseFns    = { signInWithPopup, signOut, onAuthStateChanged, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteField, collection, query, where, orderBy, limit, getDocs };
+        window.firebaseFns    = { signInWithPopup, signOut, onAuthStateChanged, deleteUser, reauthenticateWithPopup, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteField, deleteDoc, collection, query, where, orderBy, limit, getDocs };
 
         // Auth state — fires as soon as Firebase resolves
         // authStateReady() resolves ONCE when Firebase has fully determined
@@ -4999,7 +4999,9 @@
             max-height: 0; opacity: 0; overflow: hidden;
             transition: max-height 400ms cubic-bezier(0.16,1,0.3,1), opacity 300ms ease, margin-top 400ms ease;
         }
-        .notif-time-section.expanded { max-height: 200px; opacity: 1; margin-top: 1rem; }
+        .notif-time-section.expanded { max-height: 560px; opacity: 1; margin-top: 1rem; }
+        .notif-time-section > .notif-time-trigger + .notif-time-trigger { margin-top: 0.7rem; }
+        .notif-time-hint { font-family: 'DM Sans', sans-serif; font-size: 0.68rem; color: rgba(237,223,192,0.34); margin-top: 0.2rem; }
         .notif-time-trigger {
             display: flex; align-items: center; justify-content: space-between;
             background: rgba(255,255,255,0.04); border: 1px solid rgba(192,132,252,0.16);
@@ -5051,9 +5053,329 @@
             padding: 0 0.2rem; margin-top: 0.4rem;
         }
 
-        /* ── One-time gentle invitation to enable reminders ──
-           Non-blocking, dismissible, appears once, above the bottom nav —
-           never a modal, matching "gentle invitation, never an alarm". */
+        /* ══════════════════════════════════════════════════════════
+           PREFERENCES PAGE — entry point for Notifications, Privacy,
+           Terms, About, Danger Zone. Same full-screen overlay pattern
+           as Notifications/Evolution/Weekly Ritual (direct child of
+           body, outside #appRoot, so never affected by the
+           #appRoot { visibility: hidden } auth gate).
+           ══════════════════════════════════════════════════════════ */
+        .preferences-page {
+            position: fixed; inset: 0; z-index: 9000;
+            background: linear-gradient(180deg, #0c0812 0%, #08060d 100%);
+            display: none; flex-direction: column;
+            overflow-y: auto; -webkit-overflow-scrolling: touch;
+        }
+        .preferences-page.visible { display: flex; animation: prefPageIn 400ms cubic-bezier(0.16,1,0.3,1) both; }
+        @keyframes prefPageIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+        .pref-header {
+            display: flex; align-items: center; gap: 0.85rem;
+            padding: 1.3rem 1.3rem 1rem; flex-shrink: 0;
+        }
+        .pref-back-btn {
+            width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(232,213,176,0.06); border: 1px solid rgba(232,213,176,0.14);
+            color: rgba(232,213,176,0.65); cursor: pointer;
+        }
+        .pref-back-btn:active { transform: scale(0.92); }
+        .pref-back-btn svg { width: 18px; height: 18px; }
+        .pref-header-text { flex: 1; }
+        .pref-page-title { font-family: 'Playfair Display', Georgia, serif; font-size: 1.35rem; font-weight: 700; color: #eddfc0; }
+        .pref-page-subtitle { font-family: 'DM Sans', sans-serif; font-size: 0.72rem; color: rgba(232,213,176,0.40); margin-top: 0.15rem; }
+
+        /* 40px between sections per spec; cards inside a section keep their own tighter gap */
+        .pref-body { padding: 0.4rem 1.3rem 3rem; display: flex; flex-direction: column; gap: 2.5rem; }
+        .pref-section { display: flex; flex-direction: column; gap: 1rem; opacity: 0; transform: translateY(10px); animation: prefCardUp 450ms cubic-bezier(0.16,1,0.3,1) both; }
+        @keyframes prefCardUp { to { opacity: 1; transform: translateY(0); } }
+
+        /* ── Preferences nav-row card ── reusable tappable row that opens a
+           dedicated sub-page (Privacy, Terms of Service, About AURA all use
+           this same component). Radius 24px / width 92% per spec. */
+        .pref-nav-card {
+            width: 92%; margin: 0 auto; display: flex; align-items: center; gap: 0.9rem;
+            background: linear-gradient(145deg, rgba(30,16,52,0.98) 0%, rgba(14,10,28,0.98) 100%);
+            border: 1px solid rgba(192,132,252,0.20);
+            border-radius: 24px; padding: 1.05rem 1.15rem;
+            position: relative; overflow: hidden; cursor: pointer;
+            box-shadow: 0 8px 40px rgba(80,20,180,0.22), 0 0 0 1px rgba(192,132,252,0.08), inset 0 1px 0 rgba(192,132,252,0.10);
+            transition: transform 150ms ease, background 200ms ease;
+        }
+        .pref-nav-card::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(ellipse 90% 60% at 25% 0%, rgba(192,132,252,0.09) 0%, transparent 65%);
+            pointer-events: none;
+        }
+        .pref-nav-card:active { transform: scale(0.985); }
+        .pref-nav-icon {
+            width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(192,132,252,0.10); border: 1px solid rgba(192,132,252,0.22);
+            color: rgba(210,180,255,0.85); position: relative; z-index: 1;
+        }
+        .pref-nav-icon svg { width: 18px; height: 18px; }
+        .pref-nav-text { flex: 1; min-width: 0; position: relative; z-index: 1; }
+        .pref-nav-title { font-family: 'DM Sans', sans-serif; font-size: 0.94rem; font-weight: 700; color: rgba(237,223,192,0.92); }
+        .pref-nav-desc { font-family: 'DM Sans', sans-serif; font-size: 0.74rem; color: rgba(237,223,192,0.40); margin-top: 0.2rem; line-height: 1.4; }
+        .pref-nav-chevron { flex-shrink: 0; color: rgba(192,132,252,0.45); position: relative; z-index: 1; }
+        .pref-nav-chevron svg { width: 17px; height: 17px; }
+
+        /* ══════════════════════════════════════════════════════════
+           PRIVACY SUB-PAGE — reached from Preferences Section 2.
+           Same full-screen overlay pattern; sits one layer above
+           Preferences (higher z-index) so Preferences stays mounted
+           and visible underneath — a natural drill-down, no extra
+           show/hide bookkeeping needed on the Preferences page itself.
+           ══════════════════════════════════════════════════════════ */
+        .privacy-page {
+            position: fixed; inset: 0; z-index: 9100;
+            background: linear-gradient(180deg, #0c0812 0%, #08060d 100%);
+            display: none; flex-direction: column;
+            overflow-y: auto; -webkit-overflow-scrolling: touch;
+        }
+        .privacy-page.visible { display: flex; animation: prefPageIn 400ms cubic-bezier(0.16,1,0.3,1) both; }
+
+        .privacy-body { padding: 0.6rem 1.3rem 3rem; display: flex; flex-direction: column; align-items: center; gap: 1.8rem; }
+
+        .privacy-hero { display: flex; flex-direction: column; align-items: center; gap: 0.9rem; text-align: center; padding: 0.6rem 0.6rem 0; }
+        .privacy-hero-icon {
+            width: 56px; height: 56px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(192,132,252,0.10); border: 1px solid rgba(192,132,252,0.24);
+            color: rgba(210,180,255,0.9);
+            box-shadow: 0 0 0 1px rgba(192,132,252,0.06), 0 8px 30px rgba(120,60,200,0.25);
+        }
+        .privacy-hero-icon svg { width: 26px; height: 26px; }
+        .privacy-hero-text { font-family: 'DM Sans', sans-serif; font-size: 0.86rem; color: rgba(237,223,192,0.55); line-height: 1.6; max-width: 26rem; }
+
+        .privacy-points { width: 100%; display: flex; flex-direction: column; gap: 0.85rem; }
+        .privacy-point {
+            width: 92%; margin: 0 auto; display: flex; align-items: flex-start; gap: 0.8rem;
+            background: linear-gradient(145deg, rgba(30,16,52,0.98) 0%, rgba(14,10,28,0.98) 100%);
+            border: 1px solid rgba(192,132,252,0.18);
+            border-radius: 24px; padding: 1.1rem 1.2rem;
+            position: relative; overflow: hidden;
+            box-shadow: 0 8px 34px rgba(80,20,180,0.18), 0 0 0 1px rgba(192,132,252,0.06), inset 0 1px 0 rgba(192,132,252,0.08);
+        }
+        .privacy-point::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(ellipse 90% 60% at 25% 0%, rgba(192,132,252,0.07) 0%, transparent 65%);
+            pointer-events: none;
+        }
+        .privacy-point-icon { flex-shrink: 0; margin-top: 0.1rem; color: rgba(210,180,255,0.75); position: relative; z-index: 1; }
+        .privacy-point-icon svg { width: 18px; height: 18px; }
+        .privacy-point-text { font-family: 'DM Sans', sans-serif; font-size: 0.84rem; color: rgba(237,223,192,0.82); line-height: 1.55; position: relative; z-index: 1; }
+
+        /* ══════════════════════════════════════════════════════════
+           TERMS OF SERVICE SUB-PAGE — reached from Preferences Section 3.
+           A single continuous "document" card with numbered sections and
+           hairline dividers (editorial, Apple-legal-page feel) rather than
+           a stack of separate boxes — reads calmer for dense text.
+           ══════════════════════════════════════════════════════════ */
+        .tos-page {
+            position: fixed; inset: 0; z-index: 9100;
+            background: linear-gradient(180deg, #0c0812 0%, #08060d 100%);
+            display: none; flex-direction: column;
+            overflow-y: auto; -webkit-overflow-scrolling: touch;
+        }
+        .tos-page.visible { display: flex; animation: prefPageIn 400ms cubic-bezier(0.16,1,0.3,1) both; }
+
+        .tos-body { padding: 0.6rem 1.3rem 3rem; display: flex; flex-direction: column; align-items: center; gap: 1.6rem; }
+
+        .tos-hero { display: flex; flex-direction: column; align-items: center; gap: 0.9rem; text-align: center; padding: 0.6rem 0.6rem 0; }
+        .tos-hero-icon {
+            width: 56px; height: 56px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(192,132,252,0.10); border: 1px solid rgba(192,132,252,0.24);
+            color: rgba(210,180,255,0.9);
+            box-shadow: 0 0 0 1px rgba(192,132,252,0.06), 0 8px 30px rgba(120,60,200,0.25);
+        }
+        .tos-hero-icon svg { width: 24px; height: 24px; }
+        .tos-hero-text { font-family: 'DM Sans', sans-serif; font-size: 0.86rem; color: rgba(237,223,192,0.55); line-height: 1.6; max-width: 26rem; }
+
+        .tos-card {
+            width: 92%; margin: 0 auto;
+            background: linear-gradient(145deg, rgba(30,16,52,0.98) 0%, rgba(14,10,28,0.98) 100%);
+            border: 1px solid rgba(192,132,252,0.18);
+            border-radius: 24px; padding: 0.2rem 1.25rem 0.4rem;
+            position: relative; overflow: hidden;
+            box-shadow: 0 8px 34px rgba(80,20,180,0.18), 0 0 0 1px rgba(192,132,252,0.06), inset 0 1px 0 rgba(192,132,252,0.08);
+        }
+        .tos-card::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(ellipse 90% 50% at 25% 0%, rgba(192,132,252,0.06) 0%, transparent 65%);
+            pointer-events: none;
+        }
+        .tos-section {
+            display: flex; align-items: flex-start; gap: 0.9rem;
+            padding: 1.15rem 0; border-top: 1px solid rgba(192,132,252,0.10);
+            position: relative; z-index: 1;
+        }
+        .tos-section:first-child { border-top: none; }
+        .tos-section-index {
+            font-family: 'Playfair Display', Georgia, serif; font-weight: 700; font-size: 0.8rem;
+            color: rgba(192,132,252,0.45); flex-shrink: 0; width: 1.5rem; padding-top: 0.2rem;
+        }
+        .tos-section-body { flex: 1; min-width: 0; }
+        .tos-section-title { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 0.92rem; color: rgba(237,223,192,0.92); margin-bottom: 0.35rem; }
+        .tos-section-text { font-family: 'DM Sans', sans-serif; font-size: 0.82rem; line-height: 1.65; color: rgba(237,223,192,0.55); }
+
+        /* ══════════════════════════════════════════════════════════
+           ABOUT AURA SUB-PAGE — reached from Preferences Section 4.
+           Reuses the existing top-brand star + wordmark (scaled up)
+           rather than introducing a new logo treatment.
+           ══════════════════════════════════════════════════════════ */
+        .about-page {
+            position: fixed; inset: 0; z-index: 9100;
+            background: linear-gradient(180deg, #0c0812 0%, #08060d 100%);
+            display: none; flex-direction: column;
+            overflow-y: auto; -webkit-overflow-scrolling: touch;
+        }
+        .about-page.visible { display: flex; animation: prefPageIn 400ms cubic-bezier(0.16,1,0.3,1) both; }
+
+        .about-body { padding: 0.6rem 1.3rem 3rem; display: flex; flex-direction: column; align-items: center; gap: 1.8rem; }
+
+        .about-hero { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 1rem 0.6rem 0; }
+        .about-logo { display: flex; align-items: center; gap: 0.55rem; }
+        .about-logo-star {
+            font-size: 1.5rem; color: #c084fc; opacity: 0.90; line-height: 1;
+            filter: drop-shadow(0 0 8px rgba(192,132,252,0.70));
+            animation: starPulse 3s ease-in-out infinite;
+        }
+        .about-logo-name {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 2rem; font-weight: 900;
+            color: var(--gold); letter-spacing: 0.20em;
+        }
+        .about-tagline { font-family: 'DM Sans', sans-serif; font-size: 0.86rem; font-style: italic; color: rgba(192,132,252,0.75); margin-top: 0.35rem; }
+        .about-desc { font-family: 'DM Sans', sans-serif; font-size: 0.84rem; color: rgba(237,223,192,0.55); line-height: 1.65; max-width: 24rem; margin-top: 0.9rem; }
+
+        .about-info-card {
+            width: 92%; margin: 0 auto;
+            background: linear-gradient(145deg, rgba(30,16,52,0.98) 0%, rgba(14,10,28,0.98) 100%);
+            border: 1px solid rgba(192,132,252,0.18);
+            border-radius: 24px; padding: 0.2rem 1.25rem;
+            position: relative; overflow: hidden;
+            box-shadow: 0 8px 34px rgba(80,20,180,0.18), 0 0 0 1px rgba(192,132,252,0.06), inset 0 1px 0 rgba(192,132,252,0.08);
+        }
+        .about-info-card::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(ellipse 90% 50% at 25% 0%, rgba(192,132,252,0.06) 0%, transparent 65%);
+            pointer-events: none;
+        }
+        .about-info-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 1rem 0; border-top: 1px solid rgba(192,132,252,0.10);
+            position: relative; z-index: 1;
+        }
+        .about-info-row:first-child { border-top: none; }
+        .about-info-label { font-family: 'DM Sans', sans-serif; font-size: 0.86rem; color: rgba(237,223,192,0.70); }
+        .about-info-value { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 0.86rem; color: rgba(237,223,192,0.92); }
+
+        .about-footer { font-family: 'DM Sans', sans-serif; font-size: 0.76rem; color: rgba(237,223,192,0.35); text-align: center; padding: 0.4rem 1.2rem 0; line-height: 1.6; }
+
+        /* ══════════════════════════════════════════════════════════
+           DANGER ZONE (Preferences Section 5) — visually separated
+           from every other section with extra spacing above, and the
+           ONLY place in Preferences that uses red. Calm otherwise;
+           no aggressive animation, just a steady red accent.
+           ══════════════════════════════════════════════════════════ */
+        .pref-section-danger { margin-top: 1.6rem; }
+        .pref-danger-label {
+            font-family: 'DM Sans', sans-serif; font-size: 0.60rem; font-weight: 700;
+            letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,99,99,0.55);
+            padding: 0 0.2rem;
+        }
+        .pref-danger-card {
+            width: 92%; margin: 0 auto; display: flex; align-items: center; gap: 0.9rem;
+            background: linear-gradient(145deg, rgba(48,14,18,0.85) 0%, rgba(20,8,10,0.92) 100%);
+            border: 1px solid rgba(255,99,99,0.28);
+            border-radius: 24px; padding: 1.05rem 1.15rem;
+            position: relative; overflow: hidden; cursor: pointer;
+            box-shadow: 0 8px 30px rgba(140,20,20,0.16);
+            transition: transform 150ms ease;
+        }
+        .pref-danger-card:active { transform: scale(0.985); }
+        .pref-danger-icon {
+            width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(255,99,99,0.10); border: 1px solid rgba(255,99,99,0.30);
+            color: rgba(255,140,140,0.90);
+        }
+        .pref-danger-icon svg { width: 18px; height: 18px; }
+        .pref-danger-text { flex: 1; min-width: 0; }
+        .pref-danger-title { font-family: 'DM Sans', sans-serif; font-size: 0.94rem; font-weight: 700; color: rgba(255,170,170,0.95); }
+        .pref-danger-desc { font-family: 'DM Sans', sans-serif; font-size: 0.74rem; color: rgba(237,223,192,0.40); margin-top: 0.2rem; line-height: 1.4; }
+        .pref-danger-chevron { flex-shrink: 0; color: rgba(255,99,99,0.45); }
+        .pref-danger-chevron svg { width: 17px; height: 17px; }
+
+        /* ── Delete Account confirmation sub-page ── */
+        .delete-page {
+            position: fixed; inset: 0; z-index: 9100;
+            background: linear-gradient(180deg, #0c0812 0%, #08060d 100%);
+            display: none; flex-direction: column;
+            overflow-y: auto; -webkit-overflow-scrolling: touch;
+        }
+        .delete-page.visible { display: flex; animation: prefPageIn 400ms cubic-bezier(0.16,1,0.3,1) both; }
+
+        .delete-body { padding: 0.6rem 1.3rem 3rem; display: flex; flex-direction: column; align-items: center; gap: 1.6rem; }
+
+        .delete-hero { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 0.6rem 0.6rem 0; gap: 0.9rem; }
+        .delete-hero-icon {
+            width: 56px; height: 56px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(255,99,99,0.10); border: 1px solid rgba(255,99,99,0.32);
+            color: rgba(255,140,140,0.90);
+            box-shadow: 0 8px 30px rgba(140,20,20,0.20);
+        }
+        .delete-hero-icon svg { width: 26px; height: 26px; }
+        .delete-hero-text { font-family: 'DM Sans', sans-serif; font-size: 0.86rem; color: rgba(237,223,192,0.55); line-height: 1.6; max-width: 26rem; }
+
+        .delete-list { width: 100%; display: flex; flex-direction: column; gap: 0.7rem; }
+        .delete-list-item {
+            width: 92%; margin: 0 auto; display: flex; align-items: center; gap: 0.8rem;
+            background: linear-gradient(145deg, rgba(30,16,52,0.98) 0%, rgba(14,10,28,0.98) 100%);
+            border: 1px solid rgba(255,99,99,0.14);
+            border-radius: 18px; padding: 0.8rem 1.05rem;
+        }
+        .delete-list-icon { flex-shrink: 0; color: rgba(255,140,140,0.75); }
+        .delete-list-icon svg { width: 16px; height: 16px; }
+        .delete-list-text { font-family: 'DM Sans', sans-serif; font-size: 0.84rem; color: rgba(237,223,192,0.80); }
+
+        .delete-warning {
+            width: 92%; margin: 0 auto; text-align: center;
+            font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 700;
+            color: rgba(255,140,140,0.90); letter-spacing: 0.01em;
+        }
+
+        .delete-actions { width: 92%; margin: 0 auto; display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.4rem; }
+        .delete-btn {
+            width: 100%; padding: 0.95rem 1rem; border-radius: 18px; border: none;
+            font-family: 'DM Sans', sans-serif; font-size: 0.92rem; font-weight: 700;
+            cursor: pointer; transition: transform 150ms ease, opacity 150ms ease;
+        }
+        .delete-btn:active { transform: scale(0.98); }
+        .delete-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .delete-btn-cancel {
+            background: rgba(232,213,176,0.08); color: rgba(237,223,192,0.85);
+            border: 1px solid rgba(232,213,176,0.16);
+        }
+        .delete-btn-confirm {
+            background: linear-gradient(135deg, #e14b4b 0%, #b02a2a 100%); color: #fff;
+            box-shadow: 0 8px 24px rgba(180,30,30,0.35);
+        }
+        .delete-status {
+            width: 92%; margin: 0 auto; text-align: center;
+            font-family: 'DM Sans', sans-serif; font-size: 0.8rem; color: rgba(237,223,192,0.55);
+            min-height: 1.2rem;
+        }
+        .delete-status.is-error { color: rgba(255,140,140,0.90); }
+
+        /* ── Recurring gentle invitation to enable reminders ──
+           Non-blocking, dismissible, reappears every app open until
+           permission is granted — above the bottom nav, never a modal,
+           matching "gentle invitation, never an alarm". */
         .notif-invite {
             position: fixed; left: 1rem; right: 1rem; bottom: 5.2rem; z-index: 400;
             background: linear-gradient(145deg, rgba(30,16,52,0.98) 0%, rgba(14,10,28,0.98) 100%);
@@ -6374,6 +6696,9 @@ function addXP(amount, mood) {
         data.streak = (data.lastUsed === yStr) ? data.streak + 1 : 1;
         data.lastUsed = t;
         data.xp += 5; // daily check-in bonus
+        // Native only: this is today's check-in, so any already-scheduled
+        // OS-level night reminder for today is no longer needed.
+        if (typeof cancelTodayNightNotification === 'function') cancelTodayNightNotification();
     }
     data.xp += amount; // +1 per generate
     // Track mood usage for dominant mood system
@@ -8691,6 +9016,13 @@ function showApp() {
     // logoutBtn and historyBtn remain display:none — wired via menu button and nav tab
 
     document.getElementById('appRoot').style.visibility = 'visible';
+
+    // Ask about reminders once the home screen has visually settled, every
+    // time the app is opened — not just once ever. maybeShowNotifInvite()
+    // itself decides whether there's anything worth showing (already
+    // granted/enabled? nothing to ask. Dismissed already this visit? wait
+    // for next time.).
+    setTimeout(() => { if (typeof maybeShowNotifInvite === 'function') maybeShowNotifInvite(); }, 1500);
 }
 function showAuth() {
     if (authInitializing) return;
@@ -10527,71 +10859,97 @@ function checkAndClaimAchievements() {
 
 const DAILY_REMINDER_MESSAGES = [
     "How has your heart been today?",
-    "Take one quiet minute for yourself.",
-    "Every feeling deserves a place to exist.",
-    "Small reflections create lasting growth.",
+    "Take a quiet moment for yourself today.",
+    "Every emotion deserves a place to be heard.",
     "Your emotional journey continues today.",
-    "Today's emotions are tomorrow's wisdom.",
-    "Pause. Reflect. Continue.",
-    "How are you really feeling?",
-    "A moment of honesty with yourself, today.",
-    "What's been sitting with you today?",
-    "You don't have to have it figured out — just noticed.",
-    "Your feelings are data, not verdicts.",
-    "One breath. One check-in. One you.",
-    "Nothing to fix right now — just notice.",
-    "What would today's you want tomorrow's you to know?",
-    "Even quiet days deserve a moment of reflection.",
-    "You've carried today. What did it feel like?",
-    "Naming a feeling is the first step to understanding it.",
-    "A gentle nudge to come back to yourself.",
-    "What shifted in you today?",
-    "Your inner world is worth a few seconds.",
-    "Not every day needs a big feeling — just an honest one.",
-    "Check in before you check out for the day.",
-    "How did today sit with you?",
-    "A small pause can hold a lot.",
-    "You're allowed to feel exactly how you feel.",
-    "What's one word for today?",
-    "Your emotions have been trying to tell you something.",
-    "Today deserves a moment of reflection.",
-    "This is your reminder to just be honest, for a second.",
-    "What's underneath the surface today?",
-    "A little reflection goes a long way.",
-    "You made it through today — how did it feel?",
-    "Your feelings don't need to be loud to matter.",
-    "Time to hear yourself out.",
-    "What's one thing your heart wants you to know?",
-    "Today's version of you has something to say.",
-    "Slow down for a second — how are you?",
+    "Pause for a minute. Your feelings matter.",
+    "Today's reflection becomes tomorrow's wisdom.",
+    "What's been sitting on your mind today?",
+    "Give yourself permission to feel.",
+    "One small reflection can change everything.",
+    "Your story is still being written.",
+    "Some days deserve a little extra kindness.",
+    "How are you... really?",
+    "Every feeling has a story worth telling.",
+    "A quiet check-in can bring surprising clarity.",
+    "Before today ends, spend a moment with yourself.",
+    "You don't have to carry everything alone.",
+    "Your future self will appreciate today's reflection.",
+    "Take a breath. Then check in with yourself.",
+    "Even difficult emotions deserve compassion.",
+    "Growth begins with awareness.",
+    "You showed up yesterday. Come back today.",
+    "Your emotional garden grows one reflection at a time.",
+    "Small moments of honesty create lasting change.",
+    "Be curious about how you're feeling today.",
+    "What's one word that describes today?",
+    "Every day is a new page in your journey.",
+    "The strongest people still pause to reflect.",
+    "Let today leave a meaningful memory.",
+    "Listen to your inner voice for a moment.",
+    "Your emotions are trying to tell you something.",
+    "A peaceful minute is waiting for you.",
+    "No pressure. Just check in whenever you're ready.",
+    "You deserve a moment of stillness today.",
+    "Reflection is a gift you give yourself.",
+    "Your emotional wellbeing matters.",
+    "Some answers arrive only when we slow down.",
+    "How has today shaped you?",
+    "Every check-in is progress.",
+    "A little honesty goes a long way.",
+    "You don't need to have everything figured out.",
+    "Today is another chance to understand yourself.",
+    "The smallest habits create the biggest transformations.",
+    "Your emotional ritual is waiting.",
+    "Make space for yourself today.",
+    "One reflection. One step forward.",
+    "There is strength in understanding your emotions.",
+    "Your feelings deserve your attention.",
+    "Let today speak before it becomes yesterday.",
+    "Take a moment to reconnect with yourself.",
+    "The journey inward is always worth taking.",
+    "Pause. Breathe. Reflect.",
+    "You matter. Your emotions do too.",
+    "Today's mood could reveal tomorrow's growth.",
+    "Check in with yourself before the day slips away.",
+    "Every reflection is a step toward self-understanding.",
+    "Your emotional story deserves another chapter.",
+    "Slow down for just one minute today.",
+    "Every day is another opportunity to know yourself better.",
+    "Your next breakthrough might begin with one honest reflection.",
+    "Welcome back. Let's discover how today really felt.",
 ];
 
 /* ── Local prefs storage (mirrors the local-cache-first pattern used
-   throughout the app — see loadData/saveData) ── */
+   throughout the app — see loadData/saveData). Two independent daily
+   reminders live under one master "enabled" switch: a morning one that
+   always fires (a gentle "how are you" greeting), and a night one that
+   only fires if the person hasn't checked in yet that day. ── */
 function loadNotifPrefs() {
     try {
         const stored = localStorage.getItem('aura_notifPrefs');
         const p = stored ? JSON.parse(stored) : {};
         return {
-            enabled:         p.enabled === true,
-            time:            typeof p.time === 'string' ? p.time : '21:00', // 24hr HH:MM, matches <input type="time">
-            lastShownDate:   typeof p.lastShownDate === 'string' ? p.lastShownDate : '',
-            lastMsgIdx:      typeof p.lastMsgIdx === 'number' ? p.lastMsgIdx : -1,
-            permissionAsked: p.permissionAsked === true,
-            // Local-only, not synced to Firestore — low-stakes UI state (has the
-            // one-time invite card been dismissed/acted on). Reappearing once on a
-            // new device if the user hasn't decided yet is a non-issue, so this
-            // doesn't need its own security-rules field.
-            invitationShown: p.invitationShown === true,
+            enabled:               p.enabled === true,
+            morningTime:           typeof p.morningTime === 'string' ? p.morningTime : '08:00', // 24hr HH:MM
+            nightTime:             typeof p.nightTime   === 'string' ? p.nightTime   : '21:00', // 24hr HH:MM
+            lastMorningShownDate:  typeof p.lastMorningShownDate === 'string' ? p.lastMorningShownDate : '',
+            lastNightShownDate:    typeof p.lastNightShownDate   === 'string' ? p.lastNightShownDate   : '',
+            lastMsgIdx:            typeof p.lastMsgIdx === 'number' ? p.lastMsgIdx : -1,
+            permissionAsked:       p.permissionAsked === true,
         };
     } catch(e) {
-        return { enabled: false, time: '21:00', lastShownDate: '', lastMsgIdx: -1, permissionAsked: false, invitationShown: false };
+        return {
+            enabled: false, morningTime: '08:00', nightTime: '21:00',
+            lastMorningShownDate: '', lastNightShownDate: '', lastMsgIdx: -1, permissionAsked: false,
+        };
     }
 }
 
 function saveNotifPrefs(prefs) {
     localStorage.setItem('aura_notifPrefs', JSON.stringify(prefs));
     syncNotifPrefsToFirestore(prefs);
+    if (window.Capacitor?.Plugins?.LocalNotifications) refreshNativeReminderSchedule();
 }
 
 async function syncNotifPrefsToFirestore(prefs) {
@@ -10601,10 +10959,12 @@ async function syncNotifPrefsToFirestore(prefs) {
         const { doc, updateDoc } = window.firebaseFns;
         const uid = window.firebaseAuth.currentUser.uid;
         await updateDoc(doc(window.firebaseDB, 'users', uid), {
-            notifEnabled:        prefs.enabled,
-            notifTime:           prefs.time,
-            notifLastShownDate:  prefs.lastShownDate,
-            notifLastMsgIdx:     prefs.lastMsgIdx,
+            notifEnabled:              prefs.enabled,
+            notifMorningTime:          prefs.morningTime,
+            notifNightTime:            prefs.nightTime,
+            notifLastMorningShownDate: prefs.lastMorningShownDate,
+            notifLastNightShownDate:   prefs.lastNightShownDate,
+            notifLastMsgIdx:           prefs.lastMsgIdx,
         });
     } catch(e) {
         console.warn('Notif prefs sync failed (non-critical):', e.code || e.message);
@@ -10656,30 +11016,29 @@ function getNotifPermissionState() {
     return Notification.permission; // 'granted' | 'denied' | 'default'
 }
 
-/* ── Dispatch — fires immediately (used by the web catch-up check);
-   on native, this is a same-moment "schedule for right now" call,
-   which is exactly equivalent to firing immediately ── */
+/* ── Dispatch — fires immediately. Used by the web/foreground catch-up
+   check below. Not used on native anymore — see the native scheduling
+   functions further down, which set real OS-level alarms instead of a
+   "schedule for right now" call, so they can actually fire while the app
+   is closed. ── */
 async function fireLocalNotification(title, body) {
-    if (window.Capacitor?.Plugins?.LocalNotifications) {
-        try {
-            await window.Capacitor.Plugins.LocalNotifications.schedule({
-                notifications: [{
-                    id: Math.floor(Date.now() % 2147483647),
-                    title, body,
-                    schedule: { at: new Date(Date.now() + 500) },
-                }],
-            });
-        } catch(e) { console.warn('Native notification failed:', e); }
-        return;
-    }
     if ('Notification' in window && Notification.permission === 'granted') {
         try { new Notification(title, { body, tag: 'aura-daily-ritual' }); }
         catch(e) { console.warn('Web notification failed:', e); }
     }
 }
 
-/* ── Core check-and-fire logic — the actual "missed check-in" rule ── */
-function maybeShowDailyReminder() {
+/* ── Core check-and-fire logic (WEB ONLY) — two independent daily
+   reminders under one "enabled" switch:
+     • Morning: unconditional. Fires once, at/after morningTime, no matter
+       what — a gentle "how are you" greeting for the day.
+     • Night: conditional. Fires once, at/after nightTime, ONLY if the
+       person hasn't checked in yet that day — a nudge to come back.
+   This only matters on web, where there's no true background scheduling;
+   the check has to run while the tab is open. Native platforms use real
+   OS alarms instead (see refreshNativeReminderSchedule) and skip this
+   entirely — see startNotifWatcher(). ── */
+function maybeShowDailyReminders() {
     const prefs = loadNotifPrefs();
     if (!prefs.enabled) return;
 
@@ -10687,48 +11046,165 @@ function maybeShowDailyReminder() {
     const hhmm = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
     const todayStr = today(); // reuses the app's existing YYYY-MM-DD day boundary, matching streak/check-in logic
 
-    if (prefs.lastShownDate === todayStr) return; // already handled today
-    if (hhmm < prefs.time) return;                // not due yet today
-
-    // If the user already checked in today (matches the existing streak
-    // system's own definition of "checked in"), skip silently — but still
-    // mark today as handled so this doesn't re-check every minute for the
-    // rest of the day.
-    const data = loadData();
-    if (data.lastUsed === todayStr) {
-        prefs.lastShownDate = todayStr;
+    // ── Morning: always fires, regardless of check-in status ──
+    if (prefs.lastMorningShownDate !== todayStr && hhmm >= prefs.morningTime) {
+        const { text, idx } = getNextReminderMessage(prefs);
+        fireLocalNotification('AURA', text);
+        prefs.lastMorningShownDate = todayStr;
+        prefs.lastMsgIdx = idx;
         saveNotifPrefs(prefs);
-        return;
     }
 
-    const { text, idx } = getNextReminderMessage(prefs);
-    fireLocalNotification('AURA', text);
+    // ── Night: only if the person hasn't checked in yet today ──
+    if (prefs.lastNightShownDate !== todayStr && hhmm >= prefs.nightTime) {
+        const data = loadData();
+        if (data.lastUsed === todayStr) {
+            // Already checked in — mark today handled so this doesn't
+            // re-check every minute for the rest of the day, but stay silent.
+            prefs.lastNightShownDate = todayStr;
+            saveNotifPrefs(prefs);
+        } else {
+            const { text, idx } = getNextReminderMessage(prefs);
+            fireLocalNotification('AURA', text);
+            prefs.lastNightShownDate = todayStr;
+            prefs.lastMsgIdx = idx;
+            saveNotifPrefs(prefs);
+        }
+    }
+}
 
-    prefs.lastShownDate = todayStr;
-    prefs.lastMsgIdx = idx;
-    saveNotifPrefs(prefs);
+/* ══════════════════════════════════════════════════════════
+   NATIVE (Capacitor) SCHEDULING — real OS-level alarms, so
+   reminders fire even while the app is fully closed.
+
+   Morning is unconditional, so a single true repeating daily alarm
+   handles it forever once set — no app involvement needed after that.
+
+   Night is conditional on check-in status, and a fired OS alarm can't
+   ask "did they check in?" at the moment it goes off. Instead, one
+   one-shot alarm is scheduled per specific calendar day (a stable id
+   derived from that date), and is cancelled the instant a check-in
+   happens. A short rolling window (today + next 2 days) is kept
+   scheduled ahead any time the app is opened or a setting changes —
+   this is the honest limit of on-device local notifications without a
+   server-side push component: the app needs to be opened at least every
+   few days to keep that window topped up.
+
+   NOTE: this logic is written against Capacitor's documented
+   LocalNotifications API and is fully exercised on the web path in
+   testing, but real on-device firing while AURA is closed can only be
+   verified once this is built and run as the actual APK — there's no
+   Android runtime available to test that part here.
+   ══════════════════════════════════════════════════════════ */
+const NATIVE_MORNING_NOTIF_ID = 90001;   // fixed — one true repeating daily alarm
+const NATIVE_NIGHT_ID_BASE    = 91000;   // + a stable per-day offset, see dayOffsetId()
+const NATIVE_NIGHT_ROLLING_DAYS = 3;     // how many days ahead to keep scheduled
+
+// Stable small integer per calendar day (days since epoch), so each day's
+// night reminder gets its own deterministic, collision-free notification id.
+function dayOffsetId(dateStr) {
+    const days = Math.floor(new Date(dateStr + 'T00:00:00').getTime() / 86400000);
+    return NATIVE_NIGHT_ID_BASE + (days % 50000);
+}
+
+async function scheduleNativeMorningReminder(prefs) {
+    const LN = window.Capacitor?.Plugins?.LocalNotifications;
+    if (!LN) return;
+    try {
+        await LN.cancel({ notifications: [{ id: NATIVE_MORNING_NOTIF_ID }] });
+        if (!prefs.enabled) return;
+        const [hour, minute] = prefs.morningTime.split(':').map(Number);
+        const { text } = getNextReminderMessage(prefs);
+        await LN.schedule({
+            notifications: [{
+                id: NATIVE_MORNING_NOTIF_ID,
+                title: 'AURA',
+                body: text,
+                schedule: { on: { hour, minute }, repeats: true, allowWhileIdle: true },
+            }],
+        });
+    } catch(e) { console.warn('Native morning schedule failed:', e); }
+}
+
+async function scheduleNativeNightReminder(prefs, dateStr) {
+    const LN = window.Capacitor?.Plugins?.LocalNotifications;
+    if (!LN) return;
+    const id = dayOffsetId(dateStr);
+    try {
+        await LN.cancel({ notifications: [{ id }] });
+        if (!prefs.enabled) return;
+        const data = loadData();
+        if (data.lastUsed === dateStr) return; // already checked in that day — nothing to schedule
+        const [hour, minute] = prefs.nightTime.split(':').map(Number);
+        const at = new Date(dateStr + 'T00:00:00');
+        at.setHours(hour, minute, 0, 0);
+        if (at.getTime() <= Date.now()) return; // that day's window already passed
+        const { text } = getNextReminderMessage(prefs);
+        await LN.schedule({
+            notifications: [{ id, title: 'AURA', body: text, schedule: { at, allowWhileIdle: true } }],
+        });
+    } catch(e) { console.warn('Native night schedule failed:', e); }
+}
+
+// Called the instant a check-in happens, so a real OS alarm doesn't fire
+// hours later for something the person already did.
+async function cancelTodayNightNotification() {
+    const LN = window.Capacitor?.Plugins?.LocalNotifications;
+    if (!LN) return;
+    try { await LN.cancel({ notifications: [{ id: dayOffsetId(today()) }] }); }
+    catch(e) {}
+}
+
+// Keeps the rolling window of native alarms in sync with current prefs —
+// call whenever the app opens or a reminder setting changes.
+async function refreshNativeReminderSchedule() {
+    const LN = window.Capacitor?.Plugins?.LocalNotifications;
+    if (!LN) return;
+    const prefs = loadNotifPrefs();
+    await scheduleNativeMorningReminder(prefs);
+    const base = new Date();
+    for (let i = 0; i < NATIVE_NIGHT_ROLLING_DAYS; i++) {
+        const d = new Date(base);
+        d.setDate(d.getDate() + i);
+        const dateStr = d.toISOString().split('T')[0];
+        await scheduleNativeNightReminder(prefs, dateStr);
+    }
 }
 
 let _notifWatcherStarted = false;
 function startNotifWatcher() {
     if (_notifWatcherStarted) return;
     _notifWatcherStarted = true;
-    maybeShowDailyReminder(); // check immediately on load
-    setInterval(maybeShowDailyReminder, 60000); // and every minute while the tab stays open
+
+    if (window.Capacitor?.Plugins?.LocalNotifications) {
+        // Native: real OS-level alarms do the actual firing, even while the
+        // app is fully closed. Just keep the rolling schedule fresh — no
+        // foreground polling here, or the same reminder could fire twice.
+        refreshNativeReminderSchedule();
+        return;
+    }
+
+    // Web: no true background scheduling exists, so this foreground check
+    // is the only mechanism — runs on load, every minute while the tab
+    // stays open, and whenever the tab becomes visible again.
+    maybeShowDailyReminders();
+    setInterval(maybeShowDailyReminders, 60000);
     document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') maybeShowDailyReminder();
+        if (document.visibilityState === 'visible') maybeShowDailyReminders();
     });
 }
 
 /* ── Settings page wiring ── */
 document.addEventListener('DOMContentLoaded', () => {
     const gearBtn      = document.getElementById('notifGearBtn');
-    const backBtn       = document.getElementById('notifBackBtn');
-    const page           = document.getElementById('notifPage');
+    const backBtn       = document.getElementById('prefBackBtn');
+    const page           = document.getElementById('preferencesPage');
     const dailyToggle    = document.getElementById('notifDailyToggle');
     const timeSection    = document.getElementById('notifTimeSection');
-    const timeValue      = document.getElementById('notifTimeValue');
-    const timeInput      = document.getElementById('notifTimeInput');
+    const morningValue   = document.getElementById('notifMorningTimeValue');
+    const morningInput   = document.getElementById('notifMorningTimeInput');
+    const nightValue     = document.getElementById('notifNightTimeValue');
+    const nightInput     = document.getElementById('notifNightTimeInput');
     const quietWarning    = document.getElementById('notifQuietWarning');
     const quietKeepBtn    = document.getElementById('notifQuietKeep');
     const quietChangeBtn  = document.getElementById('notifQuietChange');
@@ -10748,9 +11224,15 @@ document.addEventListener('DOMContentLoaded', () => {
         dailyToggle.classList.toggle('on', prefs.enabled);
         dailyToggle.setAttribute('aria-checked', String(prefs.enabled));
         timeSection.classList.toggle('expanded', prefs.enabled);
-        timeValue.textContent = formatTime12h(prefs.time);
-        timeInput.value = prefs.time;
-        quietWarning.classList.toggle('show', prefs.enabled && isQuietHours(prefs.time));
+
+        morningValue.textContent = formatTime12h(prefs.morningTime);
+        morningInput.value = prefs.morningTime;
+        nightValue.textContent = formatTime12h(prefs.nightTime);
+        nightInput.value = prefs.nightTime;
+
+        // Quiet-hours warning is about a late-night check-in deadline — it
+        // only makes sense against the Night time, not the Morning greeting.
+        quietWarning.classList.toggle('show', prefs.enabled && isQuietHours(prefs.nightTime));
 
         const permState = getNotifPermissionState();
         permissionCard.classList.toggle('show', prefs.enabled && permState === 'denied');
@@ -10784,9 +11266,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (turningOn) startNotifWatcher();
     });
 
-    timeInput.addEventListener('change', () => {
+    morningInput.addEventListener('change', () => {
         const prefs = loadNotifPrefs();
-        prefs.time = timeInput.value;
+        prefs.morningTime = morningInput.value;
+        saveNotifPrefs(prefs);
+        renderFromPrefs();
+    });
+
+    nightInput.addEventListener('change', () => {
+        const prefs = loadNotifPrefs();
+        prefs.nightTime = nightInput.value;
         saveNotifPrefs(prefs);
         renderFromPrefs();
     });
@@ -10794,7 +11283,7 @@ document.addEventListener('DOMContentLoaded', () => {
     quietKeepBtn.addEventListener('click', () => quietWarning.classList.remove('show'));
     quietChangeBtn.addEventListener('click', () => {
         quietWarning.classList.remove('show');
-        try { timeInput.showPicker && timeInput.showPicker(); } catch(e) {}
+        try { nightInput.showPicker && nightInput.showPicker(); } catch(e) {}
     });
 
     // If reminders were already enabled from a previous session, start the
@@ -10812,9 +11301,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function dismissInvite() {
         if (!inviteEl) return;
         inviteEl.classList.remove('show');
-        const prefs = loadNotifPrefs();
-        prefs.invitationShown = true;
-        saveNotifPrefs(prefs);
+        inviteDismissedThisSession = true; // quiet for the rest of this visit; asked again next time
     }
 
     if (inviteEnable) inviteEnable.addEventListener('click', async () => {
@@ -10822,24 +11309,216 @@ document.addEventListener('DOMContentLoaded', () => {
         const prefs = loadNotifPrefs();
         prefs.permissionAsked = true;
         prefs.enabled = true; // reflect intent even if denied — friendly card in Settings covers that state
-        prefs.invitationShown = true;
         saveNotifPrefs(prefs);
-        if (result !== 'denied') startNotifWatcher();
+        if (result === 'granted') startNotifWatcher();
         inviteEl.classList.remove('show');
+        inviteDismissedThisSession = true;
     });
     if (inviteLater)    inviteLater.addEventListener('click', dismissInvite);
     if (inviteCloseBtn) inviteCloseBtn.addEventListener('click', dismissInvite);
+
+    // ── Section 2: Privacy sub-page wiring ──
+    const privacyRow     = document.getElementById('prefPrivacyRow');
+    const privacyPage    = document.getElementById('privacyPage');
+    const privacyBackBtn = document.getElementById('privacyBackBtn');
+
+    if (privacyRow && privacyPage) {
+        const openPrivacy = () => privacyPage.classList.add('visible');
+        privacyRow.addEventListener('click', openPrivacy);
+        privacyRow.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPrivacy(); }
+        });
+    }
+    if (privacyBackBtn && privacyPage) {
+        privacyBackBtn.addEventListener('click', () => privacyPage.classList.remove('visible'));
+    }
+
+    // ── Section 3: Terms of Service sub-page wiring ──
+    const termsRow     = document.getElementById('prefTermsRow');
+    const termsPage    = document.getElementById('termsPage');
+    const termsBackBtn = document.getElementById('termsBackBtn');
+
+    if (termsRow && termsPage) {
+        const openTerms = () => termsPage.classList.add('visible');
+        termsRow.addEventListener('click', openTerms);
+        termsRow.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openTerms(); }
+        });
+    }
+    if (termsBackBtn && termsPage) {
+        termsBackBtn.addEventListener('click', () => termsPage.classList.remove('visible'));
+    }
+
+    // ── Section 4: About AURA sub-page wiring ──
+    const aboutRow     = document.getElementById('prefAboutRow');
+    const aboutPage    = document.getElementById('aboutPage');
+    const aboutBackBtn = document.getElementById('aboutBackBtn');
+
+    if (aboutRow && aboutPage) {
+        const openAbout = () => aboutPage.classList.add('visible');
+        aboutRow.addEventListener('click', openAbout);
+        aboutRow.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAbout(); }
+        });
+    }
+    if (aboutBackBtn && aboutPage) {
+        aboutBackBtn.addEventListener('click', () => aboutPage.classList.remove('visible'));
+    }
+
+    // ── Section 5: Danger Zone / Delete Account wiring ──
+    const deleteRow        = document.getElementById('prefDeleteRow');
+    const deletePage       = document.getElementById('deleteAccountPage');
+    const deleteBackBtn2   = document.getElementById('deleteBackBtn');
+    const deleteCancelBtn  = document.getElementById('deleteCancelBtn');
+    const deleteConfirmBtn = document.getElementById('deleteConfirmBtn');
+    const deleteStatusEl   = document.getElementById('deleteStatus');
+
+    function resetDeleteUI() {
+        if (deleteStatusEl)   { deleteStatusEl.textContent = ''; deleteStatusEl.classList.remove('is-error'); }
+        if (deleteConfirmBtn) { deleteConfirmBtn.disabled = false; deleteConfirmBtn.textContent = 'Delete Forever'; }
+        if (deleteCancelBtn)  { deleteCancelBtn.disabled = false; }
+    }
+    function closeDeletePage() {
+        if (deletePage) deletePage.classList.remove('visible');
+        resetDeleteUI();
+    }
+
+    if (deleteRow && deletePage) {
+        const openDelete = () => { resetDeleteUI(); deletePage.classList.add('visible'); };
+        deleteRow.addEventListener('click', openDelete);
+        deleteRow.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDelete(); }
+        });
+    }
+    if (deleteBackBtn2)  deleteBackBtn2.addEventListener('click', closeDeletePage);
+    if (deleteCancelBtn) deleteCancelBtn.addEventListener('click', closeDeletePage);
+
+    // Performs the actual destructive work, in order: history subcollection
+    // entries, then the users/{uid} profile document (xp, streak, rank,
+    // achievements, favorites, preferences — every field that document
+    // holds), then the Firebase Authentication account itself. Returns a
+    // small result object rather than throwing, so the UI can react calmly.
+    async function performAccountDeletion() {
+        const auth = window.firebaseAuth;
+        const db   = window.firebaseDB;
+        const fns  = window.firebaseFns;
+        if (!auth || !auth.currentUser) return { success: false, error: 'not-signed-in' };
+        if (!db || !fns)                return { success: false, error: 'offline' };
+        const uid = auth.currentUser.uid;
+        try {
+            const historySnap = await fns.getDocs(fns.collection(db, 'users', uid, 'history'));
+            for (const entry of historySnap.docs) {
+                await fns.deleteDoc(entry.ref);
+            }
+            await fns.deleteDoc(fns.doc(db, 'users', uid));
+            await fns.deleteUser(auth.currentUser);
+            return { success: true };
+        } catch (err) {
+            if (err && err.code === 'auth/requires-recent-login') {
+                return { success: false, error: 'reauth-required' };
+            }
+            console.error('Account deletion error:', err);
+            return { success: false, error: (err && err.message) || 'unknown' };
+        }
+    }
+
+    if (deleteConfirmBtn) {
+        deleteConfirmBtn.addEventListener('click', async () => {
+            deleteConfirmBtn.disabled    = true;
+            deleteCancelBtn.disabled     = true;
+            deleteConfirmBtn.textContent = 'Deleting…';
+            if (deleteStatusEl) {
+                deleteStatusEl.textContent = 'Deleting your account…';
+                deleteStatusEl.classList.remove('is-error');
+            }
+
+            let result = await performAccountDeletion();
+
+            // Firebase requires a recent sign-in for account deletion; if the
+            // session is older, re-authenticate once via Google and retry.
+            if (!result.success && result.error === 'reauth-required') {
+                if (deleteStatusEl) deleteStatusEl.textContent = 'For your security, please sign in again to confirm.';
+                try {
+                    const fns  = window.firebaseFns;
+                    const auth = window.firebaseAuth;
+                    await fns.reauthenticateWithPopup(auth.currentUser, window.googleProvider);
+                    result = await performAccountDeletion();
+                } catch (reauthErr) {
+                    result = { success: false, error: (reauthErr && reauthErr.message) || 'reauth-failed' };
+                }
+            }
+
+            if (result.success) {
+                if (deleteStatusEl) {
+                    deleteStatusEl.textContent = 'Account deleted.';
+                    deleteStatusEl.classList.remove('is-error');
+                }
+                // Close every Preferences overlay above the auth screen.
+                // onAuthStateChanged (registered in the module script at the
+                // top of the file) fires with user=null and calls showAuth(),
+                // which handles returning to onboarding/login.
+                if (deletePage) deletePage.classList.remove('visible');
+                if (page)       page.classList.remove('visible'); // preferencesPage
+                if (typeof showAuth === 'function') showAuth();
+            } else {
+                if (deleteStatusEl) {
+                    deleteStatusEl.textContent = 'Something went wrong. Please try again.';
+                    deleteStatusEl.classList.add('is-error');
+                }
+                deleteConfirmBtn.disabled    = false;
+                deleteCancelBtn.disabled     = false;
+                deleteConfirmBtn.textContent = 'Delete Forever';
+            }
+        });
+    }
 });
+
+// Session-only — resets on every fresh page load ("every time they access
+// the app"). Dismissing the invite only silences it for the rest of THIS
+// visit; it's fair game to ask again next time, until permission is truly
+// granted (or explicitly, permanently denied at the OS/browser level, in
+// which case we stop asking and just point at Settings instead).
+let inviteDismissedThisSession = false;
+
+// Swaps the invite's copy and button between the two states it can be in:
+// "haven't decided yet" (persuasive, real Enable button) vs. "explicitly
+// denied" (a working Enable button is impossible here — browsers refuse to
+// re-show their permission dialog once the person has tapped Block, so we
+// switch to a quiet, honest note instead of a button that would do nothing).
+function renderInviteContent(permState) {
+    const titleEl   = document.querySelector('#notifInvite .notif-invite-title');
+    const descEl    = document.querySelector('#notifInvite .notif-invite-desc');
+    const enableBtn = document.getElementById('notifInviteEnable');
+    const laterBtn  = document.getElementById('notifInviteLater');
+    if (!titleEl || !descEl || !enableBtn || !laterBtn) return;
+
+    if (permState === 'denied') {
+        titleEl.textContent    = 'Reminders are off in your settings';
+        descEl.textContent     = "You can turn them back on anytime from your browser or device's notification settings.";
+        enableBtn.style.display = 'none';
+        laterBtn.textContent    = 'Got it';
+    } else {
+        titleEl.textContent    = 'Never miss a day';
+        descEl.textContent     = "We'll send a gentle nudge — only if you haven't checked in yet.";
+        enableBtn.style.display = '';
+        laterBtn.textContent    = 'Not now';
+    }
+}
 
 function maybeShowNotifInvite() {
     const inviteEl = document.getElementById('notifInvite');
     if (!inviteEl) return;
-    const prefs = loadNotifPrefs();
-    if (prefs.enabled || prefs.invitationShown) return;
-    const data = loadData();
-    if ((data.totalGenerations || 0) < 3) return;
-    // Small delay so it never competes with the card-close animation itself —
-    // appears once the home screen has visibly settled.
+    if (inviteDismissedThisSession) return; // asked once this visit — try again next time the app opens
+
+    const prefs    = loadNotifPrefs();
+    const permState = getNotifPermissionState();
+
+    if (permState === 'unsupported') return;                // nothing this platform can offer
+    if (prefs.enabled && permState === 'granted') return;    // already on and actually working
+
+    renderInviteContent(permState);
+    // Small delay so it never competes with whatever animation is already
+    // in flight (card-close, or the home screen's own fade-in).
     setTimeout(() => inviteEl.classList.add('show'), 900);
 }
 
@@ -12548,9 +13227,12 @@ async function saveToHistory(entry) {
 })();
 </script>
 
-    <!-- Gentle one-time invitation to enable daily reminders — non-blocking,
-         appears after the user's 3rd generation, never shown again once
-         dismissed or acted on. -->
+    <!-- Gentle invitation to enable daily reminders — non-blocking. Reappears
+         every time the app is opened until permission is actually granted;
+         dismissing it only silences it for the rest of this visit. If the
+         person has explicitly denied notifications at the OS/browser level,
+         it switches to a quiet "enable in Settings" note instead of a
+         non-functional Enable button — see renderInviteContent(). -->
     <div id="notifInvite" class="notif-invite">
         <div class="notif-invite-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
@@ -12568,69 +13250,401 @@ async function saveToHistory(entry) {
         </button>
     </div>
 
-    <!-- Notifications settings page — direct child of body, outside appRoot,
-         same reasoning as the Evolution overlay: never affected by
-         #appRoot { visibility: hidden } auth gate -->
-    <div id="notifPage" class="notif-page">
-        <div class="notif-header">
-            <button class="notif-back-btn" id="notifBackBtn" aria-label="Back to Profile">
+    <!-- Preferences page — direct child of body, outside appRoot, same
+         reasoning as the Evolution/Notifications overlays: never affected
+         by #appRoot { visibility: hidden } auth gate.
+         Section 1 (Notifications) is live below. Sections 2-5 (Privacy,
+         Terms of Service, About AURA, Danger Zone/Delete Account) are
+         built in following steps, each tested independently. -->
+    <div id="preferencesPage" class="preferences-page">
+        <div class="pref-header">
+            <button class="pref-back-btn" id="prefBackBtn" aria-label="Back to Profile">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
-            <div class="notif-header-text">
-                <div class="notif-title">Daily Ritual</div>
-                <div class="notif-subtitle">Gentle reminders, on your terms</div>
+            <div class="pref-header-text">
+                <div class="pref-page-title">Preferences</div>
+                <div class="pref-page-subtitle">Personalize your AURA experience.</div>
             </div>
         </div>
 
-        <div class="notif-body">
-            <div class="notif-section-label">Reflection</div>
+        <div class="pref-body">
 
-            <div class="notif-card" id="notifDailyCard">
-                <div class="notif-card-row">
-                    <div class="notif-card-text">
-                        <div class="notif-card-title">Daily Emotional Reminder</div>
-                        <div class="notif-card-desc">Receive a gentle reminder each day to reflect on your emotions.</div>
-                    </div>
-                    <div class="notif-toggle" id="notifDailyToggle" role="switch" aria-checked="false">
-                        <div class="notif-toggle-knob"></div>
-                    </div>
-                </div>
+            <!-- Section 1: Notifications — reuses the existing notification
+                 component/logic as-is (moved, not duplicated); every element
+                 ID below is unchanged so renderFromPrefs()/loadNotifPrefs()/
+                 saveNotifPrefs() and all toggle/time-input listeners keep
+                 working without modification. -->
+            <div class="pref-section" id="prefSectionNotifications">
+                <div class="notif-section-label">Notifications</div>
 
-                <div class="notif-time-section" id="notifTimeSection">
-                    <div class="notif-time-trigger">
-                        <div>
-                            <div class="notif-time-label">Reminder Time</div>
-                            <div class="notif-time-value" id="notifTimeValue">9:00 PM</div>
+                <div class="notif-card" id="notifDailyCard">
+                    <div class="notif-card-row">
+                        <div class="notif-card-text">
+                            <div class="notif-card-title">Daily Emotional Reminder</div>
+                            <div class="notif-card-desc">Receive a gentle reminder each day to reflect on your emotions.</div>
                         </div>
-                        <div class="notif-time-chevron">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                        <div class="notif-toggle" id="notifDailyToggle" role="switch" aria-checked="false">
+                            <div class="notif-toggle-knob"></div>
                         </div>
-                        <input type="time" class="notif-time-input" id="notifTimeInput" value="21:00" aria-label="Reminder time">
                     </div>
 
-                    <div class="notif-quiet-warning" id="notifQuietWarning">
-                        <div class="notif-quiet-warning-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+                    <div class="notif-time-section" id="notifTimeSection">
+                        <div class="notif-time-trigger" id="notifMorningTrigger">
+                            <div>
+                                <div class="notif-time-label">Morning Reminder</div>
+                                <div class="notif-time-value" id="notifMorningTimeValue">8:00 AM</div>
+                                <div class="notif-time-hint">A gentle greeting — sent every day</div>
+                            </div>
+                            <div class="notif-time-chevron">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                            </div>
+                            <input type="time" class="notif-time-input" id="notifMorningTimeInput" value="08:00" aria-label="Morning reminder time">
                         </div>
-                        <div style="flex:1">
-                            <div class="notif-quiet-warning-text">Late-night reminders may interrupt your rest. Are you sure you want this time?</div>
-                            <div class="notif-quiet-warning-actions">
-                                <button class="notif-quiet-btn notif-quiet-btn-keep" id="notifQuietKeep">Keep it</button>
-                                <button class="notif-quiet-btn notif-quiet-btn-change" id="notifQuietChange">Choose another time</button>
+
+                        <div class="notif-time-trigger" id="notifNightTrigger">
+                            <div>
+                                <div class="notif-time-label">Night Check-in</div>
+                                <div class="notif-time-value" id="notifNightTimeValue">9:00 PM</div>
+                                <div class="notif-time-hint">Only sent if you haven't checked in yet</div>
+                            </div>
+                            <div class="notif-time-chevron">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                            </div>
+                            <input type="time" class="notif-time-input" id="notifNightTimeInput" value="21:00" aria-label="Night check-in reminder time">
+                        </div>
+
+                        <div class="notif-quiet-warning" id="notifQuietWarning">
+                            <div class="notif-quiet-warning-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+                            </div>
+                            <div style="flex:1">
+                                <div class="notif-quiet-warning-text">Late-night reminders may interrupt your rest. Are you sure you want this time?</div>
+                                <div class="notif-quiet-warning-actions">
+                                    <button class="notif-quiet-btn notif-quiet-btn-keep" id="notifQuietKeep">Keep it</button>
+                                    <button class="notif-quiet-btn notif-quiet-btn-change" id="notifQuietChange">Choose another time</button>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="notif-permission-card" id="notifPermissionCard">
-                        <div class="notif-permission-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-                        </div>
-                        <div class="notif-permission-text">
-                            <strong>Notifications are turned off</strong> for AURA in your device settings. You can enable them anytime from Settings to receive your daily reminder.
+                        <div class="notif-permission-card" id="notifPermissionCard">
+                            <div class="notif-permission-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+                            </div>
+                            <div class="notif-permission-text">
+                                <strong>Notifications are turned off</strong> for AURA in your device settings. You can enable them anytime from Settings to receive your daily reminders.
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Section 2: Privacy — dedicated sub-page, opened via nav row -->
+            <div class="pref-section" id="prefSectionPrivacy">
+                <div class="notif-section-label">Privacy</div>
+
+                <div class="pref-nav-card" id="prefPrivacyRow" role="button" tabindex="0" aria-label="Open Privacy">
+                    <div class="pref-nav-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
+                    <div class="pref-nav-text">
+                        <div class="pref-nav-title">Privacy</div>
+                        <div class="pref-nav-desc">How your data is kept safe</div>
+                    </div>
+                    <div class="pref-nav-chevron">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Terms of Service — dedicated sub-page, opened via nav row -->
+            <div class="pref-section" id="prefSectionTerms">
+                <div class="notif-section-label">Terms of Service</div>
+
+                <div class="pref-nav-card" id="prefTermsRow" role="button" tabindex="0" aria-label="Open Terms of Service">
+                    <div class="pref-nav-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg>
+                    </div>
+                    <div class="pref-nav-text">
+                        <div class="pref-nav-title">Terms of Service</div>
+                        <div class="pref-nav-desc">The basics of using AURA</div>
+                    </div>
+                    <div class="pref-nav-chevron">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: About AURA — dedicated sub-page, opened via nav row -->
+            <div class="pref-section" id="prefSectionAbout">
+                <div class="notif-section-label">About</div>
+
+                <div class="pref-nav-card" id="prefAboutRow" role="button" tabindex="0" aria-label="Open About AURA">
+                    <div class="pref-nav-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                    </div>
+                    <div class="pref-nav-text">
+                        <div class="pref-nav-title">About AURA</div>
+                        <div class="pref-nav-desc">Version, build, and the story behind it</div>
+                    </div>
+                    <div class="pref-nav-chevron">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 5: Danger Zone — extra spacing above, red accent only here -->
+            <div class="pref-section pref-section-danger" id="prefSectionDanger">
+                <div class="pref-danger-label">Danger Zone</div>
+
+                <div class="pref-danger-card" id="prefDeleteRow" role="button" tabindex="0" aria-label="Delete Account">
+                    <div class="pref-danger-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+                    </div>
+                    <div class="pref-danger-text">
+                        <div class="pref-danger-title">Delete Account</div>
+                        <div class="pref-danger-desc">Permanently remove your account and emotional history.</div>
+                    </div>
+                    <div class="pref-danger-chevron">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Privacy sub-page — direct child of body, outside appRoot, opened from
+         the Preferences page's Privacy nav row. Human, reassuring language,
+         no legal jargon (Terms of Service covers the legal ground). -->
+    <div id="privacyPage" class="privacy-page">
+        <div class="pref-header">
+            <button class="pref-back-btn" id="privacyBackBtn" aria-label="Back to Preferences">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <div class="pref-header-text">
+                <div class="pref-page-title">Privacy</div>
+                <div class="pref-page-subtitle">Your reflections stay yours.</div>
+            </div>
+        </div>
+
+        <div class="privacy-body">
+            <div class="privacy-hero">
+                <div class="privacy-hero-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <div class="privacy-hero-text">A few honest, plain-language notes on how AURA treats your emotional world.</div>
+            </div>
+
+            <div class="privacy-points">
+                <div class="privacy-point">
+                    <div class="privacy-point-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                    </div>
+                    <div class="privacy-point-text">Your emotional entries belong only to you.</div>
+                </div>
+                <div class="privacy-point">
+                    <div class="privacy-point-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                    </div>
+                    <div class="privacy-point-text">AURA never shares your reflections with other users.</div>
+                </div>
+                <div class="privacy-point">
+                    <div class="privacy-point-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                    </div>
+                    <div class="privacy-point-text">Your information is protected using your Google account.</div>
+                </div>
+                <div class="privacy-point">
+                    <div class="privacy-point-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                    </div>
+                    <div class="privacy-point-text">You can permanently delete your account whenever you choose.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terms of Service sub-page — direct child of body, outside appRoot,
+         opened from the Preferences page's Terms of Service nav row.
+         Single continuous document card with numbered sections, concise
+         and readable — structured so future sections can be appended
+         without changing the pattern. -->
+    <div id="termsPage" class="tos-page">
+        <div class="pref-header">
+            <button class="pref-back-btn" id="termsBackBtn" aria-label="Back to Preferences">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <div class="pref-header-text">
+                <div class="pref-page-title">Terms of Service</div>
+                <div class="pref-page-subtitle">The basics, in plain terms.</div>
+            </div>
+        </div>
+
+        <div class="tos-body">
+            <div class="tos-hero">
+                <div class="tos-hero-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg>
+                </div>
+                <div class="tos-hero-text">A short, human read on how AURA works — no dense legal language.</div>
+            </div>
+
+            <div class="tos-card" id="tosCard">
+                <div class="tos-section">
+                    <div class="tos-section-index">01</div>
+                    <div class="tos-section-body">
+                        <div class="tos-section-title">Purpose of AURA</div>
+                        <div class="tos-section-text">AURA helps you notice, name, and reflect on how you're feeling through daily check-ins, mood cards, and gentle rituals. It's built to support self-understanding — not to replace professional medical or mental health care.</div>
+                    </div>
+                </div>
+                <div class="tos-section">
+                    <div class="tos-section-index">02</div>
+                    <div class="tos-section-body">
+                        <div class="tos-section-title">Acceptable Use</div>
+                        <div class="tos-section-text">Use AURA for your own personal reflection and growth. Please don't use it to harass or impersonate others, or to try to access anyone else's account or data.</div>
+                    </div>
+                </div>
+                <div class="tos-section">
+                    <div class="tos-section-index">03</div>
+                    <div class="tos-section-body">
+                        <div class="tos-section-title">Account Responsibilities</div>
+                        <div class="tos-section-text">You're responsible for keeping your Google sign-in secure and for the activity that happens under your account. Reach out if anything looks unfamiliar.</div>
+                    </div>
+                </div>
+                <div class="tos-section">
+                    <div class="tos-section-index">04</div>
+                    <div class="tos-section-body">
+                        <div class="tos-section-title">Content Ownership</div>
+                        <div class="tos-section-text">Your entries, reflections, and generated cards belong to you. AURA doesn't claim ownership over anything you create or choose to share.</div>
+                    </div>
+                </div>
+                <div class="tos-section">
+                    <div class="tos-section-index">05</div>
+                    <div class="tos-section-body">
+                        <div class="tos-section-title">Service Availability</div>
+                        <div class="tos-section-text">We work hard to keep AURA reliable, but occasional downtime, maintenance, or feature changes may happen as we continue improving the experience.</div>
+                    </div>
+                </div>
+                <div class="tos-section">
+                    <div class="tos-section-index">06</div>
+                    <div class="tos-section-body">
+                        <div class="tos-section-title">Updates</div>
+                        <div class="tos-section-text">These terms may evolve as AURA grows. We'll keep any changes clear and reasonable — continuing to use AURA means you accept the current version.</div>
+                    </div>
+                </div>
+                <div class="tos-section">
+                    <div class="tos-section-index">07</div>
+                    <div class="tos-section-body">
+                        <div class="tos-section-title">Termination</div>
+                        <div class="tos-section-text">You're free to stop using AURA and delete your account at any time. We may also suspend access if these terms are seriously or repeatedly violated.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- About AURA sub-page — direct child of body, outside appRoot, opened
+         from the Preferences page's About nav row. -->
+    <div id="aboutPage" class="about-page">
+        <div class="pref-header">
+            <button class="pref-back-btn" id="aboutBackBtn" aria-label="Back to Preferences">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <div class="pref-header-text">
+                <div class="pref-page-title">About</div>
+                <div class="pref-page-subtitle">The story behind AURA.</div>
+            </div>
+        </div>
+
+        <div class="about-body">
+            <div class="about-hero">
+                <div class="about-logo">
+                    <span class="about-logo-star">✦</span>
+                    <span class="about-logo-name">AURA</span>
+                </div>
+                <div class="about-tagline">Your Daily Emotional Ritual</div>
+                <div class="about-desc">AURA helps people understand themselves through daily emotional reflection, beautiful storytelling, and meaningful insights.</div>
+            </div>
+
+            <div class="about-info-card">
+                <div class="about-info-row">
+                    <div class="about-info-label">Version</div>
+                    <div class="about-info-value">1.0.0</div>
+                </div>
+                <div class="about-info-row">
+                    <div class="about-info-label">Build</div>
+                    <div class="about-info-value">1</div>
+                </div>
+            </div>
+
+            <div class="about-footer">Made with ❤️ to help people reconnect with themselves.</div>
+        </div>
+    </div>
+
+    <!-- Delete Account confirmation sub-page — direct child of body, outside
+         appRoot, opened from the Preferences Danger Zone card. Never deletes
+         immediately: this page is itself the confirmation gate (Cancel vs
+         Delete Forever). Actual deletion logic lives in performAccountDeletion()
+         further down in the script, called only from this page's confirm button. -->
+    <div id="deleteAccountPage" class="delete-page">
+        <div class="pref-header">
+            <button class="pref-back-btn" id="deleteBackBtn" aria-label="Back to Preferences">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <div class="pref-header-text">
+                <div class="pref-page-title">Delete Account</div>
+                <div class="pref-page-subtitle">This cannot be undone.</div>
+            </div>
+        </div>
+
+        <div class="delete-body">
+            <div class="delete-hero">
+                <div class="delete-hero-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+                </div>
+                <div class="delete-hero-text">This action permanently deletes:</div>
+            </div>
+
+            <div class="delete-list">
+                <div class="delete-list-item">
+                    <div class="delete-list-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
+                    </div>
+                    <div class="delete-list-text">Emotional history</div>
+                </div>
+                <div class="delete-list-item">
+                    <div class="delete-list-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
+                    </div>
+                    <div class="delete-list-text">Insights</div>
+                </div>
+                <div class="delete-list-item">
+                    <div class="delete-list-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
+                    </div>
+                    <div class="delete-list-text">Identity progression</div>
+                </div>
+                <div class="delete-list-item">
+                    <div class="delete-list-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
+                    </div>
+                    <div class="delete-list-text">Achievements</div>
+                </div>
+                <div class="delete-list-item">
+                    <div class="delete-list-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
+                    </div>
+                    <div class="delete-list-text">Account information</div>
+                </div>
+            </div>
+
+            <div class="delete-warning">This cannot be undone.</div>
+
+            <div class="delete-actions">
+                <button class="delete-btn delete-btn-confirm" id="deleteConfirmBtn">Delete Forever</button>
+                <button class="delete-btn delete-btn-cancel" id="deleteCancelBtn">Cancel</button>
+            </div>
+
+            <div class="delete-status" id="deleteStatus"></div>
         </div>
     </div>
 

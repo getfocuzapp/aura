@@ -635,6 +635,20 @@
             color: rgba(232,213,176,0.75);
             font-family: 'DM Sans', sans-serif;
             text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+        .paywall-features li::before {
+            content: '✓';
+            flex-shrink: 0;
+            width: 20px; height: 20px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; font-weight: 700;
+            color: rgba(192,132,252,0.9);
+            background: rgba(192,132,252,0.14);
+            border: 1px solid rgba(192,132,252,0.32);
+            border-radius: 50%;
         }
         .paywall-btns {
             width: 100%;
@@ -5162,23 +5176,20 @@
         .privacy-hero-icon svg { width: 26px; height: 26px; }
         .privacy-hero-text { font-family: 'DM Sans', sans-serif; font-size: 0.86rem; color: rgba(237,223,192,0.55); line-height: 1.6; max-width: 26rem; }
 
-        .privacy-points { width: 100%; display: flex; flex-direction: column; gap: 0.85rem; }
+        .privacy-points {
+            width: 92%; margin: 0 auto;
+            background: linear-gradient(180deg, rgba(192,132,252,0.05) 0%, rgba(255,255,255,0.02) 100%);
+            border: 1px solid rgba(192,132,252,0.16);
+            border-radius: 20px; padding: 0.2rem 1.2rem 0.3rem;
+        }
         .privacy-point {
-            width: 92%; margin: 0 auto; display: flex; align-items: flex-start; gap: 0.8rem;
-            background: linear-gradient(145deg, rgba(30,16,52,0.98) 0%, rgba(14,10,28,0.98) 100%);
-            border: 1px solid rgba(192,132,252,0.18);
-            border-radius: 24px; padding: 1.1rem 1.2rem;
-            position: relative; overflow: hidden;
-            box-shadow: 0 10px 40px rgba(80,20,180,0.16), 0 2px 8px rgba(0,0,0,0.12), 0 0 0 1px rgba(192,132,252,0.07), inset 0 1px 0 rgba(192,132,252,0.10);
+            display: flex; align-items: flex-start; gap: 0.8rem;
+            padding: 1.05rem 0; border-top: 1px solid rgba(192,132,252,0.10);
         }
-        .privacy-point::before {
-            content: ''; position: absolute; inset: 0;
-            background: radial-gradient(ellipse 90% 60% at 25% 0%, rgba(192,132,252,0.07) 0%, transparent 65%);
-            pointer-events: none;
-        }
-        .privacy-point-icon { flex-shrink: 0; margin-top: 0.1rem; color: rgba(210,180,255,0.75); position: relative; z-index: 1; }
+        .privacy-point:first-child { border-top: none; }
+        .privacy-point-icon { flex-shrink: 0; margin-top: 0.1rem; color: rgba(210,180,255,0.75); }
         .privacy-point-icon svg { width: 18px; height: 18px; }
-        .privacy-point-text { font-family: 'DM Sans', sans-serif; font-size: 0.84rem; color: rgba(237,223,192,0.82); line-height: 1.55; position: relative; z-index: 1; }
+        .privacy-point-text { font-family: 'DM Sans', sans-serif; font-size: 0.84rem; color: rgba(237,223,192,0.82); line-height: 1.55; }
 
         /* ══════════════════════════════════════════════════════════
            TERMS OF SERVICE SUB-PAGE — reached from Preferences Section 3.
@@ -5209,30 +5220,26 @@
 
         .tos-card {
             width: 92%; margin: 0 auto;
-            background: linear-gradient(145deg, rgba(30,16,52,0.98) 0%, rgba(14,10,28,0.98) 100%);
-            border: 1px solid rgba(192,132,252,0.18);
-            border-radius: 24px; padding: 0.2rem 1.25rem 0.4rem;
-            position: relative; overflow: hidden;
-            box-shadow: 0 10px 40px rgba(80,20,180,0.16), 0 2px 8px rgba(0,0,0,0.12), 0 0 0 1px rgba(192,132,252,0.07), inset 0 1px 0 rgba(192,132,252,0.10);
-        }
-        .tos-card::before {
-            content: ''; position: absolute; inset: 0;
-            background: radial-gradient(ellipse 90% 50% at 25% 0%, rgba(192,132,252,0.06) 0%, transparent 65%);
-            pointer-events: none;
+            /* A document reads calmer flat than glowing — no purple wash, no
+               heavy shadow. Distinct on purpose from the interactive cards
+               elsewhere in Preferences (this isn't a button, it's a page). */
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 18px; padding: 0.2rem 1.25rem 0.4rem;
+            position: relative;
         }
         .tos-section {
             display: flex; align-items: flex-start; gap: 0.9rem;
-            padding: 1.15rem 0; border-top: 1px solid rgba(192,132,252,0.10);
-            position: relative; z-index: 1;
+            padding: 1.2rem 0; border-top: 1px solid rgba(255,255,255,0.07);
         }
         .tos-section:first-child { border-top: none; }
         .tos-section-index {
             font-family: 'Playfair Display', Georgia, serif; font-weight: 700; font-size: 0.8rem;
-            color: rgba(192,132,252,0.45); flex-shrink: 0; width: 1.5rem; padding-top: 0.2rem;
+            color: rgba(237,223,192,0.34); flex-shrink: 0; width: 1.5rem; padding-top: 0.2rem;
         }
         .tos-section-body { flex: 1; min-width: 0; }
         .tos-section-title { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 0.92rem; color: rgba(237,223,192,0.92); margin-bottom: 0.35rem; }
-        .tos-section-text { font-family: 'DM Sans', sans-serif; font-size: 0.82rem; line-height: 1.65; color: rgba(237,223,192,0.55); }
+        .tos-section-text { font-family: 'DM Sans', sans-serif; font-size: 0.82rem; line-height: 1.7; color: rgba(237,223,192,0.55); }
 
         /* ══════════════════════════════════════════════════════════
            ABOUT AURA SUB-PAGE — reached from Preferences Section 4.
@@ -5348,13 +5355,17 @@
         .delete-hero-icon svg { width: 26px; height: 26px; }
         .delete-hero-text { font-family: 'DM Sans', sans-serif; font-size: 0.86rem; color: rgba(237,223,192,0.55); line-height: 1.6; max-width: 26rem; }
 
-        .delete-list { width: 100%; display: flex; flex-direction: column; gap: 0.7rem; }
-        .delete-list-item {
-            width: 92%; margin: 0 auto; display: flex; align-items: center; gap: 0.8rem;
-            background: linear-gradient(145deg, rgba(30,16,52,0.98) 0%, rgba(14,10,28,0.98) 100%);
+        .delete-list {
+            width: 92%; margin: 0 auto;
+            background: rgba(255,255,255,0.02);
             border: 1px solid rgba(255,99,99,0.14);
-            border-radius: 18px; padding: 0.8rem 1.05rem;
+            border-radius: 18px; padding: 0.1rem 1.05rem 0.2rem;
         }
+        .delete-list-item {
+            display: flex; align-items: center; gap: 0.8rem;
+            padding: 0.85rem 0; border-top: 1px solid rgba(255,99,99,0.10);
+        }
+        .delete-list-item:first-child { border-top: none; }
         .delete-list-icon { flex-shrink: 0; color: rgba(255,140,140,0.75); }
         .delete-list-icon svg { width: 16px; height: 16px; }
         .delete-list-text { font-family: 'DM Sans', sans-serif; font-size: 0.84rem; color: rgba(237,223,192,0.80); }
@@ -5519,11 +5530,11 @@
             <div class="paywall-content">
                 <h2 class="paywall-title">Unlock AURA Pro</h2>
                 <ul class="paywall-features">
-                    <li>✨ 5 extra moods</li>
-                    <li>📜 Full history access</li>
-                    <li>🎨 No watermark</li>
-                    <li>🏷️ Name on card</li>
-                    <li>🌈 All themes</li>
+                    <li>5 extra moods</li>
+                    <li>Full history access</li>
+                    <li>No watermark</li>
+                    <li>Name on card</li>
+                    <li>All themes</li>
                 </ul>
             </div>
             
@@ -6905,7 +6916,7 @@ function updateXPDisplay() {
    IDENTITY EVOLUTION — full-screen cinematic rank-change experience
    ══════════════════════════════════════════════════════════ */
 const EVOLUTION_QUOTES = {
-    'Emotional Explorer':  'Every journey begins with awareness.',
+    'Emotional Explorer':  "You're learning to notice what you feel before it passes you by.",
     'Mind Wanderer':       "You're beginning to recognize the patterns behind your emotions.",
     'Inner Listener':      "You've learned to hear emotions that once passed unnoticed.",
     'Energy Navigator':    'You understand how your emotions shape your direction.',
@@ -6916,7 +6927,7 @@ const EVOLUTION_QUOTES = {
     'Emotional Oracle':    'You sense the shape of your feelings before they fully arrive.',
     'Aura Ascendant':      'Your emotional awareness has become a quiet kind of strength.',
     'Emotional Sovereign': 'You hold your inner world with steadiness and grace.',
-    'Inner Cosmos':        "You've reached a level of emotional wisdom built through consistent reflection.",
+    'Inner Cosmos':        "What once took real effort to notice, you now understand without trying.",
 };
 
 // Rarity tiers — escalating visual prestige across the 12-rank progression
@@ -7071,7 +7082,7 @@ document.addEventListener('click', async (e) => {
         blob,
         filename: 'aura-evolution.jpg',
         shareTitle: 'My AURA Evolution',
-        shareText: "I've evolved into " + _evoData.newTitle + ' on AURA ✨',
+        shareText: "I've evolved into " + _evoData.newTitle + ' on AURA',
         button: tgt,
     });
 });
@@ -7133,7 +7144,7 @@ function buildEvolutionCanvas(evoData) {
         /* 5. Eyebrow */
         ctx.fillStyle = 'rgba(237,223,192,0.55)';
         ctx.font = '700 26px "DM Sans"';
-        ctx.fillText("✨  I'VE EVOLVED", W/2, 205);
+        ctx.fillText("I'VE EVOLVED", W/2, 205);
 
         /* 6. Procedural orb (no per-rank artwork — rendered from tier palette) */
         const orbY = 470, orbR = 200;
@@ -7266,7 +7277,7 @@ const MOOD_IDENTITY_DESC = {
     anxious:      'Your mind is processing deep internal tension.',
     grinding:     'Your energy is locked into focused momentum.',
     calm:         'Your emotional atmosphere leans toward stillness.',
-    overthinking: 'Your pattern shows deep internal reflection.',
+    overthinking: 'Your mind keeps circling back, looking for something it hasn\'t found yet.',
     sad:          'Your heart is processing something quietly.',
     happy:        'Your energy carries warmth and openness.',
     numb:         'Your emotional frequency is quiet and still.',
@@ -8455,6 +8466,68 @@ function buildMonthlyReportCanvas(reportData) {
             cv.width = W; cv.height = H;
             const ctx = cv.getContext('2d');
 
+            // =====================================================================
+            // PREMIUM POSTER COMPOSITION — same treatment as the mood card and the
+            // Weekly Ritual card: this card occupies ~81.5% of the canvas, centered,
+            // with a minimal background behind it instead of filling the screen.
+            // This function draws a circular orb via ctx.arc(), so — same reasoning
+            // as Weekly Ritual — a single UNIFORM scale is used for both axes to
+            // avoid squashing that circle into an oval.
+            // =====================================================================
+            const MR_SCALE  = 0.815;
+            const MR_CARD_W = Math.round(W * MR_SCALE);
+            const MR_CARD_H = Math.round(H * MR_SCALE);
+            const mrCardX   = Math.round((W - MR_CARD_W) / 2);
+            const mrCardY   = Math.round((H - MR_CARD_H) / 2);
+            const MR_CARD_R = 88; // pre-scale; ×0.815 ≈ 72px final, matching the other cards
+
+            function mrCardRoundedRect(x, y, w, h, r) {
+                ctx.beginPath();
+                ctx.moveTo(x+r, y); ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+                ctx.lineTo(x+w, y+h-r); ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+                ctx.lineTo(x+r, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+                ctx.lineTo(x, y+r); ctx.quadraticCurveTo(x, y, x+r, y);
+                ctx.closePath();
+            }
+
+            const mrBgOuter = ctx.createLinearGradient(0, 0, 0, H);
+            mrBgOuter.addColorStop(0,   '#0d0812');
+            mrBgOuter.addColorStop(0.5, '#0a0710');
+            mrBgOuter.addColorStop(1,   '#06040a');
+            ctx.fillStyle = mrBgOuter;
+            ctx.fillRect(0, 0, W, H);
+
+            const mrOuterGlow = ctx.createRadialGradient(W/2, mrCardY + MR_CARD_H*0.35, 0, W/2, mrCardY + MR_CARD_H*0.35, W*0.75);
+            mrOuterGlow.addColorStop(0,   glow.replace(/[\d.]+\)$/, '0.14)'));
+            mrOuterGlow.addColorStop(0.6, glow.replace(/[\d.]+\)$/, '0.04)'));
+            mrOuterGlow.addColorStop(1,   'rgba(0,0,0,0)');
+            ctx.fillStyle = mrOuterGlow;
+            ctx.fillRect(0, 0, W, H);
+
+            ctx.save();
+            mrCardRoundedRect(mrCardX, mrCardY, MR_CARD_W, MR_CARD_H, MR_CARD_R * MR_SCALE);
+            ctx.fillStyle = 'rgba(0,0,0,0.001)';
+            ctx.shadowColor = 'rgba(0,0,0,0.55)';
+            ctx.shadowBlur = 90;
+            ctx.shadowOffsetY = 36;
+            ctx.fill();
+            ctx.restore();
+
+            ctx.save();
+            mrCardRoundedRect(mrCardX, mrCardY, MR_CARD_W, MR_CARD_H, MR_CARD_R * MR_SCALE);
+            ctx.strokeStyle = glow.replace(/[\d.]+\)$/, '0.35)');
+            ctx.lineWidth = 3;
+            ctx.shadowColor = glow.replace(/[\d.]+\)$/, '0.45)');
+            ctx.shadowBlur = 50;
+            ctx.stroke();
+            ctx.restore();
+
+            ctx.save();
+            ctx.translate(mrCardX, mrCardY);
+            ctx.scale(MR_SCALE, MR_SCALE);
+            mrCardRoundedRect(0, 0, W, H, MR_CARD_R);
+            ctx.clip();
+
             function roundedRect(x,y,w,h,r){
                 ctx.beginPath();
                 ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
@@ -8661,6 +8734,8 @@ function buildMonthlyReportCanvas(reportData) {
             ctx.fillStyle = 'rgba(232,213,176,0.55)';
             ctx.font = '600 24px "DM Sans"';
             ctx.fillText('AURA  ·  ' + monthLabel.toUpperCase() + ' EMOTIONAL RECAP', W/2, footerY);
+
+            ctx.restore(); // undo card translate+scale+clip
 
             resolve(cv);
         }
@@ -9474,7 +9549,7 @@ async function loadHistory() {
     if (!history || history.length === 0) {
         list.innerHTML = `<div class="empty-history">
             <span class="empty-history-icon">🌙</span>
-            <p>Your emotional journey starts here.</p>
+            <p>Nothing here yet.</p>
             <small>Generate your first mood status to begin building your timeline.</small>
         </div>`;
         window._allHistoryEntries = [];
@@ -9616,7 +9691,7 @@ function renderHistoryList(entries) {
               ">
                 <div class="history-card-glass-edge"></div>
                 <div class="history-card-header">
-                  <div class="history-mood" style="color:${wrColor}">✨ Weekly Ritual — Week ${item.weekNum || ''}</div>
+                  <div class="history-mood" style="color:${wrColor}">Weekly Ritual — Week ${item.weekNum || ''}</div>
                   <span style="font-size:0.50rem;font-weight:700;letter-spacing:0.10em;background:rgba(192,132,252,0.14);color:#c084fc;padding:2px 8px;border-radius:20px;">RITUAL</span>
                 </div>
                 <div class="history-text" style="color:rgba(237,223,192,0.70);font-style:italic;">"${item.storyTitle || ''}"</div>
@@ -10509,7 +10584,7 @@ async function populateInsights(targetYear, targetMonth) {
         // Dominant emotion
         if (el('insSumDomMood')) el('insSumDomMood').textContent = domLabel;
         if (el('insSumDomPct'))  {
-            el('insSumDomPct').textContent = domMoodKey ? `${domPct}% of your emotional journey` : 'Start logging to see your journey';
+            el('insSumDomPct').textContent = domMoodKey ? `${domPct}% of your entries so far` : 'Log a mood to see your patterns here';
             el('insSumDomPct').style.color = theme.accent;
         }
 
@@ -10766,7 +10841,7 @@ function generateEmotionalStory(monthEntries, moodCounts, streak, energyScore) {
 
     // Mood-specific opening line (1 sentence — the emotional hook)
     const hooks = {
-        numb:         'This month invited reflection more than reaction.',
+        numb:         'This month felt more still than stirred.',
         tired:        'This month asked more of you than it gave back.',
         growing:      'This month, something in you quietly kept moving forward.',
         motivated:    'This month carried a momentum that didn\'t need an audience.',
@@ -10827,7 +10902,7 @@ function generateMonthlyReflectionText(monthEntries, moodCounts, streak, monthLa
     const moodNarratives = {
         growing:      `This month was marked by progress. ${moodLabel} appeared more than any other emotion, suggesting a period of intentional change.`,
         motivated:    `This month carried real momentum. ${moodLabel} appeared more than any other emotion, suggesting drive that didn't need to be loud to be real.`,
-        numb:         `This month was quieter emotionally. ${moodLabel} appeared more than any other feeling, suggesting a period of observation and reflection.`,
+        numb:         `This month was quieter emotionally. ${moodLabel} appeared more than any other feeling, suggesting a few weeks spent more watchful than expressive.`,
         calm:         `This month settled into a steadier rhythm. ${moodLabel} appeared more than any other feeling, suggesting a season of genuine ease.`,
         happy:        `This month had real light in it. ${moodLabel} appeared more than any other feeling, suggesting moments worth holding onto.`,
         recovering:   `This month was about finding your footing again. ${moodLabel} appeared more than any other feeling, suggesting healing that's already underway.`,
@@ -12059,6 +12134,31 @@ function createWeeklyRitualOverlay() {
         border-color: rgba(192,132,252,0.45);
         color: #eddfc0;
     }
+    .wr-choice-custom {
+        border-style: dashed;
+        color: rgba(237,223,192,0.55);
+        font-style: italic;
+    }
+    .wr-choice-custom.selected { font-style: normal; }
+
+    .wr-custom-input-wrap {
+        width: 100%; max-width: 360px; margin-top: 0.7rem;
+        display: flex; flex-direction: column; gap: 0.4rem;
+    }
+    .wr-custom-textarea {
+        width: 100%; min-height: 92px; resize: none;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(192,132,252,0.32);
+        border-radius: 16px; padding: 0.9rem 1.1rem;
+        font-family: 'DM Sans', sans-serif; font-size: 0.88rem;
+        color: #eddfc0; line-height: 1.5;
+    }
+    .wr-custom-textarea::placeholder { color: rgba(237,223,192,0.35); }
+    .wr-custom-textarea:focus { outline: none; border-color: rgba(192,132,252,0.55); }
+    .wr-custom-charcount {
+        align-self: flex-end; font-family: 'DM Sans', sans-serif;
+        font-size: 0.68rem; color: rgba(237,223,192,0.35);
+    }
 
     /* ── Cinematic reveal ── */
     .wr-reveal-orb {
@@ -12229,12 +12329,12 @@ function createWeeklyRitualOverlay() {
 
     <!-- SCREEN 1: UNLOCK NOTICE -->
     <div class="wr-screen wr-screen-active" id="wrScreen1">
-        <div class="wr-eyebrow">✨ Weekly Ritual</div>
+        <div class="wr-eyebrow">Weekly Ritual</div>
         <div class="wr-orb-stage">
             <div class="wr-orb-ring" style="width:170px;height:170px;top:50%;left:50%;transform:translate(-50%,-50%);"></div>
             <div class="wr-orb-ring" style="width:200px;height:200px;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.5;animation-delay:0.8s;"></div>
             <div class="wr-orb-float">
-                <div class="wr-orb-core">✨</div>
+                <div class="wr-orb-core"></div>
             </div>
         </div>
         <div class="wr-headline">Your Weekly<br>Reflection<br>Is Ready</div>
@@ -12255,6 +12355,11 @@ function createWeeklyRitualOverlay() {
             <button class="wr-choice" data-choice="3">🔥 I felt motivated to make things happen.</button>
             <button class="wr-choice" data-choice="4">🌧️ This week demanded more energy than I expected.</button>
             <button class="wr-choice" data-choice="5">💛 I found moments of peace despite everything.</button>
+            <button class="wr-choice wr-choice-custom" data-choice="custom" id="wrChoiceCustom">None of these — let me write my own</button>
+        </div>
+        <div class="wr-custom-input-wrap" id="wrCustomInputWrap" style="display:none;">
+            <textarea class="wr-custom-textarea" id="wrCustomInput" maxlength="140" placeholder="Type how this week actually felt to you..."></textarea>
+            <div class="wr-custom-charcount" id="wrCustomCharCount">0 / 140</div>
         </div>
         <button class="wr-btn wr-btn-primary" id="wrBtn2" style="margin-top:1.4rem;opacity:0.35;pointer-events:none;">Continue</button>
     </div>
@@ -12274,7 +12379,7 @@ function createWeeklyRitualOverlay() {
 
     <!-- SCREEN 4: YOUR WEEK REVEALED -->
     <div class="wr-screen" id="wrScreen4">
-        <div class="wr-eyebrow" style="font-size:0.70rem;letter-spacing:0.14em;">✨ YOUR WEEK REVEALED ✨</div>
+        <div class="wr-eyebrow" style="font-size:0.70rem;letter-spacing:0.14em;">YOUR WEEK REVEALED</div>
         <img class="wr-recap-orb-img" id="wrRecapOrb" src="" alt=""/>
         <div class="wr-recap-mood" id="wrRecapMoodLabel">YOU SAID THIS WEEK...</div>
         <div class="wr-recap-chosen" id="wrRecapChosen" style="font-family:'Playfair Display',Georgia,serif;font-size:1.08rem;font-style:italic;color:rgba(237,223,192,0.92);line-height:1.5;text-align:center;margin:0.5rem 0 1rem;padding:0 0.5rem;"></div>
@@ -12346,9 +12451,16 @@ function populateWRRecap(weekData) {
     const storyTitle = getWeeklyStoryTitle(dominantMood);
     const reflection  = WEEKLY_REFLECTIONS[dominantMood] || 'This week was yours. Every feeling counted.';
 
-    // Read the statement the user chose on screen 2
+    // Read the statement the user chose on screen 2 — either a preset button's
+    // text, or (if they picked "write my own") whatever they actually typed.
     const chosenBtn = document.querySelector('.wr-choice.selected');
-    const chosenText = chosenBtn ? chosenBtn.textContent.trim() : '';
+    const wrCustomInputEl = document.getElementById('wrCustomInput');
+    let chosenText = '';
+    if (chosenBtn && chosenBtn.id === 'wrChoiceCustom') {
+        chosenText = (wrCustomInputEl && wrCustomInputEl.value.trim()) || '';
+    } else {
+        chosenText = chosenBtn ? chosenBtn.textContent.trim() : '';
+    }
 
     // Store for sharing — now includes chosenText, which the old share card never had access to
     window._wrData = { ...weekData, storyTitle, reflection, chosenText };
@@ -12462,17 +12574,47 @@ function wireWeeklyRitual(weekData) {
     document.getElementById('wrSkip1').addEventListener('click', closeWeeklyRitual);
 
     // Screen 2: choice selection
+    const wrCustomWrap  = document.getElementById('wrCustomInputWrap');
+    const wrCustomInput = document.getElementById('wrCustomInput');
+    const wrCustomCount = document.getElementById('wrCustomCharCount');
+    const wrContinueBtn = document.getElementById('wrBtn2');
+
+    function wrSetContinueEnabled(enabled) {
+        if (!wrContinueBtn) return;
+        wrContinueBtn.style.opacity = enabled ? '1' : '0.35';
+        wrContinueBtn.style.pointerEvents = enabled ? 'auto' : 'none';
+    }
+
     document.querySelectorAll('.wr-choice').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.wr-choice').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
-            const continueBtn = document.getElementById('wrBtn2');
-            if (continueBtn) {
-                continueBtn.style.opacity = '1';
-                continueBtn.style.pointerEvents = 'auto';
+
+            if (btn.id === 'wrChoiceCustom') {
+                // "Write my own" is different from the rest — it doesn't have an
+                // answer yet, it just opens the door to one. Continue stays
+                // disabled until actual text is typed.
+                if (wrCustomWrap) wrCustomWrap.style.display = 'flex';
+                if (wrCustomInput) wrCustomInput.focus();
+                wrSetContinueEnabled(!!(wrCustomInput && wrCustomInput.value.trim()));
+            } else {
+                // A preset was chosen — collapse and clear any custom text so
+                // it can't accidentally leak into the final result later.
+                if (wrCustomWrap) wrCustomWrap.style.display = 'none';
+                if (wrCustomInput) wrCustomInput.value = '';
+                if (wrCustomCount) wrCustomCount.textContent = '0 / 140';
+                wrSetContinueEnabled(true);
             }
         });
     });
+
+    if (wrCustomInput) {
+        wrCustomInput.addEventListener('input', () => {
+            const len = wrCustomInput.value.length;
+            if (wrCustomCount) wrCustomCount.textContent = `${len} / 140`;
+            wrSetContinueEnabled(wrCustomInput.value.trim().length > 0);
+        });
+    }
 
     // Screen 2 → 3 (cinematic reveal)
     document.getElementById('wrBtn2').addEventListener('click', () => {
@@ -12494,7 +12636,7 @@ function wireWeeklyRitual(weekData) {
             blob,
             filename: 'aura-week.jpg',
             shareTitle: 'My AURA Week',
-            shareText: `✨ My AURA Week Revealed ✨\n${window._wrData?.storyTitle || ''}\nCreated with AURA`,
+            shareText: `My AURA Week Revealed\n${window._wrData?.storyTitle || ''}\nCreated with AURA`,
             button: btn,
         });
     });
@@ -12558,6 +12700,77 @@ async function buildWRShareCard() {
     const accent = getMoodAccent(mood);
     const glow   = getMoodGlow(mood);
 
+    // =====================================================================
+    // PREMIUM POSTER COMPOSITION — same idea as the mood card: this card
+    // occupies a little over 80% of the canvas, centered, with a minimal
+    // background behind it instead of filling the whole screen.
+    //
+    // This function draws a circular orb via ctx.arc(), so unlike the mood
+    // card (which used manual coordinate substitution), this one uses a
+    // single UNIFORM ctx.scale() for both axes — a non-uniform scale would
+    // squash that circle into an oval. Uniform scale means equal margins on
+    // all four sides rather than independently-chosen width/height insets,
+    // which is a fine trade for "zero distortion risk."
+    // =====================================================================
+    const SCALE  = 0.815;
+    const CARD_W = Math.round(W * SCALE);
+    const CARD_H = Math.round(H * SCALE);
+    const cardX  = Math.round((W - CARD_W) / 2);
+    const cardY  = Math.round((H - CARD_H) / 2);
+    const CARD_R = 88; // pre-scale radius; ×0.815 ≈ 72px final, matching the mood card
+
+    function wrCardRoundedRect(x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x+r, y); ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+        ctx.lineTo(x+w, y+h-r); ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+        ctx.lineTo(x+r, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+        ctx.lineTo(x, y+r); ctx.quadraticCurveTo(x, y, x+r, y);
+        ctx.closePath();
+    }
+
+    // ── Minimal outer background (the canvas, not the card) ──
+    const bgOuter = ctx.createLinearGradient(0, 0, 0, H);
+    bgOuter.addColorStop(0,   '#0d0812');
+    bgOuter.addColorStop(0.5, '#0a0710');
+    bgOuter.addColorStop(1,   '#06040a');
+    ctx.fillStyle = bgOuter;
+    ctx.fillRect(0, 0, W, H);
+
+    const outerGlow = ctx.createRadialGradient(W/2, cardY + CARD_H*0.35, 0, W/2, cardY + CARD_H*0.35, W*0.75);
+    outerGlow.addColorStop(0,   glow.replace(/[\d.]+\)$/, '0.14)'));
+    outerGlow.addColorStop(0.6, glow.replace(/[\d.]+\)$/, '0.04)'));
+    outerGlow.addColorStop(1,   'rgba(0,0,0,0)');
+    ctx.fillStyle = outerGlow;
+    ctx.fillRect(0, 0, W, H);
+
+    // ── Card elevation — soft shadow + mood-tinted border glow ──
+    ctx.save();
+    wrCardRoundedRect(cardX, cardY, CARD_W, CARD_H, CARD_R * SCALE);
+    ctx.fillStyle = 'rgba(0,0,0,0.001)';
+    ctx.shadowColor = 'rgba(0,0,0,0.55)';
+    ctx.shadowBlur = 90;
+    ctx.shadowOffsetY = 36;
+    ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    wrCardRoundedRect(cardX, cardY, CARD_W, CARD_H, CARD_R * SCALE);
+    ctx.strokeStyle = glow.replace(/[\d.]+\)$/, '0.35)');
+    ctx.lineWidth = 3;
+    ctx.shadowColor = glow.replace(/[\d.]+\)$/, '0.45)');
+    ctx.shadowBlur = 50;
+    ctx.stroke();
+    ctx.restore();
+
+    // ── Clip to the card, scale uniformly, then draw everything below
+    // exactly as before — the scale transform handles the size change,
+    // no coordinate math in the existing drawing code needs to change. ──
+    ctx.save();
+    ctx.translate(cardX, cardY);
+    ctx.scale(SCALE, SCALE);
+    wrCardRoundedRect(0, 0, W, H, CARD_R);
+    ctx.clip();
+
     // Background
     ctx.fillStyle = '#08060f';
     ctx.fillRect(0, 0, W, H);
@@ -12583,7 +12796,7 @@ async function buildWRShareCard() {
     ctx.fill();
     ctx.fillStyle = '#c084fc';
     ctx.font = '700 30px "DM Sans"';
-    ct('✨ YOUR WEEK REVEALED ✨', W/2, y);
+    ct('YOUR WEEK REVEALED', W/2, y);
     y += 90;
 
     // ── ORB ──
@@ -12688,6 +12901,8 @@ async function buildWRShareCard() {
     ctx.fillStyle = 'rgba(237,223,192,0.28)';
     ctx.font = '600 30px "DM Sans"';
     ct('AURA  ·  EMOTIONAL JOURNEY', W/2, footerY);
+
+    ctx.restore(); // undo card translate+scale+clip
 
     return new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.92));
 }
@@ -13438,7 +13653,7 @@ async function saveToHistory(entry) {
                     <div class="notif-card-row">
                         <div class="notif-card-text">
                             <div class="notif-card-title">Daily Reflection Ritual</div>
-                            <div class="notif-card-desc">A gentle invitation to reconnect with yourself, twice a day.</div>
+                            <div class="notif-card-desc">Two check-ins a day: one to start, one to close the loop.</div>
                         </div>
                         <div class="notif-toggle" id="notifDailyToggle" role="switch" aria-checked="false">
                             <div class="notif-toggle-knob"></div>
@@ -13462,7 +13677,7 @@ async function saveToHistory(entry) {
                             <div>
                                 <div class="notif-time-label">Night Check-in</div>
                                 <div class="notif-time-value" id="notifNightTimeValue">9:00 PM</div>
-                                <div class="notif-time-hint">A gentle nudge to check in, only if you haven't yet today</div>
+                                <div class="notif-time-hint">Only sent if you haven't logged anything yet today</div>
                             </div>
                             <div class="notif-time-chevron">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
@@ -13488,7 +13703,7 @@ async function saveToHistory(entry) {
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
                             </div>
                             <div class="notif-permission-text">
-                                It looks like notifications are turned off in your device settings. You can enable them anytime to receive your gentle reminders.
+                                It looks like notifications are turned off in your device settings. You can turn them back on anytime.
                             </div>
                         </div>
                     </div>
@@ -13733,7 +13948,7 @@ async function saveToHistory(entry) {
                 </div>
             </div>
 
-            <div class="about-footer">Made with ❤️ to help people reconnect with themselves.</div>
+            <div class="about-footer">Made with ❤️ for the quiet moments between everything else.</div>
         </div>
     </div>
 
@@ -13824,7 +14039,7 @@ async function saveToHistory(entry) {
                 <div class="evo-orb-icon" id="evoOrbIcon"></div>
             </div>
 
-            <div class="evo-eyebrow">✨ You've Evolved</div>
+            <div class="evo-eyebrow">You've Evolved</div>
 
             <div class="evo-identity-stage">
                 <div class="evo-prev-identity" id="evoPrevIdentity"></div>

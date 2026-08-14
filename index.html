@@ -9095,7 +9095,12 @@ async function loadUserData(uid) {
 
             // Patch any missing fields on old docs silently
             const missing = {};
-            if (remote.rank              === undefined) missing.rank              = 'Emotional Explorer';
+            // Compute from actual XP rather than hardcoding the lowest tier —
+            // a returning user with real progress should never get silently
+            // demoted to "Emotional Explorer" just because this field was
+            // missing on their doc (e.g. from an older doc version, or from
+            // a partial write). getRank() is defined earlier in this file.
+            if (remote.rank              === undefined) missing.rank              = getRank(remote.xp || 0).title;
             if (remote.unlockedMilestones=== undefined) missing.unlockedMilestones= [];
             if (remote.lastUsed          === undefined) missing.lastUsed          = null;
             if (remote.dailyCount        === undefined) missing.dailyCount        = 0;
@@ -11460,6 +11465,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // achievements, favorites, preferences — every field that document
     // holds), then the Firebase Authentication account itself. Returns a
     // small result object rather than throwing, so the UI can react calmly.
+    //
+    // Important: this function assumes the session is ALREADY fresh — the
+    // caller (the click handler below) reauthenticates first, before ever
+    // calling this. That ordering matters: reauthenticating only AFTER a
+    // failed delete attempt (the old approach) meant the Firestore deletes
+    // could already have succeeded by the time deleteUser() failed with
+    // auth/requires-recent-login, leaving the account half-deleted if the
+    // retry never completed (e.g. the reauth popup got interrupted by a
+    // page reload, which mobile browsers can trigger). Reauthenticating
+    // up front removes that gap entirely — nothing is deleted until a
+    // fresh login is already confirmed.
     async function performAccountDeletion() {
         const auth = window.firebaseAuth;
         const db   = window.firebaseDB;
@@ -11477,10 +11493,29 @@ document.addEventListener('DOMContentLoaded', () => {
             return { success: true };
         } catch (err) {
             if (err && err.code === 'auth/requires-recent-login') {
+                // Shouldn't normally happen since the caller reauthenticates
+                // first, but session freshness can still lapse if the user
+                // sits on the confirmation screen for several minutes before
+                // clicking. Surface it distinctly so the click handler can
+                // retry the reauth-then-delete sequence once more.
                 return { success: false, error: 'reauth-required' };
             }
             console.error('Account deletion error:', err);
             return { success: false, error: (err && err.message) || 'unknown' };
+        }
+    }
+
+    // Reauthenticates via the Google popup. Returns true on success, false
+    // if the user cancels the popup or it fails for any other reason.
+    async function reauthenticateForDeletion() {
+        try {
+            const fns  = window.firebaseFns;
+            const auth = window.firebaseAuth;
+            await fns.reauthenticateWithPopup(auth.currentUser, window.googleProvider);
+            return true;
+        } catch (err) {
+            console.error('Reauthentication error:', err);
+            return false;
         }
     }
 
@@ -11499,6 +11534,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
             deleteConfirmBtn.disabled    = true;
             deleteCancelBtn.disabled     = true;
+            deleteConfirmBtn.textContent = 'Confirming it\u2019s you\u2026';
+            if (deleteStatusEl) {
+                deleteStatusEl.textContent = 'Please confirm with Google to continue.';
+                deleteStatusEl.classList.remove('is-error');
+            }
+
+            // Reauthenticate FIRST, unconditionally, before touching any
+            // data. This is the one popup you'll see — after this succeeds,
+            // deletion runs straight through without needing a second one.
+            const reauthOk = await reauthenticateForDeletion();
+            if (!reauthOk) {
+                if (deleteStatusEl) {
+                    deleteStatusEl.textContent = 'Google sign-in was cancelled or failed. Nothing was deleted — try again.';
+                    deleteStatusEl.classList.add('is-error');
+                }
+                deleteCancelBtn.disabled     = false;
+                deleteConfirmBtn.textContent = 'Delete Forever';
+                checkDeleteEmailMatch();
+                return;
+            }
+
             deleteConfirmBtn.textContent = 'Deleting…';
             if (deleteStatusEl) {
                 deleteStatusEl.textContent = 'Deleting your account…';
@@ -11507,18 +11563,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let result = await performAccountDeletion();
 
-            // Firebase requires a recent sign-in for account deletion; if the
-            // session is older, re-authenticate once via Google and retry.
+            // Very rare: session went stale again in the few seconds between
+            // reauth and delete (e.g. user sat idle on a slow connection).
+            // One retry of the same reauth-then-delete sequence, then stop.
             if (!result.success && result.error === 'reauth-required') {
-                if (deleteStatusEl) deleteStatusEl.textContent = 'For your security, please sign in again to confirm.';
-                try {
-                    const fns  = window.firebaseFns;
-                    const auth = window.firebaseAuth;
-                    await fns.reauthenticateWithPopup(auth.currentUser, window.googleProvider);
-                    result = await performAccountDeletion();
-                } catch (reauthErr) {
-                    result = { success: false, error: (reauthErr && reauthErr.message) || 'reauth-failed' };
-                }
+                const retryOk = await reauthenticateForDeletion();
+                if (retryOk) result = await performAccountDeletion();
             }
 
             if (result.success) {

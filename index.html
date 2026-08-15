@@ -472,6 +472,31 @@
         .sc-fav-icon.active { color: #ff6eb0; }
         .sc-fav-icon:active { transform: scale(1.4); }
 
+        /* ── OFFLINE BANNER ── */
+        /* AURA needs a connection for everything (auth, Firestore, no local-only
+           mode), so this is deliberately just a clear heads-up, not real offline
+           support — it tells the person what's going on rather than leaving them
+           looking at a screen that silently fails to load or save. */
+        .offline-banner {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 99999;
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+            padding: 0.6rem 1rem;
+            padding-top: calc(0.6rem + env(safe-area-inset-top, 0px));
+            background: rgba(120, 20, 20, 0.95);
+            backdrop-filter: blur(8px);
+            font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600;
+            color: rgba(255,235,235,0.95);
+            transform: translateY(-100%);
+            transition: transform 220ms ease;
+            pointer-events: none;
+        }
+        .offline-banner.visible { transform: translateY(0); }
+        .offline-banner-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: #ff6b6b; flex-shrink: 0;
+            box-shadow: 0 0 6px rgba(255,107,107,0.8);
+        }
+
         /* ── BOTTOM NAVIGATION ── */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0;
@@ -5364,6 +5389,11 @@
             font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 700;
             color: rgba(255,140,140,0.90); letter-spacing: 0.01em;
         }
+        .delete-next-step-note {
+            width: 92%; margin: 0.5rem auto 0; text-align: center;
+            font-family: 'DM Sans', sans-serif; font-size: 0.78rem; line-height: 1.5;
+            color: rgba(237,223,192,0.55);
+        }
 
         .delete-actions { width: 92%; margin: 0 auto; display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.4rem; }
         .delete-btn {
@@ -5429,6 +5459,11 @@
 </style>
 </head>
 <body>
+
+<div id="offlineBanner" class="offline-banner" role="status" aria-live="polite">
+    <span class="offline-banner-dot"></span>
+    You're offline — check your connection.
+</div>
 
 <div id="appRoot">
 
@@ -5513,7 +5548,7 @@
         <div class="modal-box paywall-box">
             <div class="modal-top">
                 <span class="modal-label">AURA Pro</span>
-                <button class="close-btn" id="closePaywallBtn">&times;</button>
+                <button class="close-btn" id="closePaywallBtn" aria-label="Close">&times;</button>
             </div>
             
             <div class="paywall-content">
@@ -5597,19 +5632,19 @@
                 <p class="app-sub">What's your state right now?</p>
             </div>
             <div class="mood-group">
-                <button class="mood-btn" data-mood="tired"><span class="mood-btn-icon"><img id="btn-icon-tired" style="width:26px;height:26px;object-fit:contain"/></span>Tired</button>
-                <button class="mood-btn" data-mood="motivated"><span class="mood-btn-icon"><img id="btn-icon-motivated" style="width:26px;height:26px;object-fit:contain"/></span>Motivated</button>
-                <button class="mood-btn" data-mood="lost"><span class="mood-btn-icon"><img id="btn-icon-lost" style="width:26px;height:26px;object-fit:contain"/></span>Lost</button>
-                <button class="mood-btn locked" data-mood="angry"><span class="mood-btn-icon"><img id="btn-icon-angry" style="width:26px;height:26px;object-fit:contain"/></span>Angry 🔒 <span class="pro-badge">PRO</span></button>
-                <button class="mood-btn locked" data-mood="anxious"><span class="mood-btn-icon"><img id="btn-icon-anxious" style="width:26px;height:26px;object-fit:contain"/></span>Anxious 🔒 <span class="pro-badge">PRO</span></button>
-                <button class="mood-btn locked" data-mood="grinding"><span class="mood-btn-icon"><img id="btn-icon-grinding" style="width:26px;height:26px;object-fit:contain"/></span>Grinding 🔒 <span class="pro-badge">PRO</span></button>
-                <button class="mood-btn locked" data-mood="calm"><span class="mood-btn-icon"><img id="btn-icon-calm" style="width:26px;height:26px;object-fit:contain"/></span>Calm 🔒 <span class="pro-badge">PRO</span></button>
-                <button class="mood-btn locked" data-mood="overthinking"><span class="mood-btn-icon"><img id="btn-icon-overthinking" style="width:26px;height:26px;object-fit:contain"/></span>Overthinking 🔒 <span class="pro-badge">PRO</span></button>
-                <button class="mood-btn locked" data-mood="sad"><span class="mood-btn-icon"><img id="btn-icon-sad" style="width:26px;height:26px;object-fit:contain"/></span>Sad 🔒 <span class="pro-badge">PRO</span></button>
-                <button class="mood-btn locked" data-mood="happy"><span class="mood-btn-icon"><img id="btn-icon-happy" style="width:26px;height:26px;object-fit:contain"/></span>Happy 🔒 <span class="pro-badge">PRO</span></button>
-                <button class="mood-btn locked" data-mood="numb"><span class="mood-btn-icon"><img id="btn-icon-numb" style="width:26px;height:26px;object-fit:contain"/></span>Numb 🔒 <span class="pro-badge">PRO</span></button>
-                <button class="mood-btn locked" data-mood="recovering"><span class="mood-btn-icon"><img id="btn-icon-recovering" style="width:26px;height:26px;object-fit:contain"/></span>Recovering 🔒 <span class="pro-badge">PRO</span></button>
-                <button class="mood-btn locked mood-btn-last" data-mood="growing"><span class="mood-btn-icon"><img id="btn-icon-growing" style="width:26px;height:26px;object-fit:contain"/></span>Growing 🔒 <span class="pro-badge">PRO</span></button>
+                <button class="mood-btn" data-mood="tired"><span class="mood-btn-icon"><img id="btn-icon-tired" alt="" style="width:26px;height:26px;object-fit:contain"/></span>Tired</button>
+                <button class="mood-btn" data-mood="motivated"><span class="mood-btn-icon"><img id="btn-icon-motivated" alt="" style="width:26px;height:26px;object-fit:contain"/></span>Motivated</button>
+                <button class="mood-btn" data-mood="lost"><span class="mood-btn-icon"><img id="btn-icon-lost" alt="" style="width:26px;height:26px;object-fit:contain"/></span>Lost</button>
+                <button class="mood-btn locked" data-mood="angry"><span class="mood-btn-icon"><img id="btn-icon-angry" alt="" style="width:26px;height:26px;object-fit:contain"/></span>Angry 🔒 <span class="pro-badge">PRO</span></button>
+                <button class="mood-btn locked" data-mood="anxious"><span class="mood-btn-icon"><img id="btn-icon-anxious" alt="" style="width:26px;height:26px;object-fit:contain"/></span>Anxious 🔒 <span class="pro-badge">PRO</span></button>
+                <button class="mood-btn locked" data-mood="grinding"><span class="mood-btn-icon"><img id="btn-icon-grinding" alt="" style="width:26px;height:26px;object-fit:contain"/></span>Grinding 🔒 <span class="pro-badge">PRO</span></button>
+                <button class="mood-btn locked" data-mood="calm"><span class="mood-btn-icon"><img id="btn-icon-calm" alt="" style="width:26px;height:26px;object-fit:contain"/></span>Calm 🔒 <span class="pro-badge">PRO</span></button>
+                <button class="mood-btn locked" data-mood="overthinking"><span class="mood-btn-icon"><img id="btn-icon-overthinking" alt="" style="width:26px;height:26px;object-fit:contain"/></span>Overthinking 🔒 <span class="pro-badge">PRO</span></button>
+                <button class="mood-btn locked" data-mood="sad"><span class="mood-btn-icon"><img id="btn-icon-sad" alt="" style="width:26px;height:26px;object-fit:contain"/></span>Sad 🔒 <span class="pro-badge">PRO</span></button>
+                <button class="mood-btn locked" data-mood="happy"><span class="mood-btn-icon"><img id="btn-icon-happy" alt="" style="width:26px;height:26px;object-fit:contain"/></span>Happy 🔒 <span class="pro-badge">PRO</span></button>
+                <button class="mood-btn locked" data-mood="numb"><span class="mood-btn-icon"><img id="btn-icon-numb" alt="" style="width:26px;height:26px;object-fit:contain"/></span>Numb 🔒 <span class="pro-badge">PRO</span></button>
+                <button class="mood-btn locked" data-mood="recovering"><span class="mood-btn-icon"><img id="btn-icon-recovering" alt="" style="width:26px;height:26px;object-fit:contain"/></span>Recovering 🔒 <span class="pro-badge">PRO</span></button>
+                <button class="mood-btn locked mood-btn-last" data-mood="growing"><span class="mood-btn-icon"><img id="btn-icon-growing" alt="" style="width:26px;height:26px;object-fit:contain"/></span>Growing 🔒 <span class="pro-badge">PRO</span></button>
             </div>
             <button id="generateBtn" class="gen-btn" disabled><span>Generate My Status</span><span class="gen-btn-icon">✦</span></button>
         </div>
@@ -5619,6 +5654,82 @@
 
     <!-- Detailed Identity Section (secondary / scroll to discover) -->
 <script>
+/* ═══════════════════════════════════════════════════════════════════
+   LIGHTWEIGHT ERROR LOGGING
+   ───────────────────────────────────────────────────────────────────
+   No native crash reporting SDK (Crashlytics etc.) is wired up — that
+   needs Android Studio/Gradle configuration this project doesn't have
+   yet. This is a low-cost substitute: catch unhandled JS errors and
+   promise rejections, and write a small record of each one to a
+   dedicated `app_errors` Firestore collection. Check that collection
+   in Firebase Console to see what's actually breaking for real users,
+   without needing a native build or any third-party service.
+
+   Deliberately minimal:
+     - Only logs while a user is signed in (matches this app's existing
+       "deny by default" Firestore rules posture — no new unauthenticated
+       write path to worry about).
+     - Capped at MAX_ERRORS_PER_SESSION so a broken loop throwing
+       thousands of times can't flood Firestore or blow through quota.
+     - No personal data — just the error message, a truncated stack,
+       which screen/mood it happened on, and the uid (so repeat issues
+       for one account are traceable without storing anything sensitive).
+   ═══════════════════════════════════════════════════════════════════ */
+let _errorLogCount = 0;
+const MAX_ERRORS_PER_SESSION = 5;
+
+function logAppError(context, error) {
+    try {
+        if (_errorLogCount >= MAX_ERRORS_PER_SESSION) return;
+        const auth = window.firebaseAuth;
+        const db   = window.firebaseDB;
+        const fns  = window.firebaseFns;
+        const uid  = auth?.currentUser?.uid;
+        // Only log while signed in — see note above on why.
+        if (!uid || !db || !fns) return;
+
+        _errorLogCount++;
+        const message = String((error && error.message) || error || 'Unknown error').slice(0, 500);
+        const stack   = String((error && error.stack) || '').slice(0, 2000);
+
+        const { doc, setDoc } = fns;
+        const errorId = `${uid}_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+        setDoc(doc(db, 'app_errors', errorId), {
+            uid,
+            message,
+            stack,
+            context: String(context || 'unknown').slice(0, 200),
+            url: String(window.location.href || '').slice(0, 300),
+            userAgent: String(navigator.userAgent || '').slice(0, 300),
+            timestamp: Date.now()
+        }).catch(() => { /* logging must never itself throw or surface to the user */ });
+    } catch (e) { /* swallow — a broken logger should never break the app it's watching */ }
+}
+
+window.addEventListener('error', (event) => {
+    logAppError(`window.onerror @ ${event.filename || 'unknown'}:${event.lineno || '?'}`, event.error || event.message);
+});
+window.addEventListener('unhandledrejection', (event) => {
+    logAppError('unhandledrejection', event.reason);
+});
+
+/* ── OFFLINE BANNER ── */
+/* AURA has no offline mode — every action needs Firestore/Auth — so this
+   just tells the person clearly when they've lost connection instead of
+   leaving them looking at a screen that silently fails to load or save. */
+function updateOfflineBanner() {
+    const banner = document.getElementById('offlineBanner');
+    if (!banner) return;
+    banner.classList.toggle('visible', !navigator.onLine);
+}
+window.addEventListener('online',  updateOfflineBanner);
+window.addEventListener('offline', updateOfflineBanner);
+document.addEventListener('DOMContentLoaded', updateOfflineBanner);
+// In case this script runs after DOMContentLoaded already fired (e.g. a
+// deferred/late script tag), check immediately too rather than only
+// waiting on an event that may never fire again this page load.
+if (document.readyState !== 'loading') updateOfflineBanner();
+
 /* ── DATA ── */
 const MOOD_EMOJIS = { tired: '😴', motivated: '💪', lost: '🌙', angry: '😤', anxious: '😰', grinding: '🔥', calm: '🌊', sad: '😢', overthinking: '💭', happy: '😊', numb: '😶', recovering: '🌿', growing: '🌱' };
 
@@ -7343,10 +7454,16 @@ function initBottomNav() {
 }
 
 function setNavActive(tab) {
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => {
+        b.classList.remove('active');
+        b.removeAttribute('aria-current');
+    });
     const map = { home: 'navHome', history: 'navHistory', insights: 'navInsights', profile: 'navProfile' };
     const el = $(map[tab]);
-    if (el) el.classList.add('active');
+    if (el) {
+        el.classList.add('active');
+        el.setAttribute('aria-current', 'page'); // lets screen readers announce which tab is selected, mirroring the visual highlight
+    }
 }
 function applyMoodStyle(mood) {
     const s = MOOD_STYLES[mood]; if (!s) return;
@@ -7456,7 +7573,7 @@ async function processGeneration() {
     const _OBJ_POS = { growing:'43% 50%', motivated:'45% 56%', tired:'45% 50%', calm:'50% 56%', happy:'53% 56%', grinding:'55% 52%' };
     const _objPos = _OBJ_POS[selectedMood] || '50% 50%';
     moodEmoji.innerHTML = moodSrc
-        ? `<div class="symbol-3d"><div class="sym-layer sym-shadow"></div><div class="sym-layer sym-bg"></div><div class="sym-layer sym-mid"><img src="${moodSrc}" style="width:150px;height:150px;object-fit:cover;object-position:${_objPos};border-radius:50%;display:block;filter:drop-shadow(0 0 28px var(--mood-glow, rgba(255,255,255,0.32)))"/></div><div class="sym-layer sym-top"></div></div>`
+        ? `<div class="symbol-3d"><div class="sym-layer sym-shadow"></div><div class="sym-layer sym-bg"></div><div class="sym-layer sym-mid"><img src="${moodSrc}" alt="${selectedMood} mood orb" style="width:150px;height:150px;object-fit:cover;object-position:${_objPos};border-radius:50%;display:block;filter:drop-shadow(0 0 28px var(--mood-glow, rgba(255,255,255,0.32)))"/></div><div class="sym-layer sym-top"></div></div>`
         : MOOD_EMOJIS[selectedMood] || '';
     moodEmoji.style.setProperty('--mood-glow', MOOD_STYLES[selectedMood]?.moodGlow || 'rgba(255,255,255,0.30)');
     $('statusTitle').textContent = generated.title;
@@ -9244,7 +9361,7 @@ function hexToRgba(hex, alpha) {
 function getMoodIconMini(mood) {
     const src = MOOD_SVG[mood];
     if (!src) return '✦';
-    return `<span style="display:inline-flex;align-items:center;width:18px;height:18px;vertical-align:middle;flex-shrink:0"><img src="${src}" style="width:18px;height:18px;object-fit:contain"/></span>`;
+    return `<span style="display:inline-flex;align-items:center;width:18px;height:18px;vertical-align:middle;flex-shrink:0"><img src="${src}" alt="" style="width:18px;height:18px;object-fit:contain"/></span>`;
 }
 
 /* ── SHARED: FETCH RAW HISTORY + FAVORITES FROM FIRESTORE ── */
@@ -9658,7 +9775,7 @@ function applyHistoryFilters() {
                 autocomplete="off"
                 spellcheck="false"
             />
-            <button class="history-search-clear hidden" id="historySearchClear">✕</button>
+            <button class="history-search-clear hidden" id="historySearchClear" aria-label="Clear search">✕</button>
         </div>
 
         <!-- Mood filter chips -->
@@ -9695,7 +9812,7 @@ function applyHistoryFilters() {
             <div class="hd-mood-row" id="hdMoodRow"></div>
             <div style="display:flex;align-items:center;gap:0.5rem">
                 <button class="hd-fav-btn" id="hdFavBtn" aria-label="Favorite">♥</button>
-                <button class="hd-close" id="hdCloseBtn">✕</button>
+                <button class="hd-close" id="hdCloseBtn" aria-label="Close">✕</button>
             </div>
         </div>
         <div class="hd-body">
@@ -9763,9 +9880,9 @@ function applyHistoryFilters() {
 
     <!-- Month navigation -->
     <div class="ins-month-nav">
-        <button class="ins-month-nav-btn" id="insMonthPrev">←</button>
+        <button class="ins-month-nav-btn" id="insMonthPrev" aria-label="Previous month">←</button>
         <div class="ins-month-nav-label" id="insMonthNavLabel">June 2026</div>
-        <button class="ins-month-nav-btn" id="insMonthNext">→</button>
+        <button class="ins-month-nav-btn" id="insMonthNext" aria-label="Next month">→</button>
     </div>
 
     <!-- Single summary card -->
@@ -9876,7 +9993,7 @@ function applyHistoryFilters() {
                 <div class="ins-prog-stage-label">Current</div>
                 <div class="ins-prog-stage-name" id="insProgCurName">—</div>
             </div>
-            <div class="ins-prog-arrow">→</div>
+            <div class="ins-prog-arrow" aria-hidden="true">→</div>
             <div class="ins-prog-stage next">
                 <div class="ins-prog-icon" id="insProgNextIcon">✦</div>
                 <div class="ins-prog-stage-label">Next</div>
@@ -12698,7 +12815,7 @@ async function saveToHistory(entry) {
 </div><!-- /appScreen -->
 </div><!-- /appRoot -->    <!-- Bottom Navigation -->
     <nav id="bottomNav" class="bottom-nav hidden">
-        <button class="nav-btn active" data-nav="home" id="navHome">
+        <button class="nav-btn active" data-nav="home" id="navHome" aria-current="page">
             <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 4l9 8"/><path d="M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg>
             <span class="nav-lbl">Home</span>
         </button>
@@ -13723,6 +13840,8 @@ async function saveToHistory(entry) {
 
             <div class="delete-warning">This cannot be undone.</div>
 
+            <div class="delete-next-step-note">On the next step, Google will ask you to choose an account — be sure to select the Gmail linked to this AURA account to confirm the deletion.</div>
+
             <div class="delete-actions">
                 <button class="delete-btn delete-btn-confirm" id="deleteConfirmBtn">Delete Forever</button>
                 <button class="delete-btn delete-btn-cancel" id="deleteCancelBtn">Cancel</button>
@@ -13755,7 +13874,7 @@ async function saveToHistory(entry) {
 
             <div class="evo-identity-stage">
                 <div class="evo-prev-identity" id="evoPrevIdentity"></div>
-                <div class="evo-arrow">↓</div>
+                <div class="evo-arrow" aria-hidden="true">↓</div>
                 <div class="evo-new-identity" id="evoNewIdentity"></div>
             </div>
 

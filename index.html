@@ -5365,26 +5365,6 @@
             color: rgba(255,140,140,0.90); letter-spacing: 0.01em;
         }
 
-        .delete-confirm-email { width: 92%; margin: 0 auto; display: flex; flex-direction: column; gap: 0.5rem; }
-        .delete-confirm-email-label {
-            font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 600;
-            color: rgba(237,223,192,0.62); letter-spacing: 0.01em;
-        }
-        .delete-confirm-email-input {
-            width: 100%; padding: 0.85rem 1rem; border-radius: 16px;
-            background: rgba(255,99,99,0.06); border: 1px solid rgba(255,99,99,0.28);
-            font-family: 'DM Sans', sans-serif; font-size: 0.9rem; color: rgba(237,223,192,0.92);
-            outline: none; transition: border-color 150ms ease, background 150ms ease;
-        }
-        .delete-confirm-email-input::placeholder { color: rgba(237,223,192,0.28); }
-        .delete-confirm-email-input:focus { border-color: rgba(255,140,140,0.55); background: rgba(255,99,99,0.09); }
-        .delete-confirm-email-input.is-match { border-color: rgba(120,220,150,0.55); background: rgba(120,220,150,0.07); }
-        .delete-confirm-email-hint {
-            font-family: 'DM Sans', sans-serif; font-size: 0.76rem; color: rgba(255,140,140,0.80);
-            min-height: 1.1rem;
-        }
-        .delete-confirm-email-hint.is-match { color: rgba(140,220,170,0.85); }
-
         .delete-actions { width: 92%; margin: 0 auto; display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.4rem; }
         .delete-btn {
             width: 100%; padding: 0.95rem 1rem; border-radius: 18px; border: none;
@@ -11389,8 +11369,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const deleteCancelBtn  = document.getElementById('deleteCancelBtn');
     const deleteConfirmBtn = document.getElementById('deleteConfirmBtn');
     const deleteStatusEl   = document.getElementById('deleteStatus');
-    const deleteEmailInput = document.getElementById('deleteEmailInput');
-    const deleteEmailHint  = document.getElementById('deleteEmailHint');
 
     // Every key AURA writes to localStorage. Kept as one list so both the
     // account-deletion wipe below and any future cache-clearing code have a
@@ -11413,36 +11391,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function checkDeleteEmailMatch() {
-        const auth = window.firebaseAuth;
-        const signedInEmail = (auth && auth.currentUser && auth.currentUser.email) || '';
-        const typed = (deleteEmailInput && deleteEmailInput.value || '').trim();
-        const isMatch = typed.length > 0 && signedInEmail.length > 0 &&
-                         typed.toLowerCase() === signedInEmail.toLowerCase();
-
-        if (deleteEmailInput) deleteEmailInput.classList.toggle('is-match', isMatch);
-        if (deleteEmailHint) {
-            deleteEmailHint.classList.toggle('is-match', isMatch);
-            if (typed.length === 0) {
-                deleteEmailHint.innerHTML = '&nbsp;';
-            } else if (isMatch) {
-                deleteEmailHint.textContent = 'Email confirmed.';
-            } else {
-                deleteEmailHint.textContent = "This doesn't match the Gmail on this account.";
-            }
-        }
-        if (deleteConfirmBtn) deleteConfirmBtn.disabled = !isMatch;
-        return isMatch;
-    }
-    if (deleteEmailInput) {
-        deleteEmailInput.addEventListener('input', checkDeleteEmailMatch);
-    }
+    // Identity confirmation for deletion is handled entirely by the Google
+    // reauth popup in the click handler below — Firebase itself rejects a
+    // mismatched account with auth/user-mismatch before anything is
+    // deleted, which is a stronger guarantee than a typed-email text field
+    // and adds no extra step for the person deleting their own account.
 
     function resetDeleteUI() {
         if (deleteStatusEl)   { deleteStatusEl.textContent = ''; deleteStatusEl.classList.remove('is-error'); }
-        if (deleteEmailInput) { deleteEmailInput.value = ''; deleteEmailInput.classList.remove('is-match'); }
-        if (deleteEmailHint)  { deleteEmailHint.innerHTML = '&nbsp;'; deleteEmailHint.classList.remove('is-match'); }
-        if (deleteConfirmBtn) { deleteConfirmBtn.disabled = true; deleteConfirmBtn.textContent = 'Delete Forever'; }
+        if (deleteConfirmBtn) { deleteConfirmBtn.disabled = false; deleteConfirmBtn.textContent = 'Delete Forever'; }
         if (deleteCancelBtn)  { deleteCancelBtn.disabled = false; }
     }
     function closeDeletePage() {
@@ -11521,17 +11478,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (deleteConfirmBtn) {
         deleteConfirmBtn.addEventListener('click', async () => {
-            // Re-verify on click, not just on input — the signed-in user or
-            // typed value could have changed since the last keystroke, and a
-            // disabled button can still be reached via Enter-key submission.
-            if (!checkDeleteEmailMatch()) {
-                if (deleteStatusEl) {
-                    deleteStatusEl.textContent = 'Please type the Gmail address on this account to confirm.';
-                    deleteStatusEl.classList.add('is-error');
-                }
-                return;
-            }
-
             deleteConfirmBtn.disabled    = true;
             deleteCancelBtn.disabled     = true;
             deleteConfirmBtn.textContent = 'Confirming it\u2019s you\u2026';
@@ -11543,6 +11489,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // Reauthenticate FIRST, unconditionally, before touching any
             // data. This is the one popup you'll see — after this succeeds,
             // deletion runs straight through without needing a second one.
+            // It also doubles as identity confirmation: Firebase rejects a
+            // mismatched account with auth/user-mismatch automatically, so
+            // there's no separate typed-email step needed.
             const reauthOk = await reauthenticateForDeletion();
             if (!reauthOk) {
                 if (deleteStatusEl) {
@@ -11550,8 +11499,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     deleteStatusEl.classList.add('is-error');
                 }
                 deleteCancelBtn.disabled     = false;
+                deleteConfirmBtn.disabled    = false;
                 deleteConfirmBtn.textContent = 'Delete Forever';
-                checkDeleteEmailMatch();
                 return;
             }
 
@@ -11583,21 +11532,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     deleteStatusEl.textContent = 'Account deleted.';
                     deleteStatusEl.classList.remove('is-error');
                 }
-                // Close every Preferences overlay above the auth screen.
-                // onAuthStateChanged (registered in the module script at the
-                // top of the file) fires with user=null and calls showAuth(),
-                // which handles returning to onboarding/login.
-                if (deletePage) deletePage.classList.remove('visible');
-                if (page)       page.classList.remove('visible'); // preferencesPage
-                if (typeof showAuth === 'function') showAuth();
+                // A full reload, not just toggling back to the auth screen —
+                // this guarantees every on-screen stat (streak, XP, rank,
+                // achievements) is wiped along with the data, rather than
+                // sitting stale in the DOM until the person happens to
+                // refresh manually. This is the one moment in the app where
+                // a full reload is the right call: everything about the
+                // previous session is gone, so nothing should carry over
+                // visually either.
+                setTimeout(() => { window.location.reload(); }, 400);
             } else {
                 if (deleteStatusEl) {
                     deleteStatusEl.textContent = 'Something went wrong. Please try again.';
                     deleteStatusEl.classList.add('is-error');
                 }
                 deleteCancelBtn.disabled     = false;
+                deleteConfirmBtn.disabled    = false;
                 deleteConfirmBtn.textContent = 'Delete Forever';
-                checkDeleteEmailMatch(); // restores disabled state based on the typed email, not just re-enabling blindly
             }
         });
     }
@@ -13772,14 +13723,8 @@ async function saveToHistory(entry) {
 
             <div class="delete-warning">This cannot be undone.</div>
 
-            <div class="delete-confirm-email">
-                <label class="delete-confirm-email-label" for="deleteEmailInput">Type your Gmail address to confirm</label>
-                <input type="email" id="deleteEmailInput" class="delete-confirm-email-input" placeholder="you@gmail.com" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="email">
-                <div class="delete-confirm-email-hint" id="deleteEmailHint">&nbsp;</div>
-            </div>
-
             <div class="delete-actions">
-                <button class="delete-btn delete-btn-confirm" id="deleteConfirmBtn" disabled>Delete Forever</button>
+                <button class="delete-btn delete-btn-confirm" id="deleteConfirmBtn">Delete Forever</button>
                 <button class="delete-btn delete-btn-cancel" id="deleteCancelBtn">Cancel</button>
             </div>
 

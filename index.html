@@ -11480,6 +11480,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ── Section 5: Danger Zone / Delete Account wiring ──
+    // TEMPORARY — remove this block along with the button once error
+    // logging is confirmed working in Firestore.
+    const tempTestErrorBtn = document.getElementById('tempTestErrorLogBtn');
+    if (tempTestErrorBtn) {
+        tempTestErrorBtn.addEventListener('click', () => {
+            logAppError('manual test trigger', new Error('Testing error logging pipeline'));
+            tempTestErrorBtn.textContent = '✅ Sent — check Firestore → app_errors now';
+        });
+    }
+
     const deleteRow        = document.getElementById('prefDeleteRow');
     const deletePage       = document.getElementById('deleteAccountPage');
     const deleteBackBtn2   = document.getElementById('deleteBackBtn');
@@ -13591,6 +13601,14 @@ async function saveToHistory(entry) {
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
                     </div>
                 </div>
+            </div>
+
+            <!-- TEMPORARY — error logging test button. Remove after confirming
+                 app_errors writes are working. Not part of the permanent app. -->
+            <div class="pref-section">
+                <button id="tempTestErrorLogBtn" style="width:92%;margin:0 auto;display:block;padding:0.85rem;border-radius:16px;background:rgba(255,200,80,0.10);border:1px solid rgba(255,200,80,0.35);color:rgba(255,220,140,0.95);font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;">
+                    🧪 Test Error Log (tap once, then check Firestore)
+                </button>
             </div>
 
             <!-- Section 5: Danger Zone — extra spacing above, red accent only here -->

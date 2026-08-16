@@ -11,7 +11,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, deleteUser, reauthenticateWithPopup } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteField, deleteDoc, collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteField, deleteDoc, collection, query, where, orderBy, limit, startAfter, getDocs, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAkOvsrQzbCicxylWgLBSIMO-RcNbTH4DQ",
@@ -27,10 +27,29 @@
         const provider        = new GoogleAuthProvider();
         const db              = getFirestore(app);
 
+        // Cache reads locally (IndexedDB) so repeat app opens can render
+        // instantly from disk while Firestore confirms freshness in the
+        // background, and so the app stays usable through brief connection
+        // drops instead of hard-failing every read. Using the older
+        // enableIndexedDbPersistence() deliberately over the newer
+        // persistentLocalCache() config — real-world benchmarks show the
+        // newer API can be significantly slower on cache reads, and this
+        // app is a single-tab Capacitor WebView, so the newer API's main
+        // advantage (multi-tab coordination) doesn't apply here anyway.
+        enableIndexedDbPersistence(db).catch((err) => {
+            // Expected, harmless failure modes — the app still works
+            // normally without persistence, just without the cache benefit.
+            if (err.code === 'failed-precondition') {
+                console.warn('Firestore persistence: multiple tabs open, cache disabled for this tab.');
+            } else if (err.code === 'unimplemented') {
+                console.warn('Firestore persistence: unsupported in this browser.');
+            }
+        });
+
         window.firebaseAuth   = auth;
         window.firebaseDB     = db;
         window.googleProvider = provider;
-        window.firebaseFns    = { signInWithPopup, signOut, onAuthStateChanged, deleteUser, reauthenticateWithPopup, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteField, deleteDoc, collection, query, where, orderBy, limit, getDocs };
+        window.firebaseFns    = { signInWithPopup, signOut, onAuthStateChanged, deleteUser, reauthenticateWithPopup, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteField, deleteDoc, collection, query, where, orderBy, limit, startAfter, getDocs };
 
         // Auth state — fires as soon as Firebase resolves
         // authStateReady() resolves ONCE when Firebase has fully determined
@@ -476,26 +495,34 @@
         /* AURA needs a connection for everything (auth, Firestore, no local-only
            mode), so this is deliberately just a clear heads-up, not real offline
            support — it tells the person what's going on rather than leaving them
-           looking at a screen that silently fails to load or save. */
+           looking at a screen that silently fails to load or save. Styled as a
+           floating pill matching the milestone-toast language (dark glass,
+           heavy blur, soft glow) rather than a flat system-alert bar, so it
+           reads as part of the app rather than a generic browser warning. */
         .offline-banner {
-            position: fixed; top: 0; left: 0; right: 0; z-index: 99999;
-            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-            padding: 0.6rem 1rem;
-            padding-top: calc(0.6rem + env(safe-area-inset-top, 0px));
-            background: rgba(120, 20, 20, 0.95);
-            backdrop-filter: blur(8px);
-            font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600;
-            color: rgba(255,235,235,0.95);
-            transform: translateY(-100%);
-            transition: transform 220ms ease;
+            position: fixed; top: 0; left: 50%; z-index: 99999;
+            transform: translate(-50%, calc(-100% - 14px));
+            margin-top: calc(0.7rem + env(safe-area-inset-top, 0px));
+            display: flex; align-items: center; gap: 0.55rem;
+            padding: 0.62rem 1.1rem 0.62rem 0.85rem;
+            background: var(--surface);
+            border: 1px solid rgba(251,113,133,0.28);
+            border-radius: 999px;
+            box-shadow: 0 0 32px rgba(251,113,133,0.10), 0 18px 40px rgba(0,0,0,0.55);
+            backdrop-filter: blur(24px);
+            font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 600;
+            color: var(--gold);
+            letter-spacing: 0.01em;
+            white-space: nowrap;
+            transition: transform 420ms cubic-bezier(0.16,1,0.3,1);
             pointer-events: none;
         }
-        .offline-banner.visible { transform: translateY(0); }
-        .offline-banner-dot {
-            width: 7px; height: 7px; border-radius: 50%;
-            background: #ff6b6b; flex-shrink: 0;
-            box-shadow: 0 0 6px rgba(255,107,107,0.8);
+        .offline-banner.visible { transform: translate(-50%, 0); }
+        .offline-banner-icon {
+            width: 15px; height: 15px; flex-shrink: 0;
+            color: var(--accent-coral);
         }
+        .offline-banner-icon svg { width: 100%; height: 100%; display: block; }
 
         /* ── BOTTOM NAVIGATION ── */
         .bottom-nav {
@@ -5461,8 +5488,18 @@
 <body>
 
 <div id="offlineBanner" class="offline-banner" role="status" aria-live="polite">
-    <span class="offline-banner-dot"></span>
-    You're offline — check your connection.
+    <span class="offline-banner-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="2" y1="2" x2="22" y2="22"></line>
+            <path d="M8.5 16.5a5 5 0 0 1 7 0"></path>
+            <path d="M2 8.82a15 15 0 0 1 4.17-2.65"></path>
+            <path d="M10.66 5.16a15 15 0 0 1 9.86 3.66"></path>
+            <path d="M16.85 11.25a10 10 0 0 1 2.22 1.68"></path>
+            <path d="M5 12.85a10 10 0 0 1 2.28-1.76"></path>
+            <line x1="12" y1="20" x2="12.01" y2="20"></line>
+        </svg>
+    </span>
+    You're offline
 </div>
 
 <div id="appRoot">
@@ -5729,6 +5766,31 @@ document.addEventListener('DOMContentLoaded', updateOfflineBanner);
 // deferred/late script tag), check immediately too rather than only
 // waiting on an event that may never fire again this page load.
 if (document.readyState !== 'loading') updateOfflineBanner();
+
+/* ── HAPTICS ── */
+/* Prefers Capacitor's native Haptics plugin (reliable inside a Capacitor
+   WebView — unlike the web Vibration API, which is inconsistent there).
+   Falls back to navigator.vibrate() for browser/dev testing outside the
+   native app shell, where the Haptics plugin isn't present. Note: using
+   the native path for real requires the @capacitor/haptics package to be
+   installed and synced into the Android project (same build step used to
+   produce the APK) — this JS change alone can't add a plugin that isn't
+   compiled into the native binary. Until that's done, this safely falls
+   through to the web vibrate fallback everywhere, same as before. */
+async function triggerHaptic(kind) {
+    try {
+        const isNative = window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform();
+        const Haptics   = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Haptics;
+        if (isNative && Haptics) {
+            if (kind === 'success')    await Haptics.notification({ type: 'SUCCESS' });
+            else if (kind === 'medium') await Haptics.impact({ style: 'MEDIUM' });
+            else                        await Haptics.impact({ style: 'LIGHT' });
+            return;
+        }
+    } catch (e) { /* native haptics unavailable — fall through to web vibrate below */ }
+    try { navigator.vibrate && navigator.vibrate(kind === 'success' ? [18, 40, 26] : 20); } catch (e) {}
+}
+
 
 /* ── DATA ── */
 const MOOD_EMOJIS = { tired: '😴', motivated: '💪', lost: '🌙', angry: '😤', anxious: '😰', grinding: '🔥', calm: '🌊', sad: '😢', overthinking: '💭', happy: '😊', numb: '😶', recovering: '🌿', growing: '🌱' };
@@ -7079,7 +7141,7 @@ function showIdentityEvolution(prevRank, newRank, xp, level) {
     overlay.classList.add('show');
 
     // Gentle haptic on identity change, if supported
-    try { navigator.vibrate && navigator.vibrate([18, 40, 26]); } catch(e) {}
+    triggerHaptic('success');
 
     // XP count-up, synced with the level/XP row fade-in (~3750ms)
     const xpEarnedEl = $('evoXPEarned');
@@ -9386,21 +9448,26 @@ async function fetchRecentHistory(sinceMs) {
     }
 }
 
-async function fetchHistoryData() {
-    if (!window.firebaseAuth?.currentUser) return { history: [], favorites: [] };
-    const { doc, getDoc, collection, query, orderBy, limit, getDocs } = window.firebaseFns;
+async function fetchHistoryData(startAfterDoc) {
+    if (!window.firebaseAuth?.currentUser) return { history: [], favorites: [], lastDoc: null, count: 0 };
+    const { doc, getDoc, collection, query, orderBy, limit, getDocs, startAfter } = window.firebaseFns;
     const uid = window.firebaseAuth.currentUser.uid;
 
+    const historyQueryParts = [
+        collection(window.firebaseDB, 'users', uid, 'history'),
+        orderBy('date', 'desc'),
+    ];
+    if (startAfterDoc) historyQueryParts.push(startAfter(startAfterDoc));
+    historyQueryParts.push(limit(HISTORY_FETCH_LIMIT));
+
     const [userSnap, historySnap] = await Promise.all([
-        getDoc(doc(window.firebaseDB, 'users', uid)),
-        getDocs(query(
-            collection(window.firebaseDB, 'users', uid, 'history'),
-            orderBy('date', 'desc'),
-            limit(HISTORY_FETCH_LIMIT)
-        )).catch(() => ({ docs: [] })), // tolerate empty/missing subcollection gracefully
+        // Only needed for `favorites` on the very first page — later pages
+        // pass startAfterDoc and skip the redundant repeat read of the same doc.
+        startAfterDoc ? Promise.resolve(null) : getDoc(doc(window.firebaseDB, 'users', uid)),
+        getDocs(query(...historyQueryParts)).catch(() => ({ docs: [] })), // tolerate empty/missing subcollection gracefully
     ]);
 
-    const data = userSnap.data() || {};
+    const data = userSnap ? (userSnap.data() || {}) : {};
     // Subcollection is fetched newest-first (for the LIMIT to keep the *recent* end,
     // not the oldest); reverse to restore the oldest-first order the rest of the app
     // already expects (matching the old array-field contract exactly).
@@ -9408,15 +9475,20 @@ async function fetchHistoryData() {
 
     // Backward compatibility: merge in any entries still sitting in the legacy array
     // field from before this migration, so nothing already written is silently lost.
-    // New writes never touch that field again going forward.
-    if (Array.isArray(data.history) && data.history.length) {
+    // New writes never touch that field again going forward. Only relevant on the
+    // first page — the legacy field, if present, holds the whole thing at once.
+    if (!startAfterDoc && Array.isArray(data.history) && data.history.length) {
         const seen = new Set(history.map(h => h.date));
         data.history.forEach(h => { if (!seen.has(h.date)) history.unshift(h); });
     }
 
     return {
         history,
-        favorites: Array.isArray(data.favorites) ? data.favorites : []
+        favorites: Array.isArray(data.favorites) ? data.favorites : [],
+        // Cursor for the NEXT older page: the last (oldest) doc of THIS batch,
+        // i.e. the first element before we reversed it above.
+        lastDoc: historySnap.docs.length ? historySnap.docs[historySnap.docs.length - 1] : null,
+        count: historySnap.docs.length
     };
 }
 
@@ -9429,7 +9501,7 @@ async function loadHistory() {
         <div class="skeleton-card"><div class="skeleton-line short"></div><div class="skeleton-line medium"></div><div class="skeleton-line long"></div></div>
         <div class="skeleton-card"><div class="skeleton-line short"></div><div class="skeleton-line medium"></div><div class="skeleton-line long"></div></div>`;
 
-    const { history, favorites } = await fetchHistoryData();
+    const { history, favorites, lastDoc, count } = await fetchHistoryData();
 
     if (!history || history.length === 0) {
         list.innerHTML = `<div class="empty-history">
@@ -9439,12 +9511,19 @@ async function loadHistory() {
         </div>`;
         window._allHistoryEntries = [];
         window._favorites = new Set();
+        window._historyCursor = null;
+        window._historyHasMore = false;
         return;
     }
 
     // Store globally for search/filter
     window._allHistoryEntries = history.slice().reverse();
     window._activeHistoryMood = window._activeHistoryMood || 'all';
+    // If this first page came back completely full, there may well be older
+    // entries beyond it — keep the cursor so "Load earlier entries" can
+    // fetch the next batch without re-fetching what's already loaded.
+    window._historyCursor  = lastDoc;
+    window._historyHasMore = count === HISTORY_FETCH_LIMIT;
 
     // Load favorites from Firestore, fallback to localStorage
     window._favorites = new Set(favorites.map(Number));
@@ -9644,7 +9723,111 @@ function renderHistoryList(entries) {
         card.addEventListener('click', () => openHistoryDetail(item));
         list.appendChild(div);
     });
+
+    // Older entries beyond the current page may still exist — this is about
+    // total data available, not the current search/filter, so it shows
+    // whenever there's more to fetch regardless of what's currently filtered.
+    if (window._historyHasMore) {
+        const loadMoreWrap = document.createElement('div');
+        loadMoreWrap.style.cssText = 'display:flex;justify-content:center;padding:1.2rem 0 0.4rem;';
+        loadMoreWrap.innerHTML = `<button id="historyLoadMoreBtn" style="padding:0.6rem 1.3rem;border-radius:999px;background:rgba(237,223,192,0.06);border:1px solid rgba(237,223,192,0.18);color:rgba(237,223,192,0.75);font-family:'DM Sans',sans-serif;font-size:0.8rem;font-weight:600;">Load earlier entries</button>`;
+        list.appendChild(loadMoreWrap);
+        const loadMoreBtn = loadMoreWrap.querySelector('#historyLoadMoreBtn');
+        if (loadMoreBtn) loadMoreBtn.addEventListener('click', loadMoreHistory);
+    }
 }
+
+/* Fetches the next older page of history beyond what's already loaded,
+   using a Firestore cursor rather than re-fetching everything from
+   scratch — keeps each additional page just as cheap as the first,
+   however far back someone scrolls over months or years of entries. */
+async function loadMoreHistory() {
+    if (!window._historyHasMore || window._historyLoadingMore) return;
+    window._historyLoadingMore = true;
+    const btn = document.getElementById('historyLoadMoreBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Loading…'; }
+    try {
+        const { history, lastDoc, count } = await fetchHistoryData(window._historyCursor);
+        // Match _allHistoryEntries' newest-first ordering before appending —
+        // this older batch goes at the END since everything in it is older
+        // than everything already loaded.
+        const olderNewestFirst = history.slice().reverse();
+        window._allHistoryEntries = (window._allHistoryEntries || []).concat(olderNewestFirst);
+        window._historyCursor  = lastDoc;
+        window._historyHasMore = count === HISTORY_FETCH_LIMIT;
+        applyHistoryFilters(); // re-render the larger pool, respecting whatever search/filter is active
+    } catch (e) {
+        logAppError('loadMoreHistory', e);
+        if (btn) { btn.disabled = false; btn.textContent = 'Load earlier entries'; }
+    } finally {
+        window._historyLoadingMore = false;
+    }
+}
+
+/* ── DATA EXPORT ── */
+/* Pulls the complete profile + every history entry (paginating past the
+   500-per-page UI cap until nothing's left, not just what's currently
+   loaded on screen) and downloads it as one JSON file. This is the
+   "download my data" counterpart to account deletion — same underlying
+   Firestore paths, read-only, no writes. */
+async function exportUserData() {
+    const auth = window.firebaseAuth;
+    const db   = window.firebaseDB;
+    const fns  = window.firebaseFns;
+    if (!auth?.currentUser || !db || !fns) throw new Error('Not signed in');
+    const uid = auth.currentUser.uid;
+
+    const profileSnap = await fns.getDoc(fns.doc(db, 'users', uid));
+    const profile      = profileSnap.exists() ? profileSnap.data() : {};
+
+    // Walk every page of history via the same cursor used by "Load earlier
+    // entries", but to completion rather than stopping at what's on screen —
+    // an export should never silently leave anything out.
+    let allHistory = [];
+    let cursor = undefined;
+    // Safety ceiling so a corrupted cursor loop can't run indefinitely —
+    // 200 pages at 500/page is 100,000 entries, far beyond any realistic
+    // account, so this is a guard rail, not an expected real limit.
+    for (let page = 0; page < 200; page++) {
+        const { history, lastDoc, count } = await fetchHistoryData(cursor);
+        allHistory = allHistory.concat(history);
+        if (count < HISTORY_FETCH_LIMIT || !lastDoc) break;
+        cursor = lastDoc;
+    }
+
+    const exportPayload = {
+        exportedAt: new Date().toISOString(),
+        app: 'AURA',
+        profile: {
+            xp: profile.xp ?? 0,
+            streak: profile.streak ?? 0,
+            rank: profile.rank ?? null,
+            totalGenerations: profile.totalGenerations ?? 0,
+            joinedDate: profile.joinedDate ?? null,
+            moodCounts: profile.moodCounts ?? {},
+            unlockedMilestones: profile.unlockedMilestones ?? [],
+            claimedAchievements: profile.claimedAchievements ?? [],
+            favorites: profile.favorites ?? [],
+            isPro: !!profile.isPro
+        },
+        history: allHistory
+    };
+
+    const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const dateStamp = new Date().toISOString().slice(0, 10);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `aura-data-export-${dateStamp}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    // Release the object URL shortly after — not immediately, since some
+    // mobile browsers process the download asynchronously and revoking too
+    // early can silently cancel it.
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
 
 /* ── HISTORY DETAIL MODAL ── */
 (function () {
@@ -11479,17 +11662,45 @@ document.addEventListener('DOMContentLoaded', () => {
         aboutBackBtn.addEventListener('click', () => aboutPage.classList.remove('visible'));
     }
 
-    // ── Section 5: Danger Zone / Delete Account wiring ──
-    // TEMPORARY — remove this block along with the button once error
-    // logging is confirmed working in Firestore.
-    const tempTestErrorBtn = document.getElementById('tempTestErrorLogBtn');
-    if (tempTestErrorBtn) {
-        tempTestErrorBtn.addEventListener('click', () => {
-            logAppError('manual test trigger', new Error('Testing error logging pipeline'));
-            tempTestErrorBtn.textContent = '✅ Sent — check Firestore → app_errors now';
+    // ── Section: Your Data — export wiring ──
+    const exportRow      = document.getElementById('prefExportRow');
+    const exportTitleEl  = document.getElementById('prefExportTitle');
+    const exportDescEl   = document.getElementById('prefExportDesc');
+    let   exportInFlight = false;
+
+    if (exportRow) {
+        const runExport = async () => {
+            if (exportInFlight) return;
+            exportInFlight = true;
+            exportRow.setAttribute('aria-busy', 'true');
+            if (exportTitleEl) exportTitleEl.textContent = 'Preparing your data…';
+            if (exportDescEl)  exportDescEl.textContent  = 'This can take a moment for a long history';
+            try {
+                await exportUserData();
+                if (exportTitleEl) exportTitleEl.textContent = 'Download my data';
+                if (exportDescEl)  exportDescEl.textContent  = 'Saved — check your downloads';
+                setTimeout(() => {
+                    if (exportDescEl) exportDescEl.textContent = 'Export your full history and profile as a file';
+                }, 3000);
+            } catch (e) {
+                logAppError('exportUserData', e);
+                if (exportTitleEl) exportTitleEl.textContent = 'Download my data';
+                if (exportDescEl)  exportDescEl.textContent  = "Couldn't export right now — try again";
+                setTimeout(() => {
+                    if (exportDescEl) exportDescEl.textContent = 'Export your full history and profile as a file';
+                }, 3000);
+            } finally {
+                exportInFlight = false;
+                exportRow.removeAttribute('aria-busy');
+            }
+        };
+        exportRow.addEventListener('click', runExport);
+        exportRow.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); runExport(); }
         });
     }
 
+    // ── Section 5: Danger Zone / Delete Account wiring ──
     const deleteRow        = document.getElementById('prefDeleteRow');
     const deletePage       = document.getElementById('deleteAccountPage');
     const deleteBackBtn2   = document.getElementById('deleteBackBtn');
@@ -13120,40 +13331,6 @@ async function saveToHistory(entry) {
     text-align: center; color: rgba(232,213,176,.18);
     font-size: 10px; line-height: 1; padding: 1px 0;
 }
-.ob-quiz-card {
-    background: rgba(255,255,255,.03);
-    border: 1px solid rgba(232,213,176,.14);
-    border-radius: 16px; padding: 15px 15px;
-    margin-top: 10px; position: relative; overflow: hidden;
-}
-.ob-quiz-glow {
-    position: absolute; top: -22px; right: -22px;
-    width: 90px; height: 90px;
-    background: radial-gradient(circle, rgba(139,92,246,.22), transparent 70%);
-}
-.ob-quiz-top { display: flex; align-items: center; gap: 11px; margin-bottom: 9px; }
-.ob-quiz-lock {
-    width: 32px; height: 32px; border-radius: 10px;
-    background: rgba(232,213,176,.07);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px; flex-shrink: 0;
-}
-.ob-quiz-coming {
-    font-size: 9px; color: rgba(232,213,176,.32);
-    text-transform: uppercase; letter-spacing: .09em;
-}
-.ob-quiz-title { font-size: 12.5px; color: rgba(232,213,176,.62); font-weight: 500; margin-top: 1px; }
-.ob-quiz-examples { display: flex; gap: 5px; flex-wrap: wrap; }
-.ob-quiz-ex {
-    font-size: 9.5px; color: rgba(196,181,253,.48);
-    background: rgba(139,92,246,.10); padding: 3px 9px;
-    border-radius: 20px; border: 1px solid rgba(139,92,246,.16);
-}
-.ob-social {
-    text-align: center; font-size: 10.5px;
-    color: rgba(232,213,176,.28); margin-top: 12px;
-    letter-spacing: .02em;
-}
 </style>
 
 <!-- ONBOARDING DOM -->
@@ -13179,8 +13356,8 @@ async function saveToHistory(entry) {
       </div>
     </div>
     <div class="ob-title">Welcome to AURA</div>
-    <div class="ob-sub">Turn emotions into a journey<br>of self-discovery.</div>
-    <button class="ob-btn ob-btn-p" id="obBtn1">GET STARTED</button>
+    <div class="ob-sub">Where every feeling becomes<br>part of your story.</div>
+    <button class="ob-btn ob-btn-p" id="obBtn1">Get started</button>
     <div class="ob-dots">
       <div class="ob-dot ob-dot-a"></div>
       <div class="ob-dot ob-dot-i"></div>
@@ -13211,7 +13388,7 @@ async function saveToHistory(entry) {
         </div>
       </div>
     </div>
-    <button class="ob-btn ob-btn-p" id="obBtn2">CONTINUE</button>
+    <button class="ob-btn ob-btn-p" id="obBtn2">Continue</button>
     <div class="ob-dots">
       <div class="ob-dot ob-dot-i"></div>
       <div class="ob-dot ob-dot-a"></div>
@@ -13259,7 +13436,7 @@ async function saveToHistory(entry) {
         <div class="ob-leg-item"><div class="ob-leg-dot" style="background:#f59e0b;"></div>Tired</div>
       </div>
     </div>
-    <button class="ob-btn ob-btn-p" id="obBtn3">CONTINUE</button>
+    <button class="ob-btn ob-btn-p" id="obBtn3">Continue</button>
     <div class="ob-dots">
       <div class="ob-dot ob-dot-i"></div>
       <div class="ob-dot ob-dot-i"></div>
@@ -13306,23 +13483,7 @@ async function saveToHistory(entry) {
         <div class="ob-rank-badge" style="background:rgba(232,213,176,.06);color:rgba(232,213,176,.25);">🔒</div>
       </div>
     </div>
-    <div class="ob-quiz-card">
-      <div class="ob-quiz-glow"></div>
-      <div class="ob-quiz-top">
-        <div class="ob-quiz-lock">🔒</div>
-        <div>
-          <div class="ob-quiz-coming">Coming Soon</div>
-          <div class="ob-quiz-title">Emotional Identity Quiz</div>
-        </div>
-      </div>
-      <div class="ob-quiz-examples">
-        <div class="ob-quiz-ex">The Quiet Observer</div>
-        <div class="ob-quiz-ex">The Patient Climber</div>
-        <div class="ob-quiz-ex">The Returning Light</div>
-      </div>
-    </div>
-    <div class="ob-social">Thousands of emotional journeys have already begun.</div>
-    <button class="ob-btn ob-btn-g" id="obBtn4">START MY JOURNEY</button>
+    <button class="ob-btn ob-btn-g" id="obBtn4">Start my journey</button>
     <div class="ob-dots">
       <div class="ob-dot ob-dot-i"></div>
       <div class="ob-dot ob-dot-i"></div>
@@ -13603,12 +13764,23 @@ async function saveToHistory(entry) {
                 </div>
             </div>
 
-            <!-- TEMPORARY — error logging test button. Remove after confirming
-                 app_errors writes are working. Not part of the permanent app. -->
-            <div class="pref-section">
-                <button id="tempTestErrorLogBtn" style="width:92%;margin:0 auto;display:block;padding:0.85rem;border-radius:16px;background:rgba(255,200,80,0.10);border:1px solid rgba(255,200,80,0.35);color:rgba(255,220,140,0.95);font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;">
-                    🧪 Test Error Log (tap once, then check Firestore)
-                </button>
+            <!-- Section: Your Data — export, sits above Danger Zone (standard
+                 pattern: offer export before offering delete) -->
+            <div class="pref-section" id="prefSectionData">
+                <div class="notif-section-label">Your Data</div>
+
+                <div class="pref-nav-card" id="prefExportRow" role="button" tabindex="0" aria-label="Download my data">
+                    <div class="pref-nav-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    </div>
+                    <div class="pref-nav-text">
+                        <div class="pref-nav-title" id="prefExportTitle">Download my data</div>
+                        <div class="pref-nav-desc" id="prefExportDesc">Export your full history and profile as a file</div>
+                    </div>
+                    <div class="pref-nav-chevron" id="prefExportChevron">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                    </div>
+                </div>
             </div>
 
             <!-- Section 5: Danger Zone — extra spacing above, red accent only here -->

@@ -9426,7 +9426,23 @@ function renderAuthScreen() {
             try {
                 const { signInWithPopup } = window.firebaseFns;
                 await signInWithPopup(window.firebaseAuth, window.googleProvider);
-            } catch (e) { console.log('Login error:', e); }
+            } catch (e) {
+                console.log('Login error:', e);
+                // Surfaced on-screen (not just console) since phones have no
+                // easy way to view console logs without a laptop for remote
+                // debugging. This is a temporary diagnostic aid.
+                const msg = (e && (e.code || e.message))
+                    ? `${e.code || ''} ${e.message || ''}`.trim()
+                    : 'Unknown sign-in error';
+                let statusEl = document.getElementById('authSignInStatus');
+                if (!statusEl) {
+                    statusEl = document.createElement('div');
+                    statusEl.id = 'authSignInStatus';
+                    statusEl.style.cssText = 'margin-top:0.9rem;text-align:center;font-family:"DM Sans",sans-serif;font-size:0.8rem;color:#f28b82;padding:0 1rem;line-height:1.5;';
+                    btn.insertAdjacentElement('afterend', statusEl);
+                }
+                statusEl.textContent = `Sign-in failed: ${msg}`;
+            }
         };
     }
 }

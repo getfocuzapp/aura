@@ -11,7 +11,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, deleteUser, reauthenticateWithPopup } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteField, deleteDoc, collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { getFirestore, enableIndexedDbPersistence, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteField, deleteDoc, collection, query, where, orderBy, limit, startAfter, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAkOvsrQzbCicxylWgLBSIMO-RcNbTH4DQ",
@@ -27,10 +27,22 @@
         const provider        = new GoogleAuthProvider();
         const db              = getFirestore(app);
 
+        // Offline persistence — cached reads/writes survive app restarts and
+        // work with no connection. Fails gracefully (no-op) in multi-tab
+        // scenarios or on platforms that don't support it; the app already
+        // tolerates missing/slow Firestore reads elsewhere.
+        enableIndexedDbPersistence(db).catch((err) => {
+            if (err.code === 'failed-precondition') {
+                // Multiple tabs open — persistence can only be enabled in one.
+            } else if (err.code === 'unimplemented') {
+                // Browser/webview doesn't support the required IndexedDB APIs.
+            }
+        });
+
         window.firebaseAuth   = auth;
         window.firebaseDB     = db;
         window.googleProvider = provider;
-        window.firebaseFns    = { signInWithPopup, signOut, onAuthStateChanged, deleteUser, reauthenticateWithPopup, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteField, deleteDoc, collection, query, where, orderBy, limit, getDocs };
+        window.firebaseFns    = { signInWithPopup, signOut, onAuthStateChanged, deleteUser, reauthenticateWithPopup, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteField, deleteDoc, collection, query, where, orderBy, limit, startAfter, getDocs };
 
         // Auth state — fires as soon as Firebase resolves
         // authStateReady() resolves ONCE when Firebase has fully determined
@@ -3438,6 +3450,23 @@
             pointer-events: none;
         }
 
+        /* ── "Load earlier entries" pagination control ── */
+        .history-load-more-btn {
+            display: block;
+            width: calc(100% - 8px);
+            margin: 0.6rem auto 1.2rem;
+            padding: 0.7rem;
+            border: 1px solid rgba(255,255,255,0.10);
+            border-radius: 14px;
+            background: rgba(255,255,255,0.03);
+            color: rgba(237,223,192,0.55);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem; font-weight: 600;
+            cursor: pointer;
+        }
+        .history-load-more-btn:active { opacity: 0.7; }
+        .history-load-more-btn:disabled { opacity: 0.5; cursor: default; }
+
         /* ── Timeline item wrapper ── */
         .history-item {
             padding: 0 0 0 34px;
@@ -5296,6 +5325,105 @@
         .about-footer { font-family: 'DM Sans', sans-serif; font-size: 0.76rem; color: rgba(237,223,192,0.35); text-align: center; padding: 0.4rem 1.2rem 0; line-height: 1.6; }
 
         /* ══════════════════════════════════════════════════════════
+           YOUR DATA SUB-PAGE — reached from Preferences Section 5
+           (between About and Danger Zone). Same full-screen overlay
+           pattern as Privacy/Terms/About. Flat "document" card reused
+           from the ToS treatment — this is a utility action, not a
+           decorative one, so no purple glow on the card itself.
+           ══════════════════════════════════════════════════════════ */
+        .data-page {
+            position: fixed; inset: 0; z-index: 9100;
+            background: linear-gradient(180deg, #0c0812 0%, #08060d 100%);
+            display: none; flex-direction: column;
+            overflow-y: auto; -webkit-overflow-scrolling: touch;
+        }
+        .data-page.visible { display: flex; animation: prefPageIn 400ms cubic-bezier(0.16,1,0.3,1) both; }
+
+        .data-body { padding: 0.6rem 1.3rem 4.5rem; display: flex; flex-direction: column; align-items: center; gap: 1.8rem; }
+
+        .data-hero { display: flex; flex-direction: column; align-items: center; gap: 0.9rem; text-align: center; padding: 0.6rem 0.6rem 0; }
+        .data-hero-icon {
+            width: 56px; height: 56px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(192,132,252,0.10); border: 1px solid rgba(192,132,252,0.24);
+            color: rgba(210,180,255,0.9);
+            box-shadow: 0 0 0 1px rgba(192,132,252,0.06), 0 8px 30px rgba(120,60,200,0.25);
+        }
+        .data-hero-icon svg { width: 24px; height: 24px; }
+        .data-hero-text { font-family: 'DM Sans', sans-serif; font-size: 0.86rem; color: rgba(237,223,192,0.55); line-height: 1.6; max-width: 26rem; }
+
+        .data-card {
+            width: 92%; margin: 0 auto;
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 18px; padding: 1.1rem 1.25rem;
+            position: relative;
+            display: flex; flex-direction: column; gap: 0.9rem;
+        }
+        .data-export-btn {
+            width: 100%;
+            padding: 0.85rem;
+            border: none; border-radius: 14px;
+            background: linear-gradient(135deg, rgba(140,80,255,0.25), rgba(200,140,60,0.20));
+            border: 1px solid rgba(180,120,255,0.25);
+            color: rgba(255,255,255,0.85);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem; font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.02em;
+        }
+        .data-export-btn:active { opacity: 0.75; }
+        .data-export-btn:disabled { opacity: 0.55; cursor: default; }
+        .data-export-status {
+            font-family: 'DM Sans', sans-serif; font-size: 0.8rem; text-align: center;
+            color: rgba(237,223,192,0.55); min-height: 1.1rem;
+        }
+        .data-export-status.is-error { color: #f28b82; }
+
+        /* ══════════════════════════════════════════════════════════
+           OFFLINE BANNER — floating dark-glass pill, shown whenever
+           the device loses connectivity. Matches the app's established
+           surface/blur/coral-accent language rather than a generic
+           browser-style warning bar.
+           ══════════════════════════════════════════════════════════ */
+        .offline-banner {
+            position: fixed;
+            left: 50%; bottom: 96px;
+            transform: translateX(-50%) translateY(20px);
+            z-index: 9500;
+            display: flex; align-items: center; gap: 0.55rem;
+            padding: 0.65rem 1.1rem;
+            background: var(--surface);
+            backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+            border: 1px solid var(--accent-coral-glow);
+            border-radius: 999px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.45), 0 0 0 1px rgba(251,113,133,0.06);
+            opacity: 0; pointer-events: none;
+            transition: opacity 320ms ease, transform 320ms ease;
+            max-width: 88vw;
+        }
+        .offline-banner.visible {
+            opacity: 1; pointer-events: auto;
+            transform: translateX(-50%) translateY(0);
+        }
+        .offline-banner-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--accent-coral);
+            box-shadow: 0 0 8px var(--accent-coral-glow);
+            flex-shrink: 0;
+            animation: offlinePulse 1.8s ease-in-out infinite;
+        }
+        @keyframes offlinePulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .offline-banner-text {
+            font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600;
+            color: rgba(237,223,192,0.90);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        /* ══════════════════════════════════════════════════════════
            DANGER ZONE (Preferences Section 5) — visually separated
            from every other section with extra spacing above, and the
            ONLY place in Preferences that uses red. Calm otherwise;
@@ -5630,6 +5758,51 @@
 
     <!-- Detailed Identity Section (secondary / scroll to discover) -->
 <script>
+/* ── GLOBAL ERROR LOGGING ──
+   Catches uncaught exceptions and unhandled promise rejections and writes
+   a record to Firestore's top-level `app_errors` collection (not scoped
+   under a user, since errors can happen before auth resolves). Registered
+   as early as possible so it catches errors from anything below it too.
+   Every write is defensively wrapped — if logging itself fails (offline,
+   no Firestore yet, etc.) it fails silently rather than looping. */
+function logAppError(details) {
+    try {
+        if (!window.firebaseDB || !window.firebaseFns) return;
+        const { doc, collection, setDoc } = window.firebaseFns;
+        const uid = window.firebaseAuth?.currentUser?.uid || null;
+        setDoc(doc(collection(window.firebaseDB, 'app_errors')), {
+            ...details,
+            uid,
+            userAgent: navigator.userAgent,
+            url: location.href,
+            createdAt: Date.now()
+        }).catch(() => {});
+    } catch (e) {
+        // Never let error logging itself throw.
+    }
+}
+
+window.onerror = function(message, source, lineno, colno, error) {
+    logAppError({
+        type: 'onerror',
+        message: String(message || ''),
+        source: source || '',
+        lineno: lineno || 0,
+        colno: colno || 0,
+        stack: error?.stack ? String(error.stack).slice(0, 4000) : ''
+    });
+    return false; // keep default browser console logging too
+};
+
+window.addEventListener('unhandledrejection', function(event) {
+    const reason = event?.reason;
+    logAppError({
+        type: 'unhandledrejection',
+        message: reason?.message ? String(reason.message) : String(reason || ''),
+        stack: reason?.stack ? String(reason.stack).slice(0, 4000) : ''
+    });
+});
+
 /* ── DATA ── */
 const MOOD_EMOJIS = { tired: '😴', motivated: '💪', lost: '🌙', angry: '😤', anxious: '😰', grinding: '🔥', calm: '🌊', sad: '😢', overthinking: '💭', happy: '😊', numb: '😶', recovering: '🌿', growing: '🌱' };
 
@@ -7003,7 +7176,7 @@ function showIdentityEvolution(prevRank, newRank, xp, level) {
     overlay.classList.add('show');
 
     // Gentle haptic on identity change, if supported
-    try { navigator.vibrate && navigator.vibrate([18, 40, 26]); } catch(e) {}
+    triggerHaptic('medium');
 
     // XP count-up, synced with the level/XP row fade-in (~3750ms)
     const xpEarnedEl = $('evoXPEarned');
@@ -8582,10 +8755,10 @@ function buildMonthlyReportCanvas(reportData) {
             ctx.font = '600 28px "DM Sans"';
             ctx.fillText(monthLabel.toUpperCase() + ' RECAP', W/2, 195);
 
-            /* 5. Mood orb */
-            const orbY = 330, orbR = 92;
+            /* 5. Mood orb — enlarged per feedback (was 92px radius, felt small) */
+            const orbY = 336, orbR = 108;
             ctx.save();
-            ctx.shadowColor = glow; ctx.shadowBlur = 70;
+            ctx.shadowColor = glow; ctx.shadowBlur = 78;
             if (orbLoaded) {
                 ctx.beginPath(); ctx.arc(W/2, orbY, orbR, 0, Math.PI*2);
                 ctx.fillStyle = 'rgba(255,255,255,0.02)'; ctx.fill();
@@ -8607,41 +8780,94 @@ function buildMonthlyReportCanvas(reportData) {
             }
             ctx.restore();
 
-            /* 6. Mood name */
-            ctx.fillStyle = '#fff';
-            ctx.font = '900 60px "Playfair Display"';
-            ctx.fillText(moodLabel, W/2, orbY + 168);
+            // From here down, a running cursor replaces the old hardcoded
+            // "orbY + <magic number>" offsets — so enlarging any one element
+            // (or a long story title needing a second line) automatically
+            // pushes everything after it down by the right amount, instead
+            // of silently overlapping/clipping like the old fixed offsets did.
+            let hy = orbY + orbR + 66;
 
-            /* 7. Hero percentage */
+            /* 6. Mood name — enlarged (was 60px) */
+            ctx.fillStyle = '#fff';
+            ctx.font = '900 68px "Playfair Display"';
+            ctx.fillText(moodLabel, W/2, hy);
+
+            /* 7. Hero percentage — enlarged (was 140px) */
+            hy += 152;
             ctx.save();
-            ctx.shadowColor = glow; ctx.shadowBlur = 26;
+            ctx.shadowColor = glow; ctx.shadowBlur = 28;
             ctx.fillStyle = accent;
-            ctx.font = '900 140px "Playfair Display"';
-            ctx.fillText(moodPct + '%', W/2, orbY + 316);   // +16 from mood name
+            ctx.font = '900 152px "Playfair Display"';
+            ctx.fillText(moodPct + '%', W/2, hy);
             ctx.restore();
 
+            hy += 46;
             ctx.fillStyle = 'rgba(255,255,255,0.45)';
             ctx.font = '700 26px "DM Sans"';
-            ctx.fillText('OF YOUR MONTH', W/2, orbY + 362);
+            ctx.fillText('OF YOUR MONTH', W/2, hy);
 
-            /* 8. Story title — the emotional identity */
+            /* 8. Story title — the emotional identity. FIX: this previously had
+               NO width check at all, so a title like "The Open Question" at a
+               fixed 52px could — and did — clip past the card's left/right
+               edges. Now it shrinks to fit, and wraps to a second line if it
+               still doesn't fit even at the minimum readable size. */
             const storyTitleText = reportData.storyTitle || '';
             if (storyTitleText) {
+                hy += 48;
                 ctx.fillStyle = 'rgba(232,213,176,0.55)';
                 ctx.font = '500 22px "DM Sans"';
-                ctx.fillText('EMOTIONAL STORY', W/2, orbY + 410);  // +24 gap from pct label
+                ctx.fillText('EMOTIONAL STORY', W/2, hy);
+
+                const stMaxW = Math.round(W * 0.84);
+                const stMaxPx = 54, stMinPx = 32;
+                function stW(px, t) {
+                    ctx.font = `italic 700 ${px}px "Cormorant Garamond", Georgia, serif`;
+                    return ctx.measureText(t).width;
+                }
+                let stPx = stMaxPx;
+                while (stW(stPx, storyTitleText) > stMaxW && stPx > stMinPx) stPx -= 2;
+
+                let stLines = [storyTitleText];
+                if (stW(stPx, storyTitleText) > stMaxW) {
+                    stPx = stMaxPx;
+                    const words = storyTitleText.split(' ');
+                    const mid = Math.floor(storyTitleText.length / 2);
+                    let bestSplit = 1, bestDist = Infinity, charCount = 0;
+                    for (let i = 0; i < words.length - 1; i++) {
+                        charCount += words[i].length + 1;
+                        const dist = Math.abs(charCount - mid);
+                        if (dist < bestDist) { bestDist = dist; bestSplit = i + 1; }
+                    }
+                    stLines = [words.slice(0, bestSplit).join(' '), words.slice(bestSplit).join(' ')];
+                    while ((stW(stPx, stLines[0]) > stMaxW || stW(stPx, stLines[1]) > stMaxW) && stPx > stMinPx) stPx -= 2;
+                }
+
+                hy += 62;
                 ctx.fillStyle = 'rgba(255,255,255,0.95)';
-                ctx.font = 'italic 700 52px "Cormorant Garant"';
-                ctx.fillText(storyTitleText, W/2, orbY + 472);     // +62 from label
+                ctx.font = `italic 700 ${stPx}px "Cormorant Garamond", Georgia, serif`;
+                const stLineH = Math.round(stPx * 1.16);
+                stLines.forEach((line, i) => ctx.fillText(line, W/2, hy + i*stLineH));
+                hy += (stLines.length - 1) * stLineH;
             }
 
-            /* 9. Archetype + Level  (+18 from story title) */
+            /* 9. Archetype + Level. FIX: same missing-width-check bug as the
+               story title — long archetype names (e.g. "Soul Strategist")
+               combined with a level number could clip. Now shrinks to fit. */
+            hy += 56;
+            const archText = `${archetype || 'Emotional Explorer'}  ·  Level ${level || 1}`;
+            const arMaxW = Math.round(W * 0.86);
+            let arPx = 30;
+            ctx.font = `600 ${arPx}px "DM Sans"`;
+            while (ctx.measureText(archText).width > arMaxW && arPx > 20) {
+                arPx -= 1;
+                ctx.font = `600 ${arPx}px "DM Sans"`;
+            }
             ctx.fillStyle = 'rgba(232,213,176,0.80)';
-            ctx.font = '600 30px "DM Sans"';
-            ctx.fillText(`${archetype || 'Emotional Explorer'}  ·  Level ${level || 1}`, W/2, orbY + 528);
+            ctx.fillText(archText, W/2, hy);
 
             /* 10. Thin divider */
-            const dividerY = orbY + 572;
+            hy += 44;
+            const dividerY = hy;
             ctx.strokeStyle = 'rgba(232,213,176,0.15)'; ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(W*0.28, dividerY); ctx.lineTo(W*0.72, dividerY);
@@ -9200,7 +9426,23 @@ function renderAuthScreen() {
             try {
                 const { signInWithPopup } = window.firebaseFns;
                 await signInWithPopup(window.firebaseAuth, window.googleProvider);
-            } catch (e) { console.log('Login error:', e); }
+            } catch (e) {
+                console.log('Login error:', e);
+                // Surfaced on-screen (not just console) since phones have no
+                // easy way to view console logs without a laptop for remote
+                // debugging. This is a temporary diagnostic aid.
+                const msg = (e && (e.code || e.message))
+                    ? `${e.code || ''} ${e.message || ''}`.trim()
+                    : 'Unknown sign-in error';
+                let statusEl = document.getElementById('authSignInStatus');
+                if (!statusEl) {
+                    statusEl = document.createElement('div');
+                    statusEl.id = 'authSignInStatus';
+                    statusEl.style.cssText = 'margin-top:0.9rem;text-align:center;font-family:"DM Sans",sans-serif;font-size:0.8rem;color:#f28b82;padding:0 1rem;line-height:1.5;';
+                    btn.insertAdjacentElement('afterend', statusEl);
+                }
+                statusEl.textContent = `Sign-in failed: ${msg}`;
+            }
         };
     }
 }
@@ -9465,6 +9707,47 @@ function getMoodEmoji(mood) {
     return map[mood] || "✦";
 }
 
+/* ── HAPTICS HELPER ──
+   Prefers Capacitor's native Haptics plugin (real Android haptic feedback);
+   falls back to the web Vibration API when running in a plain browser tab
+   or if the native plugin isn't present. Silently no-ops on unsupported
+   platforms (e.g. iOS Safari, which never exposes navigator.vibrate).
+   style: 'light' | 'medium' | 'heavy' — the web fallback only supports a
+   duration pattern, so the style maps to a rough intensity there too. */
+async function triggerHaptic(style = 'medium') {
+    try {
+        const H = window.Capacitor?.Plugins?.Haptics;
+        if (H && typeof H.impact === 'function') {
+            const styleMap = { light: 'LIGHT', medium: 'MEDIUM', heavy: 'HEAVY' };
+            await H.impact({ style: styleMap[style] || 'MEDIUM' });
+            return;
+        }
+    } catch (e) {
+        // Fall through to the web vibrate fallback below.
+    }
+    try {
+        if (navigator.vibrate) {
+            const patterns = { light: [10], medium: [18, 40, 26], heavy: [30, 50, 30] };
+            navigator.vibrate(patterns[style] || patterns.medium);
+        }
+    } catch (e) {}
+}
+
+/* ── OFFLINE BANNER ──
+   Shows/hides the floating status pill based on connectivity. Checked once
+   at load (in case the app was opened while already offline) and then kept
+   in sync via the browser's online/offline events. */
+function updateOfflineBanner() {
+    const banner = document.getElementById('offlineBanner');
+    if (!banner) return;
+    banner.classList.toggle('visible', !navigator.onLine);
+}
+window.addEventListener('online', updateOfflineBanner);
+window.addEventListener('offline', updateOfflineBanner);
+document.addEventListener('DOMContentLoaded', updateOfflineBanner);
+// Cover the case where this script runs after DOMContentLoaded already fired.
+if (document.readyState !== 'loading') updateOfflineBanner();
+
 function hexToRgba(hex, alpha) {
     const r = parseInt(hex.slice(1,3), 16);
     const g = parseInt(hex.slice(3,5), 16);
@@ -9533,6 +9816,100 @@ async function fetchHistoryData() {
         history,
         favorites: Array.isArray(data.favorites) ? data.favorites : []
     };
+}
+
+// ── FETCH *ALL* HISTORY FOR EXPORT (cursor-paginated, no cap) ──
+// Distinct from fetchHistoryData(), which caps at HISTORY_FETCH_LIMIT for
+// normal in-app viewing. A data export should never silently truncate
+// someone's history, so this walks the whole subcollection page by page.
+async function fetchAllHistoryForExport() {
+    if (!window.firebaseAuth?.currentUser) return { history: [], profile: {} };
+    const { doc, getDoc, collection, query, orderBy, limit, startAfter, getDocs } = window.firebaseFns;
+    const uid = window.firebaseAuth.currentUser.uid;
+    const PAGE_SIZE = 300;
+    let all = [];
+    let cursor = null;
+
+    try {
+        while (true) {
+            const constraints = [orderBy('date', 'asc'), limit(PAGE_SIZE)];
+            if (cursor) constraints.push(startAfter(cursor));
+            const snap = await getDocs(query(collection(window.firebaseDB, 'users', uid, 'history'), ...constraints));
+            if (snap.empty) break;
+            all = all.concat(snap.docs.map(d => d.data()));
+            if (snap.docs.length < PAGE_SIZE) break;
+            cursor = snap.docs[snap.docs.length - 1];
+        }
+    } catch (e) {
+        // Return whatever was gathered before the failure rather than nothing.
+    }
+
+    let profile = {};
+    try {
+        const userSnap = await getDoc(doc(window.firebaseDB, 'users', uid));
+        profile = userSnap.data() || {};
+        // Backward compatibility: merge in any entries still sitting in the
+        // legacy array field, same contract as fetchHistoryData().
+        if (Array.isArray(profile.history) && profile.history.length) {
+            const seen = new Set(all.map(h => h.date));
+            profile.history.forEach(h => { if (!seen.has(h.date)) all.push(h); });
+        }
+    } catch (e) {
+        // Non-fatal — export proceeds with history only.
+    }
+
+    return { history: all, profile };
+}
+
+// ── EXPORT MY DATA — downloads a JSON file of the user's complete history ──
+async function exportUserData() {
+    const btn    = document.getElementById('dataExportBtn');
+    const status = document.getElementById('dataExportStatus');
+    if (!btn || !status) return;
+
+    if (!window.firebaseAuth?.currentUser) {
+        status.textContent = "You need to be signed in to export your data.";
+        status.classList.add('is-error');
+        return;
+    }
+
+    btn.disabled = true;
+    status.classList.remove('is-error');
+    status.textContent = "Gathering your entries…";
+
+    try {
+        const { history, profile } = await fetchAllHistoryForExport();
+
+        const exportPayload = {
+            exportedAt: new Date().toISOString(),
+            profile: {
+                displayName: profile.displayName || null,
+                xp: typeof profile.xp === 'number' ? profile.xp : null,
+                rank: profile.rank || null,
+                favorites: Array.isArray(profile.favorites) ? profile.favorites : []
+            },
+            entryCount: history.length,
+            history
+        };
+
+        const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        const stamp = new Date().toISOString().slice(0, 10);
+        a.href = url;
+        a.download = `aura-data-export-${stamp}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        status.textContent = `Done — ${history.length} ${history.length === 1 ? 'entry' : 'entries'} exported.`;
+    } catch (e) {
+        status.textContent = "Something went wrong preparing your export. Please try again.";
+        status.classList.add('is-error');
+    } finally {
+        btn.disabled = false;
+    }
 }
 
 async function loadHistory() {
@@ -9632,12 +10009,25 @@ async function toggleFavorite(dateVal) {
     return !isFav;
 }
 
-/* ── RENDER HISTORY LIST ── */
-function renderHistoryList(entries) {
+/* ── RENDER HISTORY LIST ──
+   Renders in pages so we're not dumping hundreds of animated cards into the
+   DOM at once. Call with a fresh (already filtered) array to reset to page 1;
+   pass { append: true } to reveal the next page of that same array (used by
+   the "Load earlier entries" button) without re-fetching or re-filtering. */
+const HISTORY_RENDER_PAGE_SIZE = 20;
+
+function renderHistoryList(entries, opts = {}) {
     const list = document.getElementById('historyList');
     if (!list) return;
+
+    if (!opts.append) {
+        window._historyRenderEntries = entries || [];
+        window._historyRenderShown   = 0;
+    }
+    const fullList = window._historyRenderEntries || [];
+
     list.innerHTML = '';
-    if (!entries || entries.length === 0) {
+    if (!fullList || fullList.length === 0) {
         list.innerHTML = `<div class="empty-history">
             <span class="empty-history-icon">🌙</span>
             <p>No results found.</p>
@@ -9645,6 +10035,11 @@ function renderHistoryList(entries) {
         </div>`;
         return;
     }
+
+    const shownCount = Math.min(window._historyRenderShown + HISTORY_RENDER_PAGE_SIZE, fullList.length);
+    window._historyRenderShown = shownCount;
+    const entriesToRender = fullList.slice(0, shownCount);
+
     let cardIndex = 0;
     let lastGroup = null;
 
@@ -9660,7 +10055,7 @@ function renderHistoryList(entries) {
         return 'Older';
     }
 
-    entries.forEach((item, index) => {
+    entriesToRender.forEach((item, index) => {
         const group = getDateGroup(item.date);
         if (group !== lastGroup) {
             const header = document.createElement('div');
@@ -9759,6 +10154,20 @@ function renderHistoryList(entries) {
         card.addEventListener('click', () => openHistoryDetail(item));
         list.appendChild(div);
     });
+
+    if (window._historyRenderShown < fullList.length) {
+        const loadMoreBtn = document.createElement('button');
+        loadMoreBtn.type = 'button';
+        loadMoreBtn.className = 'history-load-more-btn';
+        loadMoreBtn.id = 'historyLoadMoreBtn';
+        loadMoreBtn.textContent = `Load earlier entries (${fullList.length - window._historyRenderShown} more)`;
+        loadMoreBtn.addEventListener('click', () => {
+            loadMoreBtn.disabled = true;
+            loadMoreBtn.textContent = 'Loading…';
+            renderHistoryList(null, { append: true });
+        });
+        list.appendChild(loadMoreBtn);
+    }
 }
 
 /* ── HISTORY DETAIL MODAL ── */
@@ -11594,7 +12003,27 @@ document.addEventListener('DOMContentLoaded', () => {
         aboutBackBtn.addEventListener('click', () => aboutPage.classList.remove('visible'));
     }
 
-    // ── Section 5: Danger Zone / Delete Account wiring ──
+    // ── Section 5: Your Data sub-page wiring ──
+    const dataRow     = document.getElementById('prefDataRow');
+    const dataPage     = document.getElementById('dataPage');
+    const dataBackBtn = document.getElementById('dataBackBtn');
+    const dataExportBtn = document.getElementById('dataExportBtn');
+
+    if (dataRow && dataPage) {
+        const openData = () => dataPage.classList.add('visible');
+        dataRow.addEventListener('click', openData);
+        dataRow.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openData(); }
+        });
+    }
+    if (dataBackBtn && dataPage) {
+        dataBackBtn.addEventListener('click', () => dataPage.classList.remove('visible'));
+    }
+    if (dataExportBtn) {
+        dataExportBtn.addEventListener('click', exportUserData);
+    }
+
+    // ── Section 6: Danger Zone / Delete Account wiring ──
     const deleteRow        = document.getElementById('prefDeleteRow');
     const deletePage       = document.getElementById('deleteAccountPage');
     const deleteBackBtn2   = document.getElementById('deleteBackBtn');
@@ -13619,6 +14048,13 @@ async function saveToHistory(entry) {
         </button>
     </div>
 
+    <!-- Offline status banner — direct child of body, shown/hidden by
+         online/offline listeners set up further down in the script. -->
+    <div id="offlineBanner" class="offline-banner">
+        <span class="offline-banner-dot"></span>
+        <span class="offline-banner-text">You're offline — changes will save once you're back</span>
+    </div>
+
     <!-- Preferences page — direct child of body, outside appRoot, same
          reasoning as the Evolution/Notifications overlays: never affected
          by #appRoot { visibility: hidden } auth gate.
@@ -13764,7 +14200,25 @@ async function saveToHistory(entry) {
                 </div>
             </div>
 
-            <!-- Section 5: Danger Zone — extra spacing above, red accent only here -->
+            <!-- Section 5: Your Data — dedicated sub-page, opened via nav row -->
+            <div class="pref-section" id="prefSectionData">
+                <div class="notif-section-label">Your Data</div>
+
+                <div class="pref-nav-card" id="prefDataRow" role="button" tabindex="0" aria-label="Open Your Data">
+                    <div class="pref-nav-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+                    </div>
+                    <div class="pref-nav-text">
+                        <div class="pref-nav-title">Your Data</div>
+                        <div class="pref-nav-desc">Download everything you've logged</div>
+                    </div>
+                    <div class="pref-nav-chevron">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 6: Danger Zone — extra spacing above, red accent only here -->
             <div class="pref-section pref-section-danger" id="prefSectionDanger">
                 <div class="pref-danger-label">Danger Zone</div>
 
@@ -13949,6 +14403,36 @@ async function saveToHistory(entry) {
             </div>
 
             <div class="about-footer">Made with ❤️ for the quiet moments between everything else.</div>
+        </div>
+    </div>
+
+    <!-- Your Data sub-page — direct child of body, outside appRoot, opened
+         from the Preferences page's Your Data nav row. Export logic lives in
+         exportUserData() further down in the script, called only from this
+         page's export button. -->
+    <div id="dataPage" class="data-page">
+        <div class="pref-header">
+            <button class="pref-back-btn" id="dataBackBtn" aria-label="Back to Preferences">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <div class="pref-header-text">
+                <div class="pref-page-title">Your Data</div>
+                <div class="pref-page-subtitle">Everything you've logged, in one file.</div>
+            </div>
+        </div>
+
+        <div class="data-body">
+            <div class="data-hero">
+                <div class="data-hero-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+                </div>
+                <div class="data-hero-text">Export a complete copy of your emotional history as a JSON file — every entry you've ever logged, all in one download.</div>
+            </div>
+
+            <div class="data-card">
+                <button class="data-export-btn" id="dataExportBtn">Export My Data</button>
+                <div class="data-export-status" id="dataExportStatus"></div>
+            </div>
         </div>
     </div>
 

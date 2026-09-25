@@ -11,7 +11,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, deleteUser, reauthenticateWithPopup } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteField, deleteDoc, collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { getFirestore, initializeFirestore, persistentLocalCache, persistentSingleTabManager, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteField, deleteDoc, collection, query, where, orderBy, limit, getDocs, enableNetwork, disableNetwork } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAkOvsrQzbCicxylWgLBSIMO-RcNbTH4DQ",
@@ -25,12 +25,25 @@
         const app             = initializeApp(firebaseConfig);
         const auth            = getAuth(app);
         const provider        = new GoogleAuthProvider();
-        const db              = getFirestore(app);
+        // IndexedDB-backed offline cache: reads and pending writes survive being
+        // offline or reloading. Single-tab manager since this is a phone app —
+        // avoids the extra cross-tab coordination cost of the multi-tab manager.
+        let db;
+        try {
+            db = initializeFirestore(app, {
+                localCache: persistentLocalCache({ tabManager: persistentSingleTabManager() })
+            });
+        } catch (e) {
+            // Falls back to memory-only cache — still fully functional online,
+            // just without offline persistence (e.g. private/incognito mode).
+            console.warn('Firestore persistence unavailable, falling back to memory cache:', e);
+            db = getFirestore(app);
+        }
 
         window.firebaseAuth   = auth;
         window.firebaseDB     = db;
         window.googleProvider = provider;
-        window.firebaseFns    = { signInWithPopup, signOut, onAuthStateChanged, deleteUser, reauthenticateWithPopup, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteField, deleteDoc, collection, query, where, orderBy, limit, getDocs };
+        window.firebaseFns    = { signInWithPopup, signOut, onAuthStateChanged, deleteUser, reauthenticateWithPopup, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteField, deleteDoc, collection, query, where, orderBy, limit, getDocs, enableNetwork, disableNetwork };
 
         // Auth state — fires as soon as Firebase resolves
         // authStateReady() resolves ONCE when Firebase has fully determined
@@ -143,6 +156,32 @@
                 radial-gradient(ellipse 70% 45% at 50% -5%, rgba(120,60,200,0.22) 0%, transparent 68%),
                 radial-gradient(ellipse 45% 35% at 85% 85%, rgba(192,132,252,0.10) 0%, transparent 60%),
                 radial-gradient(ellipse 35% 25% at 10% 70%, rgba(251,113,133,0.07) 0%, transparent 55%);
+        }
+
+        /* Offline status banner — sits above everything, including modals, so
+           it's visible no matter what screen the person is on. */
+        .offline-banner {
+            position: fixed; left: 0; right: 0;
+            top: calc(0.6rem + env(safe-area-inset-top, 0px));
+            margin: 0 auto; width: max-content; max-width: calc(100% - 2rem);
+            z-index: 999;
+            display: flex; align-items: center; gap: 0.5rem;
+            padding: 0.55rem 1rem;
+            border-radius: 999px;
+            background: rgba(28,20,10,0.94);
+            border: 1px solid rgba(232,213,176,0.22);
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            font-family: 'DM Sans', sans-serif; font-size: 0.76rem; font-weight: 500;
+            color: rgba(237,223,192,0.92);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            transition: opacity 300ms ease, transform 300ms ease;
+        }
+        .offline-banner.hidden { opacity: 0; transform: translateY(-12px); pointer-events: none; }
+        .offline-dot {
+            width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+            background: rgba(232,180,90,0.95);
+            box-shadow: 0 0 8px rgba(232,180,90,0.7);
+            animation: pulse 1.8s ease-in-out infinite;
         }
 
         @keyframes fadeUp {
@@ -398,7 +437,7 @@
         /* ── MODAL (result) — internally scrollable ── */
         .modal-box {
             background: rgba(10,8,18,0.98);
-            border: 1px solid rgba(192,132,252,0.14);
+            border: 1px solid var(--modal-mood-border, rgba(192,132,252,0.14));
             border-radius: 1.6rem;
             width: 100%; max-width: 24rem;
             max-height: calc(100dvh - 5.8rem - env(safe-area-inset-bottom, 0px));
@@ -411,7 +450,8 @@
             box-shadow:
                 0 0 0 1px rgba(192,132,252,0.08),
                 0 32px 80px rgba(0,0,0,0.95),
-                0 0 60px rgba(120,60,200,0.12);
+                0 0 60px var(--modal-mood-glow, rgba(120,60,200,0.12));
+            transition: border-color 500ms ease, box-shadow 500ms ease;
             scrollbar-width: none;
             position: relative;
         }
@@ -3437,6 +3477,16 @@
             width: 100%;
             overflow-x: hidden;
         }
+        .history-load-more-btn {
+            display: block; width: calc(100% - 1.5rem); margin: 1.1rem auto 1.6rem;
+            padding: 0.85rem; border-radius: 14px;
+            background: rgba(232,213,176,0.06); border: 1px solid rgba(232,213,176,0.18);
+            color: rgba(237,223,192,0.80);
+            font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600;
+            letter-spacing: 0.02em; cursor: pointer;
+            transition: background 200ms ease, border-color 200ms ease;
+        }
+        .history-load-more-btn:active { background: rgba(232,213,176,0.12); border-color: rgba(232,213,176,0.30); }
         #historyList::before {
             content: "";
             position: absolute;
@@ -5468,6 +5518,11 @@
 </head>
 <body>
 
+<div id="offlineBanner" class="offline-banner hidden" role="status" aria-live="polite">
+    <span class="offline-dot"></span>
+    <span id="offlineBannerText">You're offline — changes will sync once you're back online.</span>
+</div>
+
 <div id="appRoot">
 
     <div id="milestoneToast" class="milestone-toast">
@@ -5748,6 +5803,34 @@
     });
 
     window.reportAppError = reportError; // lets specific catch blocks report handled-but-notable errors too
+})();
+
+/* ── OFFLINE STATUS ──
+   Firestore's IndexedDB cache (see initializeFirestore above) keeps reads and
+   queued writes working while offline; this banner just makes that state
+   visible so the person isn't left guessing whether their check-in saved. */
+(function () {
+    const banner = document.getElementById('offlineBanner');
+    if (!banner) return;
+
+    function setOffline(isOffline) {
+        banner.classList.toggle('hidden', !isOffline);
+    }
+
+    // Reflect actual state on load — in case the page was opened while already offline.
+    setOffline(!navigator.onLine);
+
+    window.addEventListener('offline', () => setOffline(true));
+    window.addEventListener('online', () => {
+        setOffline(false);
+        // Nudge Firestore to retry immediately rather than waiting for its own
+        // backoff timer — most noticeable right after a flaky connection returns.
+        try {
+            if (window.firebaseDB && window.firebaseFns && window.firebaseFns.enableNetwork) {
+                window.firebaseFns.enableNetwork(window.firebaseDB).catch(() => {});
+            }
+        } catch (e) {}
+    });
 })();
 
 /* ── DATA ── */
@@ -6784,6 +6867,7 @@ const moodBtns         = document.querySelectorAll('.mood-btn');
 const generateBtn      = $('generateBtn');
 const loadingOverlay   = $('loadingOverlay');
 const modalOverlay     = $('modalOverlay');
+const modalBox         = modalOverlay ? modalOverlay.querySelector('.modal-box') : null;
 const statusTextEl     = $('statusText');
 const closeModalBtn    = $('closeModalBtn');
 const closeBtn         = $('closeBtn');
@@ -7538,6 +7622,18 @@ function applyMoodStyle(mood) {
     statusCard.style.setProperty('--h2',        s.h2);
     statusCard.style.setProperty('--mood-glow', s.moodGlow);
     captureWrapper.style.boxShadow = s.wrapShadow;
+    // Tint the modal's own frame (border + outer glow) to match this mood, using the
+    // same moodGlow color as the card — swap its alpha rather than picking a new color,
+    // so the frame reads as an extension of the card's own light rather than a flat tint.
+    if (modalBox) {
+        const glowMatch = /rgba?\(([^)]+)\)/.exec(s.moodGlow);
+        if (glowMatch) {
+            const parts = glowMatch[1].split(',').map(v => v.trim());
+            const [r, g, b] = parts;
+            modalBox.style.setProperty('--modal-mood-border', `rgba(${r}, ${g}, ${b}, 0.22)`);
+            modalBox.style.setProperty('--modal-mood-glow',   `rgba(${r}, ${g}, ${b}, 0.16)`);
+        }
+    }
     // Mesh gradient overlay
     const mesh = document.getElementById('scMesh');
     if (mesh) mesh.style.background = MOOD_MESH[mood] || '';
@@ -9680,6 +9776,9 @@ async function toggleFavorite(dateVal) {
 }
 
 /* ── RENDER HISTORY LIST ── */
+const HISTORY_PAGE_SIZE = 25;
+let _historyPageState = null; // { entries, rendered, cardIndex, lastGroup } — reset on every fresh renderHistoryList call
+
 function renderHistoryList(entries) {
     const list = document.getElementById('historyList');
     if (!list) return;
@@ -9690,10 +9789,30 @@ function renderHistoryList(entries) {
             <p>No results found.</p>
             <small>Try a different search or filter.</small>
         </div>`;
+        _historyPageState = null;
         return;
     }
-    let cardIndex = 0;
-    let lastGroup = null;
+    // Fresh list (new search/filter/initial load) — always starts pagination over from page 1.
+    _historyPageState = { entries, rendered: 0, cardIndex: 0, lastGroup: null };
+    renderNextHistoryPage();
+}
+
+// Renders the next HISTORY_PAGE_SIZE entries from the current pagination state and
+// appends them below what's already on screen. Keeps the heavy per-card DOM (particle
+// gradients, box-shadows, animations) capped at one page at a time instead of building
+// hundreds of cards up front, which is what made long histories feel sluggish to open.
+function renderNextHistoryPage() {
+    const state = _historyPageState;
+    const list  = document.getElementById('historyList');
+    if (!state || !list) return;
+
+    const existingBtn = document.getElementById('historyLoadMoreBtn');
+    if (existingBtn) existingBtn.remove();
+
+    const entries   = state.entries.slice(state.rendered, state.rendered + HISTORY_PAGE_SIZE);
+    let cardIndex   = state.cardIndex;
+    let lastGroup   = state.lastGroup;
+    const baseIndex = state.rendered;
 
     function getDateGroup(dateVal) {
         const d   = new Date(dateVal);
@@ -9707,7 +9826,8 @@ function renderHistoryList(entries) {
         return 'Older';
     }
 
-    entries.forEach((item, index) => {
+    entries.forEach((item, i) => {
+        const index = baseIndex + i; // preserve original absolute-position semantics (isLatest check below)
         const group = getDateGroup(item.date);
         if (group !== lastGroup) {
             const header = document.createElement('div');
@@ -9806,6 +9926,20 @@ function renderHistoryList(entries) {
         card.addEventListener('click', () => openHistoryDetail(item));
         list.appendChild(div);
     });
+
+    state.rendered  += entries.length;
+    state.cardIndex  = cardIndex;
+    state.lastGroup  = lastGroup;
+
+    if (state.rendered < state.entries.length) {
+        const remaining = state.entries.length - state.rendered;
+        const btn = document.createElement('button');
+        btn.id = 'historyLoadMoreBtn';
+        btn.className = 'history-load-more-btn';
+        btn.textContent = `Load ${Math.min(HISTORY_PAGE_SIZE, remaining)} More`;
+        btn.addEventListener('click', renderNextHistoryPage);
+        list.appendChild(btn);
+    }
 }
 
 /* ── HISTORY DETAIL MODAL ── */
@@ -11657,6 +11791,61 @@ document.addEventListener('DOMContentLoaded', () => {
     if (aboutBackBtn && aboutPage) {
         aboutBackBtn.addEventListener('click', () => aboutPage.classList.remove('visible'));
     }
+
+    // ── Section 4.5: Export My Data wiring ──
+    // Pulls the users/{uid} profile document plus every entry in the history
+    // subcollection, and offers it back as a single downloadable JSON file.
+    // Read-only — nothing here touches Firestore beyond two reads, so it's
+    // safe to run as often as the person likes.
+    (function () {
+        const exportRow = document.getElementById('prefExportRow');
+        const exportTitle = document.getElementById('prefExportTitle');
+        if (!exportRow) return;
+
+        async function runExport() {
+            const auth = window.firebaseAuth;
+            const db   = window.firebaseDB;
+            const fns  = window.firebaseFns;
+            if (!auth || !auth.currentUser) return;
+            const original = exportTitle.textContent;
+            exportTitle.textContent = 'Preparing your export…';
+            try {
+                const uid = auth.currentUser.uid;
+                const [profileSnap, historySnap] = await Promise.all([
+                    fns.getDoc(fns.doc(db, 'users', uid)),
+                    fns.getDocs(fns.collection(db, 'users', uid, 'history'))
+                ]);
+                const payload = {
+                    exportedAt: new Date().toISOString(),
+                    account: { uid, email: auth.currentUser.email || null },
+                    profile: profileSnap.exists() ? profileSnap.data() : null,
+                    history: historySnap.docs.map(d => ({ id: d.id, ...d.data() }))
+                };
+                const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+                const url  = URL.createObjectURL(blob);
+                const a    = document.createElement('a');
+                const dateStamp = new Date().toISOString().slice(0, 10);
+                a.href = url;
+                a.download = `aura-data-export-${dateStamp}.json`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 4000);
+                exportTitle.textContent = 'Export downloaded';
+            } catch (err) {
+                console.error('Data export failed:', err);
+                if (window.reportAppError) window.reportAppError('Data export failed: ' + (err && err.message));
+                exportTitle.textContent = 'Export failed — try again';
+            } finally {
+                setTimeout(() => { exportTitle.textContent = original; }, 2500);
+            }
+        }
+
+        exportRow.addEventListener('click', runExport);
+        exportRow.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); runExport(); }
+        });
+    })();
 
     // ── Section 5: Danger Zone / Delete Account wiring ──
     const deleteRow        = document.getElementById('prefDeleteRow');
@@ -13848,6 +14037,27 @@ async function saveToHistory(entry) {
                     <div class="pref-nav-text">
                         <div class="pref-nav-title">About AURA</div>
                         <div class="pref-nav-desc">Version, build, and the story behind it</div>
+                    </div>
+                    <div class="pref-nav-chevron">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4.5: Your Data — downloads a JSON copy of everything
+                 stored for this account (profile + full history). Exists
+                 mainly so account deletion isn't the only way to find out
+                 what's actually stored. -->
+            <div class="pref-section" id="prefSectionData">
+                <div class="notif-section-label">Your Data</div>
+
+                <div class="pref-nav-card" id="prefExportRow" role="button" tabindex="0" aria-label="Export your data">
+                    <div class="pref-nav-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M8 11l4 4 4-4"/><path d="M4 21h16"/></svg>
+                    </div>
+                    <div class="pref-nav-text">
+                        <div class="pref-nav-title" id="prefExportTitle">Export My Data</div>
+                        <div class="pref-nav-desc">Download a JSON file of your entries and profile</div>
                     </div>
                     <div class="pref-nav-chevron">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>

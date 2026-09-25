@@ -148,14 +148,16 @@
             --c-lost:      rgba(70,160,255,0.65);
         }
 
-        /* Ambient background glow */
+        /* Ambient background glow — colors are overridden per-mood by applyAmbientTint()
+           below; these are just the pre-first-checkin defaults. */
         body::before {
             content: '';
             position: fixed; inset: 0; pointer-events: none; z-index: 0;
             background:
-                radial-gradient(ellipse 70% 45% at 50% -5%, rgba(120,60,200,0.22) 0%, transparent 68%),
-                radial-gradient(ellipse 45% 35% at 85% 85%, rgba(192,132,252,0.10) 0%, transparent 60%),
-                radial-gradient(ellipse 35% 25% at 10% 70%, rgba(251,113,133,0.07) 0%, transparent 55%);
+                radial-gradient(ellipse 70% 45% at 50% -5%, var(--amb-1, rgba(120,60,200,0.22)) 0%, transparent 68%),
+                radial-gradient(ellipse 45% 35% at 85% 85%, var(--amb-2, rgba(192,132,252,0.10)) 0%, transparent 60%),
+                radial-gradient(ellipse 35% 25% at 10% 70%, var(--amb-3, rgba(251,113,133,0.07)) 0%, transparent 55%);
+            transition: background 700ms ease;
         }
 
         /* Offline status banner — sits above everything, including modals, so
@@ -7231,8 +7233,8 @@ function showIdentityEvolution(prevRank, newRank, xp, level) {
     document.body.classList.add('evo-active');
     overlay.classList.add('show');
 
-    // Gentle haptic on identity change, if supported
-    try { navigator.vibrate && navigator.vibrate([18, 40, 26]); } catch(e) {}
+    // Gentle haptic on identity change
+    triggerHaptic('success');
 
     // XP count-up, synced with the level/XP row fade-in (~3750ms)
     const xpEarnedEl = $('evoXPEarned');
@@ -7565,6 +7567,7 @@ function updateIdentityPanel() {
 
 /* ── BOTTOM NAV ── */
 function showTab(tab) {
+    triggerHaptic('selection');
     const home     = $('homePage');
     const history  = $('historyModal');
     const insights = $('insightsModal');
@@ -7612,6 +7615,59 @@ function setNavActive(tab) {
     const el = $(map[tab]);
     if (el) el.classList.add('active');
 }
+// App-wide ambient background (body::before) — tints the whole app to the most
+// recently generated mood, not just the modal, and persists across reloads until
+// the next check-in changes it again.
+const AMBIENT_TINT_KEY = 'aura_ambient_tint';
+function applyAmbientTint(r, g, b) {
+    const root = document.documentElement;
+    root.style.setProperty('--amb-1', `rgba(${r}, ${g}, ${b}, 0.22)`);
+    root.style.setProperty('--amb-2', `rgba(${r}, ${g}, ${b}, 0.12)`);
+    root.style.setProperty('--amb-3', `rgba(${r}, ${g}, ${b}, 0.08)`);
+    try { localStorage.setItem(AMBIENT_TINT_KEY, JSON.stringify({ r, g, b })); } catch (e) {}
+}
+(function restoreAmbientTint() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(AMBIENT_TINT_KEY) || 'null');
+        if (saved && saved.r != null) applyAmbientTint(saved.r, saved.g, saved.b);
+    } catch (e) {}
+})();
+
+// Haptics — prefers Capacitor's native Haptics plugin (crisper, uses the OS's actual
+// haptic engine) when running as the wrapped Android app; falls back to the plain web
+// Vibration API everywhere else (browser, or if the native plugin isn't installed yet).
+// Silently does nothing on iOS Safari or any device without vibration support.
+function triggerHaptic(type) {
+    type = type || 'light';
+    try {
+        const H = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Haptics;
+        if (H) {
+            switch (type) {
+                case 'selection': if (H.selectionStart) { H.selectionStart(); H.selectionChanged(); H.selectionEnd(); } else { H.impact({ style: 'LIGHT' }); } return;
+                case 'medium':    H.impact({ style: 'MEDIUM' }); return;
+                case 'heavy':     H.impact({ style: 'HEAVY' });  return;
+                case 'success':   H.notification({ type: 'SUCCESS' }); return;
+                case 'warning':   H.notification({ type: 'WARNING' }); return;
+                case 'error':     H.notification({ type: 'ERROR' });   return;
+                default:          H.impact({ style: 'LIGHT' });  return; // 'light'
+            }
+        }
+    } catch (e) { /* native plugin missing or errored — fall through to web vibrate */ }
+    if (!navigator.vibrate) return;
+    try {
+        switch (type) {
+            case 'selection': navigator.vibrate(8);  break;
+            case 'medium':    navigator.vibrate(20); break;
+            case 'heavy':     navigator.vibrate(35); break;
+            case 'success':   navigator.vibrate([18, 40, 26]); break;
+            case 'warning':   navigator.vibrate([15, 60, 15, 60, 15]); break;
+            case 'error':     navigator.vibrate([40, 30, 40]);  break;
+            default:          navigator.vibrate(10); // 'light'
+        }
+    } catch (e) {}
+}
+window.triggerHaptic = triggerHaptic;
+
 function applyMoodStyle(mood) {
     const s = MOOD_STYLES[mood]; if (!s) return;
     statusCard.style.backgroundImage    = 'url(' + MOOD_IMAGES[mood] + ')';
@@ -7632,6 +7688,7 @@ function applyMoodStyle(mood) {
             const [r, g, b] = parts;
             modalBox.style.setProperty('--modal-mood-border', `rgba(${r}, ${g}, ${b}, 0.22)`);
             modalBox.style.setProperty('--modal-mood-glow',   `rgba(${r}, ${g}, ${b}, 0.16)`);
+            applyAmbientTint(r, g, b);
         }
     }
     // Mesh gradient overlay
@@ -7661,9 +7718,11 @@ function applyMoodStyle(mood) {
 moodBtns.forEach(btn => btn.addEventListener('click', e => {
     // Check if locked (premium mood)
     if (!isPro && e.currentTarget.classList.contains('locked')) {
+        triggerHaptic('warning');
         openPaywall();
         return;
     }
+    triggerHaptic('selection');
     selectedMood = e.currentTarget.dataset.mood;
     currentStatus = null;
     modalOverlay.classList.add('hidden');
@@ -7982,6 +8041,7 @@ function resetRevealClasses() {
 
 generateBtn.addEventListener('click', () => {
     if (!selectedMood || isLoading || isDownloading || isSharing) return;
+    triggerHaptic('medium');
     isLoading = true; generateBtn.disabled = true;
     resetRevealClasses();
     startCinematicLoading(selectedMood);
@@ -7997,6 +8057,7 @@ generateBtn.addEventListener('click', () => {
 });
 generateAgainBtn.addEventListener('click', () => {
     if (!selectedMood || isLoading || isDownloading || isSharing) return;
+    triggerHaptic('medium');
     isLoading = true;
     resetRevealClasses();
     modalOverlay.classList.add('hidden');
@@ -9758,6 +9819,7 @@ function loadFavoritesLocal() {
 }
 
 async function toggleFavorite(dateVal) {
+    triggerHaptic('light');
     if (!window._favorites) window._favorites = loadFavoritesLocal();
     const key = Number(dateVal);
     const isFav = window._favorites.has(key);
@@ -11929,6 +11991,7 @@ document.addEventListener('DOMContentLoaded', () => {
         deleteConfirmBtn.addEventListener('click', async () => {
             // First tap: show which Gmail to choose. Nothing opens or deletes yet.
             if (!deleteArmed) {
+                triggerHaptic('warning');
                 deleteArmed = true;
                 const email = window.firebaseAuth && window.firebaseAuth.currentUser && window.firebaseAuth.currentUser.email;
                 if (deleteVerifyEmailEl && email) deleteVerifyEmailEl.textContent = email;
@@ -11950,6 +12013,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await performAccountDeletion();
 
             if (result.success) {
+                triggerHaptic('success');
                 if (deleteStatusEl) {
                     deleteStatusEl.textContent = 'Account deleted.';
                     deleteStatusEl.classList.remove('is-error');
@@ -11963,6 +12027,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (page)       page.classList.remove('visible'); // preferencesPage
                 setTimeout(() => { window.location.reload(); }, 400);
             } else {
+                triggerHaptic('error');
                 if (deleteStatusEl) {
                     deleteStatusEl.textContent = result.error === 'wrong-account'
                         ? 'That was a different Gmail. Nothing was deleted. Try again and choose the account you signed in to AURA with.'

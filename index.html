@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#0c0c0f">
-    <title>Identity Status Generator</title>
+    <title>AURA</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500;600;700&family=Cormorant+Garant:wght@600;700;800&display=swap" rel="stylesheet">
@@ -93,6 +93,8 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         #appRoot { visibility: hidden; }
         html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        :root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+        html { scroll-padding-top: env(safe-area-inset-top, 0px); }
 
         body {
             font-family: 'DM Sans', sans-serif;
@@ -694,6 +696,17 @@
         }
 
         /* ── CAPTURE WRAPPER ── */
+        /* Exact-output preview: the generated canvas (same JPEG that Download/Share
+           use) is laid over the live DOM card so the modal shows the real export. */
+        #captureWrapper { position: relative; }
+        .card-preview-img {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            object-fit: cover; display: block; z-index: 30;
+            opacity: 0; pointer-events: none; border-radius: inherit;
+            transition: opacity 350ms ease;
+        }
+        .card-preview-img.ready { opacity: 1; }
+
         /* Never use display:none on #captureWrapper directly.
            If it must be hidden, use: visibility:hidden; position:absolute; left:-9999px; opacity:0 */
         #captureWrapper {
@@ -4188,7 +4201,8 @@
         /* ── BOTTOM NAVIGATION ── */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0;
-            height: 4.4rem;
+            height: calc(4.4rem + env(safe-area-inset-bottom, 0px));
+            padding-bottom: env(safe-area-inset-bottom, 0px);
             background: rgba(8,6,16,0.96);
             backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px);
             border-top: 1px solid rgba(232,213,176,0.08);
@@ -5376,6 +5390,19 @@
             color: rgba(255,140,140,0.90); letter-spacing: 0.01em;
         }
 
+        .delete-verify {
+            width: 92%; margin: 0 auto; padding: 0.95rem 1rem;
+            border-radius: 14px; box-sizing: border-box;
+            background: rgba(232,213,176,0.06); border: 1px solid rgba(232,213,176,0.16);
+            font-family: 'DM Sans', sans-serif; color: rgba(237,223,192,0.85);
+        }
+        .delete-verify[hidden] { display: none; }
+        .delete-verify-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.5rem; color: rgba(237,223,192,0.95); }
+        .delete-verify-list { margin: 0; padding-left: 1.15rem; font-size: 0.8rem; line-height: 1.55; }
+        .delete-verify-list li + li { margin-top: 0.25rem; }
+        .delete-verify-email { font-weight: 700; color: #fff; word-break: break-all; }
+        .delete-verify-note { margin-top: 0.6rem; font-size: 0.76rem; color: rgba(255,140,140,0.90); line-height: 1.45; }
+
         .delete-actions { width: 92%; margin: 0 auto; display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.4rem; }
         .delete-btn {
             width: 100%; padding: 0.95rem 1rem; border-radius: 18px; border: none;
@@ -5583,6 +5610,7 @@
                         </div>
                     </div>
                 </div>
+                <img id="cardPreviewImg" class="card-preview-img" alt="Your generated card" draggable="false">
             </div>
             <div id="rewardMessage" class="reward hidden">
                 <div class="reward-main">+1 expression logged</div>
@@ -5630,6 +5658,98 @@
 
     <!-- Detailed Identity Section (secondary / scroll to discover) -->
 <script>
+/* ── ERROR REPORTING ──
+   Global crash/rejection capture, reported to a private Discord channel via
+   webhook (no Firebase read/write — keeps this off the Firestore quota).
+   Deduped per unique error message+location, and capped per day, both
+   tracked in localStorage so a repeating bug can't spam the channel. */
+(function () {
+    const WEBHOOK_URL = 'https://discord.com/api/webhooks/1552959975624675398/pLrDR2VlSLwkk-DylBHYDMknX7KB3OElgmMR3Z_2pdsMsRu1CchN1bkuxWeLySU99OIe';
+    const DEDUPE_WINDOW_MS = 15 * 60 * 1000;  // don't repeat the same error within 15 minutes
+    const DAILY_CAP        = 20;              // hard ceiling on webhook posts per calendar day
+    const SEEN_KEY  = 'aura_err_seen_v1';
+    const CAP_KEY   = 'aura_err_cap_v1';
+
+    function todayKey() {
+        const d = new Date();
+        return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+    }
+
+    function underDailyCap() {
+        try {
+            const raw = JSON.parse(localStorage.getItem(CAP_KEY) || 'null');
+            const key = todayKey();
+            if (!raw || raw.day !== key) {
+                localStorage.setItem(CAP_KEY, JSON.stringify({ day: key, count: 1 }));
+                return true;
+            }
+            if (raw.count >= DAILY_CAP) return false;
+            localStorage.setItem(CAP_KEY, JSON.stringify({ day: key, count: raw.count + 1 }));
+            return true;
+        } catch (e) { return true; } // if localStorage is unavailable, don't block reporting
+    }
+
+    function isDuplicate(signature) {
+        try {
+            const raw = JSON.parse(localStorage.getItem(SEEN_KEY) || '{}');
+            const now = Date.now();
+            const last = raw[signature];
+            // opportunistically prune old entries so this object doesn't grow forever
+            for (const k in raw) { if (now - raw[k] > DEDUPE_WINDOW_MS) delete raw[k]; }
+            if (last && (now - last) < DEDUPE_WINDOW_MS) { localStorage.setItem(SEEN_KEY, JSON.stringify(raw)); return true; }
+            raw[signature] = now;
+            localStorage.setItem(SEEN_KEY, JSON.stringify(raw));
+            return false;
+        } catch (e) { return false; }
+    }
+
+    function post(embed) {
+        try {
+            fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ embeds: [embed] })
+            }).catch(() => {}); // never let a failed report throw again
+        } catch (e) { /* fetch itself unavailable — silently give up */ }
+    }
+
+    function reportError(message, source, stack) {
+        message = String(message || 'Unknown error').slice(0, 500);
+        const signature = message + '|' + (source || '');
+        if (isDuplicate(signature)) return;
+        if (!underDailyCap()) return;
+        let uid = 'signed-out';
+        try { uid = (window.firebaseAuth && window.firebaseAuth.currentUser && window.firebaseAuth.currentUser.uid) || 'signed-out'; } catch (e) {}
+        post({
+            title: '🔴 AURA error',
+            color: 0xE85C5C,
+            fields: [
+                { name: 'Message', value: '```' + message + '```' },
+                { name: 'Source', value: (source || 'n/a').slice(0, 200) },
+                { name: 'User', value: uid },
+                { name: 'Page', value: (location.href || '').slice(0, 200) },
+                { name: 'Device', value: (navigator.userAgent || '').slice(0, 250) },
+                ...(stack ? [{ name: 'Stack', value: '```' + String(stack).slice(0, 700) + '```' }] : [])
+            ],
+            timestamp: new Date().toISOString()
+        });
+    }
+
+    window.addEventListener('error', (e) => {
+        // Ignore resource load errors (img/script/link failing to load) — only report real script errors.
+        if (e && e.target && e.target !== window) return;
+        reportError(e.message, (e.filename || '') + ':' + (e.lineno || '') + ':' + (e.colno || ''), e.error && e.error.stack);
+    });
+
+    window.addEventListener('unhandledrejection', (e) => {
+        const reason = e.reason;
+        const message = (reason && (reason.message || String(reason))) || 'Unhandled promise rejection';
+        reportError(message, 'promise', reason && reason.stack);
+    });
+
+    window.reportAppError = reportError; // lets specific catch blocks report handled-but-notable errors too
+})();
+
 /* ── DATA ── */
 const MOOD_EMOJIS = { tired: '😴', motivated: '💪', lost: '🌙', angry: '😤', anxious: '😰', grinding: '🔥', calm: '🌊', sad: '😢', overthinking: '💭', happy: '😊', numb: '😶', recovering: '🌿', growing: '🌱' };
 
@@ -5817,7 +5937,7 @@ const MOOD_CONTENT = {
             "Inner Stillness",
             "Soft Moments",
             "Breathe Easy",
-            "Gentle Days",
+            "Soft Days",
             "No Rush",
             "Balanced State",
             "Calm Within"
@@ -5826,7 +5946,7 @@ const MOOD_CONTENT = {
             "Not everything needs a reaction.",
             "I choose peace over pressure.",
             "Slow is still progress.",
-            "I'm allowed to move gently.",
+            "I'm allowed to move slowly.",
             "Quiet doesn't mean empty.",
             "I don't chase, I align.",
             "Peace looks good on me.",
@@ -5878,7 +5998,7 @@ const MOOD_CONTENT = {
             "The weight feels louder tonight.",
             "I'm learning how to survive difficult days.",
             "Sadness isn't weakness.",
-            "I need gentleness today.",
+            "I need softness today.",
             "My emotions are asking to be felt.",
             "Healing sometimes looks like resting.",
             "I feel emotionally drained.",
@@ -5915,7 +6035,7 @@ const MOOD_CONTENT = {
             "My heart feels open today.",
             "I'm enjoying the calm inside me.",
             "I'm laughing a little easier today.",
-            "Life feels gentler right now.",
+            "Life feels lighter right now.",
             "I feel emotionally safe today.",
             "This joy is real.",
             "I'm embracing this good energy.",
@@ -5923,7 +6043,7 @@ const MOOD_CONTENT = {
             "I finally feel present again.",
             "I want to remember this feeling.",
             "Today feels beautiful.",
-            "I'm reconnecting with happiness.",
+            "I'm finding my way back to happy.",
             "I feel balanced for once.",
             "Joy looks good on me.",
             "I'm grateful I made it this far.",
@@ -5945,7 +6065,7 @@ const MOOD_CONTENT = {
             "I'm existing more than living right now.",
             "I feel detached from everything around me.",
             "Even my emotions feel tired.",
-            "I'm trying to reconnect with myself.",
+            "I'm trying to find myself again.",
             "I feel emotionally paused.",
             "Nothing feels fully real today.",
             "I'm floating through the day.",
@@ -5956,7 +6076,7 @@ const MOOD_CONTENT = {
             "Everything feels emotionally flat.",
             "I'm here, but not fully.",
             "I'm struggling to feel anything deeply.",
-            "I need time to reconnect emotionally.",
+            "I need time to feel like myself again.",
             "My emotions feel far away.",
             "I'm emotionally exhausted.",
             "I don't know how to explain this emptiness.",
@@ -5983,7 +6103,7 @@ const MOOD_CONTENT = {
             "Every day I heal a little more.",
             "I'm rebuilding trust in myself.",
             "I deserve patience during recovery.",
-            "I'm learning to let go gently.",
+            "I'm learning to let go, slowly.",
             "I'm healing in ways nobody sees.",
             "I'm allowing myself to grow through pain.",
             "Rest is part of recovery.",
@@ -5998,7 +6118,7 @@ const MOOD_CONTENT = {
             "I feel progress inside me.",
             "I'm treating myself with more care now.",
             "I'm slowly returning to myself.",
-            "Recovery is still a beautiful journey.",
+            "Recovery is still worth it.",
         ],
     },
     growing: {
@@ -6428,7 +6548,7 @@ const STATUSES = {
         'It passes.\nEverything passes.',
         'Low tide.\nHigh tide comes.',
         'I don\'t rush\nmy own healing.',
-        'Day {streak} of\nbeing gentle\nwith myself.',
+        'Day {streak} of\nbeing kind\nto myself.',
         'The sadness\nhas something\nto teach me.',
         'Surviving this\ntoo.',
         'Not invisible.\nJust hurting.',
@@ -6491,7 +6611,7 @@ const STATUSES = {
         'Day {streak} of\ncollecting wins.',
         'Joy is not\ncomplacency.\nIt\'s fuel.',
         'Present for\nthe good stuff.',
-        'Milestone reached.\nReflecting.\nGlowing.',
+        'Milestone reached.\nStill rising.\nGlowing.',
         'Day {streak}.\nThis is the moment.',
         'Not lucky.\nEarned.\nCelebrating earned.',
         'The hard days\nmade this one\nsweeter.',
@@ -6542,7 +6662,7 @@ const STATUSES = {
         'Rest is not\ngiving up.',
         'Day {streak} of\nchoosing recovery\nover pretending.',
         'The body remembers.\nThe mind heals.',
-        'Gentle with\nmyself today.',
+        'Kind to\nmyself today.',
         'Scars are maps\nof survival.',
         'Day {streak}.\nStronger in\nthe broken places.',
         'Recovery takes\nas long\nas it takes.',
@@ -6999,7 +7119,7 @@ function showIdentityEvolution(prevRank, newRank, xp, level) {
     }
 
     const tier  = getEvoTier(newRank.index);
-    const quote = EVOLUTION_QUOTES[newRank.title] || 'You keep growing, one reflection at a time.';
+    const quote = EVOLUTION_QUOTES[newRank.title] || 'You keep growing, one check-in at a time.';
 
     overlay.style.setProperty('--evo-bright', tier.bright);
     overlay.style.setProperty('--evo-mid',    tier.mid);
@@ -7477,13 +7597,23 @@ closePaywallFooterBtn.addEventListener('click', () => paywallOverlay.classList.a
 paywallOverlay.addEventListener('click', e => { if (e.target === paywallOverlay) paywallOverlay.classList.add('hidden'); });
 startTrialBtn.addEventListener('click', () => {
     // Payment integration - not implemented yet
-    console.log('Trial started - payment integration pending');
     paywallOverlay.classList.add('hidden');
 });
 
 /* ── GENERATE ── */
 function openPaywall() {
     paywallOverlay.classList.remove('hidden');
+}
+
+let _cardPreviewURL = null;
+async function showCardPreview(blob) {
+    const img = document.getElementById('cardPreviewImg');
+    if (!img || !blob) return;
+    if (_cardPreviewURL) URL.revokeObjectURL(_cardPreviewURL);
+    _cardPreviewURL = URL.createObjectURL(blob);
+    img.src = _cardPreviewURL;
+    try { await img.decode(); } catch (e) { /* still show — browser will paint on load */ }
+    img.classList.add('ready');
 }
 
 async function processGeneration() {
@@ -7504,6 +7634,9 @@ async function processGeneration() {
     }
 
     // ── STEP 3: Generate content ──
+    // Hide the previous card's preview so a stale poster never flashes.
+    const _pv = document.getElementById('cardPreviewImg');
+    if (_pv) _pv.classList.remove('ready');
     const generated = generateStatus(selectedMood);
     currentStatus = generated.text;
 
@@ -7547,26 +7680,27 @@ async function processGeneration() {
     window._currentEntryDate = Date.now();
     closeModalBtn.classList.remove('active');
 
-    // Pre-build blob — enable share+download only when ready so share never hits canvas inside gesture.
-    // JPEG, not PNG — profiled at ~5.4x faster encoding for this image (see captureCard()
-    // for the full measurement notes), which directly shortens how long Share/Download
-    // stay disabled after every single generation.
-    buildStatusCanvas()
-        .then(canvas => new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.92)))
-        .then(blob => {
-            _cachedCardBlob = blob;
-            sb.disabled = false;
-            db.disabled = false;
-        })
-        .catch(() => {
-            // Fallback: allow on-demand build
-            sb.disabled = false;
-            db.disabled = false;
-        });
-
     saveToHistory({ mood: selectedMood, title: generated.title, text: generated.text, date: window._currentEntryDate });
     // Bust insights cache so the page re-fetches fresh data next time it's viewed
     window._allHistoryEntries = null;
+
+    // Build the export card BEFORE the reveal so the modal shows the exact same
+    // image that Download/Share produce (JPEG, not PNG — ~5.4x faster encoding,
+    // see captureCard()). Share/Download stay disabled until the blob is ready,
+    // so share never hits canvas inside a user gesture. If the build fails, the
+    // live DOM card underneath stays visible and buttons fall back to an
+    // on-demand build.
+    try {
+        const canvas = await buildStatusCanvas();
+        const blob = await new Promise((res, rej) =>
+            canvas.toBlob(b => b ? res(b) : rej(new Error('Canvas blob failed')), 'image/jpeg', 0.92));
+        _cachedCardBlob = blob;
+        await showCardPreview(blob);
+    } catch (err) {
+        console.warn('Card preview build failed — showing live card:', err);
+    }
+    sb.disabled = false;
+    db.disabled = false;
 }
 
 /* ── DAILY LIMIT (Firestore-backed, bypass-proof) ── */
@@ -8599,7 +8733,7 @@ function buildMonthlyReportCanvas(reportData) {
             // Header + subtle divider
             ctx.fillStyle = 'rgba(255,255,255,0.40)';
             ctx.font = '600 22px "DM Sans"';
-            ctx.fillText('MONTHLY REFLECTION', W/2, reflectionStartY);
+            ctx.fillText('MONTH IN WORDS', W/2, reflectionStartY);
             ctx.strokeStyle = 'rgba(232,213,176,0.18)'; ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(W*0.32, reflectionStartY + 20); ctx.lineTo(W*0.68, reflectionStartY + 20);
@@ -8896,13 +9030,13 @@ shareBtn.addEventListener('click', async () => {
                 const shareText = `My ${(window._currentReportData || {}).monthLabel || ''} on AURA ✦`;
                 await shareOrDownloadImage({
                     blob,
-                    filename: 'aura-monthly-journey.jpg',
-                    shareTitle: 'My AURA Monthly Journey',
+                    filename: 'aura-monthly-report.jpg',
+                    shareTitle: 'My AURA Monthly Report',
                     shareText,
                     button: shareBtn,
                 });
             } else {
-                triggerBlobDownload(blob, 'aura-monthly-journey.jpg');
+                triggerBlobDownload(blob, 'aura-monthly-report.jpg');
             }
         } catch (err) {
             console.error('Monthly report error:', err);
@@ -9371,7 +9505,7 @@ function getMoodEmoji(mood) {
         "Calm":         "🌊",
         "Angry":        "🔥",
         "Sad":          "🌧️",
-        "Happy":        "✨",
+        "Happy":        "✦",
         "Lonely":       "🌙",
         "Grateful":     "🌿"
     };
@@ -9788,7 +9922,7 @@ function applyHistoryFilters() {
         <div class="history-modal-header">
             <div>
                 <h2 class="history-modal-title">History</h2>
-                <p class="history-modal-subtitle">Your emotional journey</p>
+                <p class="history-modal-subtitle">Every mood you've logged</p>
             </div>
         </div>
 
@@ -9977,7 +10111,7 @@ function applyHistoryFilters() {
         <div class="ins-sum-divider"></div>
 
         <!-- Your Journey — Rank Progression Timeline -->
-        <div class="ins-sum-section-label">YOUR JOURNEY</div>
+        <div class="ins-sum-section-label">YOUR PROGRESSION</div>
         <div class="ins-journey-timeline" id="insSumJourneyTimeline"></div>
 
         <div class="ins-sum-divider"></div>
@@ -10068,7 +10202,7 @@ function applyHistoryFilters() {
 
             <div class="rpc-stats-row" id="rpcStatsRow"></div>
 
-            <div class="rpc-reflection-label">MONTHLY REFLECTION</div>
+            <div class="rpc-reflection-label">MONTH IN WORDS</div>
             <div class="rpc-reflection" id="rpcReflection"></div>
 
             <div class="rpc-footer" id="rpcFooter"></div>
@@ -10736,7 +10870,7 @@ function generateEmotionalStory(monthEntries, moodCounts, streak, energyScore) {
         tired:        ['The Weary Pilgrim', 'The Resting Warrior', 'The Quiet Traveler'],
         growing:      ['The Patient Climber', 'The Emerging Path', 'The Rising Seed'],
         motivated:    ['The Momentum Builder', 'The Forward Flame', 'The Pathfinder'],
-        calm:         ['The Still Water', 'The Gentle Current', 'The Quiet Shore'],
+        calm:         ['The Still Water', 'The Soft Current', 'The Quiet Shore'],
         recovering:   ['The Returning Light', 'The Steady Return', 'The Healing Thread'],
         happy:        ['The Open-Hearted One', 'The Bright Season', 'The Joyful Witness'],
         sad:          ['The Deep Feeler', 'The Tender Weight', 'The Honest Season'],
@@ -10773,7 +10907,7 @@ function generateEmotionalStory(monthEntries, moodCounts, streak, energyScore) {
 
     // Dominant mood sentence
     const moodLabel = topMood[0].toUpperCase() + topMood.slice(1);
-    const moodSentence = `${moodLabel} appeared more than any other emotion, suggesting a period of ${topMood === 'numb' ? 'observation and emotional processing' : topMood === 'growing' ? 'intentional change' : topMood === 'motivated' ? 'drive and forward movement' : topMood === 'calm' ? 'genuine ease and presence' : topMood === 'tired' ? 'rest and quiet endurance' : topMood === 'recovering' ? 'healing and return' : topMood === 'happy' ? 'openness and light' : topMood === 'sad' ? 'depth and honest feeling' : topMood === 'angry' ? 'friction and honest signal' : topMood === 'anxious' ? 'alertness and inner vigilance' : topMood === 'overthinking' ? 'mental activity and restless searching' : topMood === 'lost' ? 'searching and open questioning' : topMood === 'lonely' ? 'solitude and self-reflection' : topMood === 'grateful' ? 'noticing and appreciation' : 'deep inner work'}.`;
+    const moodSentence = `${moodLabel} appeared more than any other emotion, suggesting a period of ${topMood === 'numb' ? 'observation and emotional processing' : topMood === 'growing' ? 'intentional change' : topMood === 'motivated' ? 'drive and forward movement' : topMood === 'calm' ? 'genuine ease and presence' : topMood === 'tired' ? 'rest and quiet endurance' : topMood === 'recovering' ? 'healing and return' : topMood === 'happy' ? 'openness and light' : topMood === 'sad' ? 'depth and honest feeling' : topMood === 'angry' ? 'friction and honest signal' : topMood === 'anxious' ? 'alertness and inner vigilance' : topMood === 'overthinking' ? 'mental activity and restless searching' : topMood === 'lost' ? 'searching and open questioning' : topMood === 'lonely' ? 'solitude and inward focus' : topMood === 'grateful' ? 'noticing and appreciation' : 'deep inner work'}.`;
 
     // Streak-aware closer (1 sentence)
     const closer = streak >= 7
@@ -11003,12 +11137,12 @@ const DAILY_REMINDER_MESSAGES = [
     "How has your heart been today?",
     "Take a quiet moment for yourself today.",
     "Every emotion deserves a place to be heard.",
-    "Your emotional journey continues today.",
+    "Your story continues today.",
     "Pause for a minute. Your feelings matter.",
-    "Today's reflection becomes tomorrow's wisdom.",
+    "Today's check-in becomes tomorrow's insight.",
     "What's been sitting on your mind today?",
     "Give yourself permission to feel.",
-    "One small reflection can change everything.",
+    "One small check-in can change everything.",
     "Your story is still being written.",
     "Some days deserve a little extra kindness.",
     "How are you... really?",
@@ -11016,24 +11150,24 @@ const DAILY_REMINDER_MESSAGES = [
     "A quiet check-in can bring surprising clarity.",
     "Before today ends, spend a moment with yourself.",
     "You don't have to carry everything alone.",
-    "Your future self will appreciate today's reflection.",
+    "Your future self will thank you for today's check-in.",
     "Take a breath. Then check in with yourself.",
     "Even difficult emotions deserve compassion.",
     "Growth begins with awareness.",
     "You showed up yesterday. Come back today.",
-    "Your emotional garden grows one reflection at a time.",
+    "Your emotional garden grows one check-in at a time.",
     "Small moments of honesty create lasting change.",
     "Be curious about how you're feeling today.",
     "What's one word that describes today?",
-    "Every day is a new page in your journey.",
-    "The strongest people still pause to reflect.",
+    "Every day is a new page.",
+    "The strongest people still pause to check in.",
     "Let today leave a meaningful memory.",
     "Listen to your inner voice for a moment.",
     "Your emotions are trying to tell you something.",
     "A peaceful minute is waiting for you.",
     "No pressure. Just check in whenever you're ready.",
     "You deserve a moment of stillness today.",
-    "Reflection is a gift you give yourself.",
+    "Checking in is a gift you give yourself.",
     "Your emotional wellbeing matters.",
     "Some answers arrive only when we slow down.",
     "How has today shaped you?",
@@ -11044,21 +11178,21 @@ const DAILY_REMINDER_MESSAGES = [
     "The smallest habits create the biggest transformations.",
     "Your emotional ritual is waiting.",
     "Make space for yourself today.",
-    "One reflection. One step forward.",
+    "One check-in. One step forward.",
     "There is strength in understanding your emotions.",
     "Your feelings deserve your attention.",
     "Let today speak before it becomes yesterday.",
-    "Take a moment to reconnect with yourself.",
-    "The journey inward is always worth taking.",
-    "Pause. Breathe. Reflect.",
+    "Take a moment to check in with yourself.",
+    "Looking inward is always worth the time.",
+    "Pause. Breathe. Check in.",
     "You matter. Your emotions do too.",
     "Today's mood could reveal tomorrow's growth.",
     "Check in with yourself before the day slips away.",
-    "Every reflection is a step toward self-understanding.",
+    "Every check-in is a step toward knowing yourself.",
     "Your emotional story deserves another chapter.",
     "Slow down for just one minute today.",
     "Every day is another opportunity to know yourself better.",
-    "Your next breakthrough might begin with one honest reflection.",
+    "Your next breakthrough might begin with one honest check-in.",
     "Welcome back. Let's discover how today really felt.",
 ];
 
@@ -11492,6 +11626,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ── Section 4: About AURA sub-page wiring ──
+    (function () {
+        const btn = document.getElementById('testErrorBtn');
+        if (!btn) return;
+        btn.addEventListener('click', () => {
+            const original = btn.textContent;
+            if (window.reportAppError) {
+                // Timestamp keeps every tap a unique signature, so the dedupe
+                // window doesn't swallow repeat taps while testing.
+                window.reportAppError('Manual test error — ' + new Date().toISOString());
+                btn.textContent = 'Sent — check Discord';
+            } else {
+                btn.textContent = 'Error reporting not loaded';
+            }
+            setTimeout(() => { btn.textContent = original; }, 2500);
+        });
+    })();
+
     const aboutRow     = document.getElementById('prefAboutRow');
     const aboutPage    = document.getElementById('aboutPage');
     const aboutBackBtn = document.getElementById('aboutBackBtn');
@@ -11515,7 +11666,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const deleteConfirmBtn = document.getElementById('deleteConfirmBtn');
     const deleteStatusEl   = document.getElementById('deleteStatus');
 
+    const deleteVerifyEl      = document.getElementById('deleteVerify');
+    const deleteVerifyEmailEl = document.getElementById('deleteVerifyEmail');
+    let deleteArmed = false;
     function resetDeleteUI() {
+        deleteArmed = false;
+        if (deleteVerifyEl) deleteVerifyEl.hidden = true;
         if (deleteStatusEl)   { deleteStatusEl.textContent = ''; deleteStatusEl.classList.remove('is-error'); }
         if (deleteConfirmBtn) { deleteConfirmBtn.disabled = false; deleteConfirmBtn.textContent = 'Delete Forever'; }
         if (deleteCancelBtn)  { deleteCancelBtn.disabled = false; }
@@ -11535,17 +11691,36 @@ document.addEventListener('DOMContentLoaded', () => {
     if (deleteBackBtn2)  deleteBackBtn2.addEventListener('click', closeDeletePage);
     if (deleteCancelBtn) deleteCancelBtn.addEventListener('click', closeDeletePage);
 
-    // Performs the actual destructive work, in order: history subcollection
-    // entries, then the users/{uid} profile document (xp, streak, rank,
-    // achievements, favorites, preferences — every field that document
-    // holds), then the Firebase Authentication account itself. Returns a
-    // small result object rather than throwing, so the UI can react calmly.
+    // Reauth-first deletion. Firebase only lets an account be deleted after a
+    // recent sign-in, so the Google popup runs BEFORE anything is touched. If
+    // the person cancels it (or it fails), nothing has been deleted and the
+    // account is intact. Only after a fresh sign-in do the destructive steps
+    // run, in order: history subcollection entries, then the users/{uid}
+    // profile document (xp, streak, rank, achievements, favorites,
+    // preferences), then the Firebase Authentication account itself.
+    // Returns a small result object rather than throwing, so the UI can react calmly.
     async function performAccountDeletion() {
         const auth = window.firebaseAuth;
         const db   = window.firebaseDB;
         const fns  = window.firebaseFns;
         if (!auth || !auth.currentUser) return { success: false, error: 'not-signed-in' };
         if (!db || !fns)                return { success: false, error: 'offline' };
+
+        // Step 0 — fresh sign-in, before any data is deleted. The account's own
+        // email is passed as a hint so Google pre-selects the right Gmail.
+        try {
+            if (auth.currentUser.email) {
+                window.googleProvider.setCustomParameters({ login_hint: auth.currentUser.email });
+            }
+            await fns.reauthenticateWithPopup(auth.currentUser, window.googleProvider);
+        } catch (reauthErr) {
+            const code = reauthErr && reauthErr.code;
+            return { success: false, error: code === 'auth/user-mismatch' ? 'wrong-account' : 'reauth-failed', dataTouched: false };
+        } finally {
+            // Always drop the account hint so normal sign-in is unaffected.
+            try { window.googleProvider.setCustomParameters({}); } catch (e) {}
+        }
+
         const uid = auth.currentUser.uid;
         try {
             const historySnap = await fns.getDocs(fns.collection(db, 'users', uid, 'history'));
@@ -11556,60 +11731,63 @@ document.addEventListener('DOMContentLoaded', () => {
             await fns.deleteUser(auth.currentUser);
             return { success: true };
         } catch (err) {
-            if (err && err.code === 'auth/requires-recent-login') {
-                return { success: false, error: 'reauth-required' };
-            }
             console.error('Account deletion error:', err);
-            return { success: false, error: (err && err.message) || 'unknown' };
+            return { success: false, error: (err && err.code) || (err && err.message) || 'unknown', dataTouched: true };
         }
     }
 
     if (deleteConfirmBtn) {
         deleteConfirmBtn.addEventListener('click', async () => {
+            // First tap: show which Gmail to choose. Nothing opens or deletes yet.
+            if (!deleteArmed) {
+                deleteArmed = true;
+                const email = window.firebaseAuth && window.firebaseAuth.currentUser && window.firebaseAuth.currentUser.email;
+                if (deleteVerifyEmailEl && email) deleteVerifyEmailEl.textContent = email;
+                if (deleteVerifyEl) deleteVerifyEl.hidden = false;
+                deleteConfirmBtn.textContent = 'Continue to Google';
+                if (deleteStatusEl) { deleteStatusEl.textContent = ''; deleteStatusEl.classList.remove('is-error'); }
+                if (deleteVerifyEl) deleteVerifyEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+            // Second tap: open Google sign-in.
             deleteConfirmBtn.disabled    = true;
             deleteCancelBtn.disabled     = true;
-            deleteConfirmBtn.textContent = 'Deleting…';
+            deleteConfirmBtn.textContent = 'Confirming…';
             if (deleteStatusEl) {
-                deleteStatusEl.textContent = 'Deleting your account…';
+                deleteStatusEl.textContent = 'Waiting for Google sign-in…';
                 deleteStatusEl.classList.remove('is-error');
             }
 
-            let result = await performAccountDeletion();
-
-            // Firebase requires a recent sign-in for account deletion; if the
-            // session is older, re-authenticate once via Google and retry.
-            if (!result.success && result.error === 'reauth-required') {
-                if (deleteStatusEl) deleteStatusEl.textContent = 'For your security, please sign in again to confirm.';
-                try {
-                    const fns  = window.firebaseFns;
-                    const auth = window.firebaseAuth;
-                    await fns.reauthenticateWithPopup(auth.currentUser, window.googleProvider);
-                    result = await performAccountDeletion();
-                } catch (reauthErr) {
-                    result = { success: false, error: (reauthErr && reauthErr.message) || 'reauth-failed' };
-                }
-            }
+            const result = await performAccountDeletion();
 
             if (result.success) {
                 if (deleteStatusEl) {
                     deleteStatusEl.textContent = 'Account deleted.';
                     deleteStatusEl.classList.remove('is-error');
                 }
+                // Wipe every locally cached key so nothing from this account
+                // survives on the device, then reload into a clean state.
+                try { localStorage.clear(); }   catch (e) {}
+                try { sessionStorage.clear(); } catch (e) {}
                 // Close every Preferences overlay above the auth screen.
-                // onAuthStateChanged (registered in the module script at the
-                // top of the file) fires with user=null and calls showAuth(),
-                // which handles returning to onboarding/login.
                 if (deletePage) deletePage.classList.remove('visible');
                 if (page)       page.classList.remove('visible'); // preferencesPage
-                if (typeof showAuth === 'function') showAuth();
+                setTimeout(() => { window.location.reload(); }, 400);
             } else {
                 if (deleteStatusEl) {
-                    deleteStatusEl.textContent = 'Something went wrong. Please try again.';
+                    deleteStatusEl.textContent = result.error === 'wrong-account'
+                        ? 'That was a different Gmail. Nothing was deleted. Try again and choose the account you signed in to AURA with.'
+                        : result.error === 'reauth-failed'
+                        ? 'Sign-in was not completed. Nothing was deleted.'
+                        : result.error === 'offline'
+                            ? 'You appear to be offline. Nothing was deleted.'
+                            : 'Something went wrong. Please try again.';
                     deleteStatusEl.classList.add('is-error');
                 }
                 deleteConfirmBtn.disabled    = false;
                 deleteCancelBtn.disabled     = false;
-                deleteConfirmBtn.textContent = 'Delete Forever';
+                deleteConfirmBtn.textContent = 'Continue to Google';
+                deleteArmed = true;
             }
         });
     }
@@ -11641,7 +11819,7 @@ function renderInviteContent(permState) {
         laterBtn.textContent    = 'Got it';
     } else {
         titleEl.textContent    = 'Never miss a day';
-        descEl.textContent     = "We'll send a gentle nudge — only if you haven't checked in yet.";
+        descEl.textContent     = "We'll send a nudge, only if you haven't checked in yet.";
         enableBtn.style.display = '';
         laterBtn.textContent    = 'Not now';
     }
@@ -11891,8 +12069,8 @@ const WEEKLY_STORY_TITLES = {
     angry:        ['The Fire Within','Channeled Fury','Beneath the Surface','Burning Through'],
     anxious:      ['The Overthinking Heart','Nervous Energy','Between Breaths','Quiet Fears'],
     grinding:     ['The Relentless One','No Days Off','The Patient Builder','Forging Forward'],
-    calm:         ['Still Waters','The Peaceful Mind','Gentle Clarity','The Quiet Anchor'],
-    sad:          ['The Tender Week','Sitting With It','A Gentle Weight','Through the Rain'],
+    calm:         ['Still Waters','The Peaceful Mind','Soft Clarity','The Quiet Anchor'],
+    sad:          ['The Tender Week','Sitting With It','A Quiet Weight','Through the Rain'],
     overthinking: ['The Spiral Thinker','Mind at Full Speed','The Contemplator','Tangled Thoughts'],
     happy:        ['Full Bloom','The Bright Week','Light and Easy','Living Out Loud'],
     numb:         ['The Still Point','Quiet Distance','In Between Feelings','The Hollow Calm'],
@@ -12250,15 +12428,15 @@ function createWeeklyRitualOverlay() {
                 <div class="wr-orb-core"></div>
             </div>
         </div>
-        <div class="wr-headline">Your Weekly<br>Reflection<br>Is Ready</div>
+        <div class="wr-headline">Your Week<br>In Review<br>Is Ready</div>
         <div class="wr-sub">Seven days of emotions. One moment to understand them.</div>
-        <button class="wr-btn wr-btn-primary" id="wrBtn1">Begin Reflection</button>
+        <button class="wr-btn wr-btn-primary" id="wrBtn1">See My Week</button>
         <button class="wr-btn wr-btn-skip" id="wrSkip1">Maybe Later</button>
     </div>
 
     <!-- SCREEN 2: REFLECTION CHALLENGE -->
     <div class="wr-screen" id="wrScreen2">
-        <div class="wr-eyebrow">Reflection Challenge</div>
+        <div class="wr-eyebrow">Weekly Challenge</div>
         <div class="wr-challenge-title">Looking back on this week...</div>
         <div class="wr-challenge-q">Which statement feels most<br>like your experience?</div>
         <div class="wr-choices" id="wrChoices">
@@ -12286,7 +12464,7 @@ function createWeeklyRitualOverlay() {
                 <div style="width:120px;height:120px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#a78bfa,#6d28d9 50%,#1a0a38);box-shadow:0 0 60px 16px rgba(109,40,217,0.55);"></div>
             </div>
         </div>
-        <div class="wr-analyzing" id="wrAnalyzingText">Analyzing Your Emotional Journey...</div>
+        <div class="wr-analyzing" id="wrAnalyzingText">Analyzing Your Week...</div>
         <div class="wr-reveal-progress"><div class="wr-reveal-fill" id="wrRevealFill"></div></div>
     </div>
 
@@ -12449,7 +12627,7 @@ function runWRCinematicReveal(weekData) {
     spawnWRParticles(16);
 
     const texts = [
-        'Analyzing Your Emotional Journey...',
+        'Analyzing Your Week...',
         'Reading the patterns...',
         'Crafting your story...',
         'Almost there...'
@@ -12813,7 +12991,7 @@ async function buildWRShareCard() {
     const footerY = Math.max(y, H - 90);
     ctx.fillStyle = 'rgba(237,223,192,0.28)';
     ctx.font = '600 30px "DM Sans"';
-    ct('AURA  ·  EMOTIONAL JOURNEY', W/2, footerY);
+    ct('AURA  ·  WEEKLY RITUAL', W/2, footerY);
 
     ctx.restore(); // undo card translate+scale+clip
 
@@ -13253,7 +13431,7 @@ async function saveToHistory(entry) {
       </div>
     </div>
     <div class="ob-title">Welcome to AURA</div>
-    <div class="ob-sub">Turn emotions into a journey<br>of self-discovery.</div>
+    <div class="ob-sub">Put a name to<br>how you feel.</div>
     <button class="ob-btn ob-btn-p" id="obBtn1">GET STARTED</button>
     <div class="ob-dots">
       <div class="ob-dot ob-dot-a"></div>
@@ -13299,7 +13477,7 @@ async function saveToHistory(entry) {
     <button class="ob-skip" id="obSkip3">Skip</button>
     <div class="ob-s3-header">
       <div class="ob-s2-title" style="font-size:21px;">Discover Patterns<br>You Never Notice</div>
-      <div class="ob-s2-sub">Your emotional journey, visualized.</div>
+      <div class="ob-s2-sub">Your moods, made visible.</div>
     </div>
     <div class="ob-module">
       <div class="ob-mod-label">Monthly Recap</div>
@@ -13347,7 +13525,7 @@ async function saveToHistory(entry) {
     <button class="ob-skip" id="obSkip4">Skip</button>
     <div class="ob-s4-header">
       <div class="ob-s2-title" style="font-size:21px;">Build Your<br>Emotional Identity</div>
-      <div class="ob-s2-sub" style="margin-top:5px;">Every reflection moves you forward.</div>
+      <div class="ob-s2-sub" style="margin-top:5px;">Every check-in moves you forward.</div>
     </div>
     <div class="ob-chain">
       <div class="ob-rank-row ob-done">
@@ -13358,25 +13536,25 @@ async function saveToHistory(entry) {
       <div class="ob-rank-arr">↓</div>
       <div class="ob-rank-row ob-done">
         <div class="ob-rank-orb" style="background:radial-gradient(circle at 38% 35%,#8b5cf6,#2e1065);">🌊</div>
-        <div><div class="ob-rank-name">Mind Wanderer</div><div class="ob-rank-sub">7+ reflections</div></div>
+        <div><div class="ob-rank-name">Mind Wanderer</div><div class="ob-rank-sub">7+ check-ins</div></div>
         <div class="ob-rank-badge" style="background:rgba(139,92,246,.15);color:#c4b5fd;">✓</div>
       </div>
       <div class="ob-rank-arr">↓</div>
       <div class="ob-rank-row ob-current">
         <div class="ob-rank-orb" style="background:radial-gradient(circle at 38% 35%,#a78bfa,#4c1d95);box-shadow:0 0 18px 5px rgba(167,139,250,.42);">✦</div>
-        <div style="flex:1;"><div class="ob-rank-name" style="color:#c4b5fd;">Inner Listener</div><div class="ob-rank-sub">25+ reflections</div></div>
+        <div style="flex:1;"><div class="ob-rank-name" style="color:#c4b5fd;">Inner Listener</div><div class="ob-rank-sub">25+ check-ins</div></div>
         <div class="ob-rank-badge" style="background:rgba(139,92,246,.20);color:#a78bfa;">Now</div>
       </div>
       <div class="ob-rank-arr">↓</div>
       <div class="ob-rank-row ob-locked">
         <div class="ob-rank-orb" style="background:radial-gradient(circle at 38% 35%,#c4b5fd,#6d28d9);">⚡</div>
-        <div><div class="ob-rank-name">Energy Navigator</div><div class="ob-rank-sub">50+ reflections</div></div>
+        <div><div class="ob-rank-name">Energy Navigator</div><div class="ob-rank-sub">50+ check-ins</div></div>
         <div class="ob-rank-badge" style="background:rgba(232,213,176,.06);color:rgba(232,213,176,.25);">🔒</div>
       </div>
       <div class="ob-rank-arr">↓</div>
       <div class="ob-rank-row ob-locked">
         <div class="ob-rank-orb" style="background:radial-gradient(circle at 38% 35%,#fbbf24,#92400e);">🔮</div>
-        <div><div class="ob-rank-name">Emotional Sage</div><div class="ob-rank-sub">100+ reflections</div></div>
+        <div><div class="ob-rank-name">Emotional Sage</div><div class="ob-rank-sub">100+ check-ins</div></div>
         <div class="ob-rank-badge" style="background:rgba(232,213,176,.06);color:rgba(232,213,176,.25);">🔒</div>
       </div>
     </div>
@@ -13395,8 +13573,8 @@ async function saveToHistory(entry) {
         <div class="ob-quiz-ex">The Returning Light</div>
       </div>
     </div>
-    <div class="ob-social">Thousands of emotional journeys have already begun.</div>
-    <button class="ob-btn ob-btn-g" id="obBtn4">START MY JOURNEY</button>
+    <div class="ob-social">Your first check-in takes less than a minute.</div>
+    <button class="ob-btn ob-btn-g" id="obBtn4">GET STARTED</button>
     <div class="ob-dots">
       <div class="ob-dot ob-dot-i"></div>
       <div class="ob-dot ob-dot-i"></div>
@@ -13520,8 +13698,8 @@ async function saveToHistory(entry) {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
         </div>
         <div class="notif-invite-body">
-            <div class="notif-invite-title">Want a gentle daily reminder?</div>
-            <div class="notif-invite-desc">A soft check-in to reflect, whenever you'd like.</div>
+            <div class="notif-invite-title">Want a daily reminder?</div>
+            <div class="notif-invite-desc">A quick check-in prompt, whenever you'd like.</div>
             <div class="notif-invite-actions">
                 <button class="notif-invite-btn notif-invite-btn-enable" id="notifInviteEnable">Enable</button>
                 <button class="notif-invite-btn notif-invite-btn-later" id="notifInviteLater">Not now</button>
@@ -13565,7 +13743,7 @@ async function saveToHistory(entry) {
                 <div class="notif-card" id="notifDailyCard">
                     <div class="notif-card-row">
                         <div class="notif-card-text">
-                            <div class="notif-card-title">Daily Reflection Ritual</div>
+                            <div class="notif-card-title">Daily Check-In</div>
                             <div class="notif-card-desc">Two check-ins a day: one to start, one to close the loop.</div>
                         </div>
                         <div class="notif-toggle" id="notifDailyToggle" role="switch" aria-checked="false">
@@ -13576,9 +13754,9 @@ async function saveToHistory(entry) {
                     <div class="notif-time-section" id="notifTimeSection">
                         <div class="notif-time-trigger" id="notifMorningTrigger">
                             <div>
-                                <div class="notif-time-label">Morning Reflection</div>
+                                <div class="notif-time-label">Morning Check-In</div>
                                 <div class="notif-time-value" id="notifMorningTimeValue">8:00 AM</div>
-                                <div class="notif-time-hint">Start your day with a quiet moment of reflection</div>
+                                <div class="notif-time-hint">Start your day with a quiet moment for yourself</div>
                             </div>
                             <div class="notif-time-chevron">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
@@ -13633,7 +13811,7 @@ async function saveToHistory(entry) {
                     </div>
                     <div class="pref-nav-text">
                         <div class="pref-nav-title">Privacy</div>
-                        <div class="pref-nav-desc">Your reflections, always protected</div>
+                        <div class="pref-nav-desc">Your entries, always protected</div>
                     </div>
                     <div class="pref-nav-chevron">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
@@ -13708,7 +13886,7 @@ async function saveToHistory(entry) {
             </button>
             <div class="pref-header-text">
                 <div class="pref-page-title">Privacy</div>
-                <div class="pref-page-subtitle">Your reflections stay yours.</div>
+                <div class="pref-page-subtitle">Your entries stay yours.</div>
             </div>
         </div>
 
@@ -13731,7 +13909,7 @@ async function saveToHistory(entry) {
                     <div class="privacy-point-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
                     </div>
-                    <div class="privacy-point-text">AURA never shares your reflections with other users.</div>
+                    <div class="privacy-point-text">AURA never shares your entries with other users.</div>
                 </div>
                 <div class="privacy-point">
                     <div class="privacy-point-icon">
@@ -13778,14 +13956,14 @@ async function saveToHistory(entry) {
                     <div class="tos-section-index">01</div>
                     <div class="tos-section-body">
                         <div class="tos-section-title">Purpose of AURA</div>
-                        <div class="tos-section-text">AURA helps you notice, name, and reflect on how you're feeling through daily check-ins, mood cards, and gentle rituals. It's built to support self-understanding — not to replace professional medical or mental health care.</div>
+                        <div class="tos-section-text">AURA helps you notice and name how you're feeling through daily check-ins, mood cards, and short rituals. It's built to support self-understanding — not to replace professional medical or mental health care.</div>
                     </div>
                 </div>
                 <div class="tos-section">
                     <div class="tos-section-index">02</div>
                     <div class="tos-section-body">
                         <div class="tos-section-title">Acceptable Use</div>
-                        <div class="tos-section-text">Use AURA for your own personal reflection and growth. Please don't use it to harass or impersonate others, or to try to access anyone else's account or data.</div>
+                        <div class="tos-section-text">Use AURA for your own personal growth. Please don't use it to harass or impersonate others, or to try to access anyone else's account or data.</div>
                     </div>
                 </div>
                 <div class="tos-section">
@@ -13799,7 +13977,7 @@ async function saveToHistory(entry) {
                     <div class="tos-section-index">04</div>
                     <div class="tos-section-body">
                         <div class="tos-section-title">Content Ownership</div>
-                        <div class="tos-section-text">Your entries, reflections, and generated cards belong to you. AURA doesn't claim ownership over anything you create or choose to share.</div>
+                        <div class="tos-section-text">Your entries and generated cards belong to you. AURA doesn't claim ownership over anything you create or choose to share.</div>
                     </div>
                 </div>
                 <div class="tos-section">
@@ -13847,7 +14025,7 @@ async function saveToHistory(entry) {
                     <span class="about-logo-name">AURA</span>
                 </div>
                 <div class="about-tagline">Your Daily Emotional Ritual</div>
-                <div class="about-desc">AURA helps people understand themselves through daily emotional reflection, beautiful storytelling, and meaningful insights.</div>
+                <div class="about-desc">AURA helps people understand themselves through daily mood check-ins, beautiful storytelling, and meaningful insights.</div>
             </div>
 
             <div class="about-info-card">
@@ -13860,6 +14038,10 @@ async function saveToHistory(entry) {
                     <div class="about-info-value">1</div>
                 </div>
             </div>
+
+            <button id="testErrorBtn" class="about-info-card" style="width:100%; border:none; background:rgba(232,213,176,0.06); cursor:pointer; font-family:'DM Sans',sans-serif; color:rgba(237,223,192,0.65); font-size:0.78rem; padding:0.9rem 1.1rem;">
+                Send Test Error Report
+            </button>
 
             <div class="about-footer">Made with ❤️ for the quiet moments between everything else.</div>
         </div>
@@ -13924,6 +14106,16 @@ async function saveToHistory(entry) {
 
             <div class="delete-warning">This cannot be undone.</div>
 
+            <div class="delete-verify" id="deleteVerify" hidden>
+                <div class="delete-verify-title">Confirm it's you</div>
+                <ol class="delete-verify-list">
+                    <li>Tap <strong>Continue to Google</strong> below.</li>
+                    <li>When Google shows your accounts, choose <span class="delete-verify-email" id="deleteVerifyEmail">the Gmail you signed in to AURA with</span>.</li>
+                    <li>Approve the sign-in. Your account is then deleted.</li>
+                </ol>
+                <div class="delete-verify-note">Choosing a different Gmail cancels the deletion and nothing will be deleted.</div>
+            </div>
+
             <div class="delete-actions">
                 <button class="delete-btn delete-btn-confirm" id="deleteConfirmBtn">Delete Forever</button>
                 <button class="delete-btn delete-btn-cancel" id="deleteCancelBtn">Cancel</button>
@@ -13977,7 +14169,7 @@ async function saveToHistory(entry) {
 
             <div class="evo-btns">
                 <button id="evoShareBtn"    class="evo-btn-primary"   disabled>Share My Evolution</button>
-                <button id="evoContinueBtn" class="evo-btn-secondary" disabled>Continue Journey</button>
+                <button id="evoContinueBtn" class="evo-btn-secondary" disabled>Continue</button>
             </div>
         </div>
     </div>

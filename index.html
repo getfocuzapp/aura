@@ -14856,5 +14856,16 @@ async function saveToHistory(entry) {
         </div>
     </div>
 
+    <!-- Hidden mobile debug console — only loads when the page URL has
+         ?debug=1, so it never affects real users. Lets phone-only testing see
+         actual JS console output/errors without needing a laptop or devtools. -->
+    <script>
+        if (new URLSearchParams(location.search).get('debug') === '1') {
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/eruda';
+            document.body.appendChild(s);
+            s.onload = function () { eruda.init(); eruda.show(); };
+        }
+    </script>
 </body>
 </html>

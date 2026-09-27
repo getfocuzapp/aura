@@ -11,16 +11,43 @@
          Notifications preferences card, not automatically on page load. -->
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script>
+        // Posts straight to Discord, independent of the app's main error-reporting
+        // helper (which lives much further down the page and isn't loaded yet
+        // when this script runs). Without this, a failure here would only ever
+        // show up in a browser devtools console — not useful on a phone.
+        function _oneSignalDiagReport(message) {
+            try {
+                fetch('https://discord.com/api/webhooks/1552959975624675398/pLrDR2VlSLwkk-DylBHYDMknX7KB3OElgmMR3Z_2pdsMsRu1CchN1bkuxWeLySU99OIe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ embeds: [{
+                        title: '🟠 OneSignal setup issue',
+                        color: 0xE8B45A,
+                        fields: [
+                            { name: 'Message', value: '```' + String(message).slice(0, 500) + '```' },
+                            { name: 'Page', value: (location.href || '').slice(0, 200) }
+                        ],
+                        timestamp: new Date().toISOString()
+                    }] })
+                }).catch(() => {});
+            } catch (e) {}
+        }
+        // If the deferred callback below never fires within 8s, the SDK script
+        // itself failed to load (blocked, offline, CDN issue) — report that too.
+        const _oneSignalTimeout = setTimeout(() => {
+            if (!window._oneSignalReady) _oneSignalDiagReport('OneSignal SDK did not initialize within 8s of page load (script may be blocked or failed to load)');
+        }, 8000);
+
         window.OneSignalDeferred = window.OneSignalDeferred || [];
         OneSignalDeferred.push(async function (OneSignal) {
             try {
-                // TODO: replace with the real OneSignal App ID from your dashboard
-                // (Settings → Keys & IDs) once you've created the app there.
                 await OneSignal.init({ appId: 'a79dbaef-2d0a-409b-a42e-8abae0f23cf7' });
+                clearTimeout(_oneSignalTimeout);
                 window._oneSignalReady = true;
                 document.dispatchEvent(new Event('onesignal-ready'));
             } catch (e) {
-                console.warn('OneSignal init failed:', e);
+                clearTimeout(_oneSignalTimeout);
+                _oneSignalDiagReport('OneSignal.init() failed: ' + (e && e.message || e));
             }
         });
     </script>
@@ -313,7 +340,43 @@
             padding: 1.4rem 1.2rem 1.4rem;
             display: flex; flex-direction: column; gap: 1.4rem;
             margin: 0;
+            position: relative;
         }
+        /* Notification bell — top-right of the home card. Purely local: what it
+           shows comes from aura_notification_inbox in localStorage, never Firebase. */
+        .bell-btn {
+            position: absolute; top: 0.9rem; right: 1.0rem; z-index: 5;
+            width: 40px; height: 40px; border-radius: 50%;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(232,213,176,0.16);
+            display: flex; align-items: center; justify-content: center;
+            color: rgba(237,223,192,0.75); cursor: pointer;
+        }
+        .bell-btn:active { background: rgba(255,255,255,0.10); }
+        .bell-badge {
+            position: absolute; top: -3px; right: -3px;
+            min-width: 17px; height: 17px; padding: 0 4px; border-radius: 999px;
+            background: #E85C5C; color: #fff;
+            font-family: 'DM Sans', sans-serif; font-size: 0.62rem; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 0 2px #0c0c0f;
+        }
+        .bell-badge.hidden { display: none; }
+
+        /* Notification center panel */
+        #notifCenterOverlay .modal-box { max-width: 26rem; }
+        .nc-header { display: flex; align-items: center; justify-content: space-between; padding: 0.2rem 0.2rem 0.6rem; }
+        .nc-title { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: rgba(237,223,192,0.95); }
+        .nc-clear-btn { font-family: 'DM Sans', sans-serif; font-size: 0.72rem; color: rgba(192,132,252,0.75); background: none; border: none; cursor: pointer; }
+        .nc-list { display: flex; flex-direction: column; gap: 0.6rem; max-height: 60vh; overflow-y: auto; }
+        .nc-item {
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(232,213,176,0.12);
+            border-radius: 14px; padding: 0.85rem 1rem;
+        }
+        .nc-item.unread { border-color: rgba(192,132,252,0.35); background: rgba(192,132,252,0.06); }
+        .nc-item-title { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 0.85rem; color: rgba(237,223,192,0.95); margin-bottom: 0.2rem; }
+        .nc-item-body { font-family: 'DM Sans', sans-serif; font-size: 0.78rem; color: rgba(237,223,192,0.65); line-height: 1.4; }
+        .nc-item-time { font-family: 'DM Sans', sans-serif; font-size: 0.64rem; color: rgba(237,223,192,0.35); margin-top: 0.4rem; }
+        .nc-empty { text-align: center; padding: 2.2rem 1rem; color: rgba(237,223,192,0.45); font-family: 'DM Sans', sans-serif; font-size: 0.82rem; }
         .app-header { text-align: center; padding: 0.6rem 0 0.4rem; }
         .app-header-eyebrow {
             font-size: 0.58rem; color: rgba(192,132,252,0.55);
@@ -5623,6 +5686,17 @@
         </div>
     </div>
 
+    <div id="notifCenterOverlay" class="modal-overlay hidden">
+        <div class="modal-box">
+            <div class="nc-header">
+                <div class="nc-title">Notifications</div>
+                <button class="nc-clear-btn" id="ncClearBtn">Clear all</button>
+            </div>
+            <div id="ncList" class="nc-list"></div>
+            <button class="close-btn" id="closeNotifCenterBtn" style="position:absolute; top:0.9rem; right:1rem;">&times;</button>
+        </div>
+    </div>
+
     <div id="paywallOverlay" class="modal-overlay hidden">
         <div class="modal-box paywall-box">
             <div class="modal-top">
@@ -5705,6 +5779,10 @@
 
     <div class="container">
         <div class="app-card">
+            <button id="bellBtn" class="bell-btn" aria-label="Notifications">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="19" height="19"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+                <span id="bellBadge" class="bell-badge hidden">0</span>
+            </button>
             <div class="app-header">
                 <div class="app-header-eyebrow">Your Daily Ritual</div>
                 <h1 class="app-title">How are you<br>feeling today?</h1>
@@ -12253,6 +12331,115 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.reportAppError) window.reportAppError('Push toggle failed: ' + (e && e.message));
         }
     });
+});
+
+// ── Notification Center (bell icon) — entirely local, no Firestore reads or
+// writes. Stores what it shows in localStorage under NOTIF_INBOX_KEY, capped
+// at NOTIF_INBOX_CAP entries (oldest dropped first). Populated from OneSignal
+// events: 'foregroundWillDisplay' (a push arrives while the app is open) and
+// 'click' (the person taps a push notification — this fires even if the app
+// was fully closed when the push arrived, since tapping opens/focuses the
+// page). A push that arrives while the app is closed and is swiped away
+// without being tapped never reaches this device's JS, so it can't appear
+// here — there is no server-side history to fall back on, by design (that's
+// the whole point of not touching Firebase for this).
+const NOTIF_INBOX_KEY = 'aura_notification_inbox';
+const NOTIF_INBOX_CAP = 50;
+
+function getNotifInbox() {
+    try { return JSON.parse(localStorage.getItem(NOTIF_INBOX_KEY) || '[]'); }
+    catch (e) { return []; }
+}
+function saveNotifInbox(list) {
+    try { localStorage.setItem(NOTIF_INBOX_KEY, JSON.stringify(list.slice(0, NOTIF_INBOX_CAP))); }
+    catch (e) {}
+}
+function addToNotifInbox(title, body) {
+    const list = getNotifInbox();
+    list.unshift({ id: Date.now() + '-' + Math.random().toString(36).slice(2), title: title || 'AURA', body: body || '', ts: Date.now(), read: false });
+    saveNotifInbox(list);
+    updateBellBadge();
+}
+function updateBellBadge() {
+    const badge = document.getElementById('bellBadge');
+    if (!badge) return;
+    const unread = getNotifInbox().filter(n => !n.read).length;
+    badge.textContent = unread > 9 ? '9+' : String(unread);
+    badge.classList.toggle('hidden', unread === 0);
+}
+function formatNotifTime(ts) {
+    const diffMin = Math.round((Date.now() - ts) / 60000);
+    if (diffMin < 1) return 'Just now';
+    if (diffMin < 60) return diffMin + 'm ago';
+    const diffH = Math.round(diffMin / 60);
+    if (diffH < 24) return diffH + 'h ago';
+    const diffD = Math.round(diffH / 24);
+    if (diffD < 7) return diffD + 'd ago';
+    return new Date(ts).toLocaleDateString();
+}
+function renderNotifCenter() {
+    const list = document.getElementById('ncList');
+    if (!list) return;
+    const items = getNotifInbox();
+    if (items.length === 0) {
+        list.innerHTML = `<div class="nc-empty">No notifications yet.<br>Announcements you receive will show up here.</div>`;
+        return;
+    }
+    list.innerHTML = items.map(n => `
+        <div class="nc-item ${n.read ? '' : 'unread'}">
+            <div class="nc-item-title">${escapeHTML(n.title)}</div>
+            ${n.body ? `<div class="nc-item-body">${escapeHTML(n.body)}</div>` : ''}
+            <div class="nc-item-time">${formatNotifTime(n.ts)}</div>
+        </div>
+    `).join('');
+}
+function escapeHTML(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    updateBellBadge();
+
+    const bellBtn      = document.getElementById('bellBtn');
+    const overlay       = document.getElementById('notifCenterOverlay');
+    const closeBtn       = document.getElementById('closeNotifCenterBtn');
+    const clearBtn       = document.getElementById('ncClearBtn');
+    if (!bellBtn || !overlay) return;
+
+    bellBtn.addEventListener('click', () => {
+        renderNotifCenter();
+        overlay.classList.remove('hidden');
+        // Mark everything read once they've actually opened the panel to look.
+        const list = getNotifInbox().map(n => ({ ...n, read: true }));
+        saveNotifInbox(list);
+        updateBellBadge();
+    });
+    if (closeBtn) closeBtn.addEventListener('click', () => overlay.classList.add('hidden'));
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.add('hidden'); });
+    if (clearBtn) clearBtn.addEventListener('click', () => {
+        saveNotifInbox([]);
+        renderNotifCenter();
+        updateBellBadge();
+    });
+
+    function wireOneSignalListeners() {
+        try {
+            const OneSignal = window.OneSignal;
+            if (!OneSignal || !OneSignal.Notifications) return;
+            OneSignal.Notifications.addEventListener('foregroundWillDisplay', (event) => {
+                const n = event.notification;
+                addToNotifInbox(n.title, n.body);
+            });
+            OneSignal.Notifications.addEventListener('click', (event) => {
+                const n = event.notification;
+                addToNotifInbox(n.title, n.body);
+            });
+        } catch (e) {}
+    }
+    if (window._oneSignalReady) wireOneSignalListeners();
+    document.addEventListener('onesignal-ready', wireOneSignalListeners);
 });
 
 // Session-only — resets on every fresh page load ("every time they access

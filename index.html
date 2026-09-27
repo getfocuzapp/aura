@@ -6368,10 +6368,13 @@ const MOOD_BOKEH = {
 
 const MOOD_STYLES = {
     tired: {
-        h1:        'rgba(232, 120, 200, 0.55)',
-        h2:        'rgba(195, 75, 160, 0.28)',
-        moodGlow:  'rgba(218, 95, 175, 0.50)',
-        wrapShadow:'0 0 0 1px rgba(210,90,165,0.28), 0 24px 64px rgba(0,0,0,0.85), 0 0 100px rgba(195,60,140,0.55)',
+        // Blue, matching the moon-orb artwork (MOOD_SVG.tired) and the color
+        // already used for this mood in RECAP_MOOD_THEME (#8FA8E8) — was
+        // previously an unrelated pink-magenta that matched neither.
+        h1:        'rgba(143, 168, 232, 0.58)',
+        h2:        'rgba(90, 120, 200, 0.28)',
+        moodGlow:  'rgba(143, 168, 232, 0.55)',
+        wrapShadow:'0 0 0 1px rgba(130,155,220,0.28), 0 24px 64px rgba(0,0,0,0.85), 0 0 100px rgba(110,140,215,0.55)',
     },
     motivated: {
         h1:        'rgba(255, 175, 55, 0.60)',
@@ -8121,12 +8124,10 @@ function buildStatusCanvas() {
 
                     // ── Per-mood atmosphere configs — backgrounds lifted for readability ──
                     const MOOD_ATMOS = {
-                        // tired's background was leaning noticeably more blue-purple than
-                        // its own orb glow/on-screen identity (MOOD_STYLES.tired uses a
-                        // warmer pink-purple throughout: h1/h2/moodGlow). Warmed slightly
-                        // to match, so the exported card reads as one cohesive palette
-                        // instead of two different purples fighting each other.
-                        tired:        { bg1: '#3a1042', bg2: '#22082e', bg3: '#12041c', accent: 'rgba(178,66,180,',  rays: false },
+                        // Blue, matching the moon-orb artwork and MOOD_STYLES.tired (see
+                        // note there — this mood's identity was reset from an unrelated
+                        // pink-magenta to the blue its own art and RECAP_MOOD_THEME already used).
+                        tired:        { bg1: '#101a3c', bg2: '#0c1430', bg3: '#06081c', accent: 'rgba(120,150,225,', rays: false },
                         motivated:    { bg1: '#3a2008', bg2: '#221200', bg3: '#120800', accent: 'rgba(210,130,18,',  rays: true  },
                         lost:         { bg1: '#0c2248', bg2: '#081630', bg3: '#040e20', accent: 'rgba(45,95,210,',   rays: false },
                         angry:        { bg1: '#3a0808', bg2: '#220404', bg3: '#120202', accent: 'rgba(210,20,30,',   rays: false },
@@ -12367,7 +12368,7 @@ function createWeeklyRitualOverlay() {
         background: rgba(6,4,12,0.97);
         display: flex; flex-direction: column;
         align-items: center; justify-content: center;
-        padding: 0 1.5rem;
+        padding: calc(1.4rem + env(safe-area-inset-top, 0px)) 1.5rem calc(1.4rem + env(safe-area-inset-bottom, 0px));
         opacity: 0; transition: opacity 0.5s ease;
         font-family: 'DM Sans', sans-serif;
         overflow-y: auto;
@@ -12380,11 +12381,11 @@ function createWeeklyRitualOverlay() {
         width: 100%; max-width: 380px;
         display: flex; flex-direction: column;
         align-items: center; text-align: center;
-        padding: 2rem 0;
+        padding: 1.2rem 0;
         opacity: 0; transform: translateY(24px);
         transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.16,1,0.3,1);
         position: absolute; pointer-events: none;
-        min-height: 100vh; justify-content: center;
+        min-height: 100vh; min-height: 100dvh; justify-content: center;
     }
     .wr-screen.wr-screen-active {
         opacity: 1; transform: translateY(0);
@@ -12558,10 +12559,10 @@ function createWeeklyRitualOverlay() {
         border-radius: 100px; margin-bottom: 1.4rem;
     }
     .wr-recap-orb-img {
-        width: 150px; height: 150px; object-fit: contain;
+        width: 128px; height: 128px; object-fit: contain;
         filter: drop-shadow(0 0 32px var(--wr-glow, rgba(192,132,252,0.70)));
         animation: wrOrbFloat 5s ease-in-out infinite;
-        margin-bottom: 1.2rem;
+        margin-bottom: 0.9rem;
     }
     .wr-recap-mood {
         font-size: 0.58rem; font-weight: 700; letter-spacing: 0.20em;

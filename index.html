@@ -5,6 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#0c0c0f">
     <title>AURA</title>
+    <!-- OneSignal — push notifications, entirely separate from Firebase (own
+         project, own quota, no billing tie to AURA's Firebase project). Only
+         initializes; requesting permission and opting in/out happens from the
+         Notifications preferences card, not automatically on page load. -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        OneSignalDeferred.push(async function (OneSignal) {
+            try {
+                // TODO: replace with the real OneSignal App ID from your dashboard
+                // (Settings → Keys & IDs) once you've created the app there.
+                await OneSignal.init({ appId: 'a79dbaef-2d0a-409b-a42e-8abae0f23cf7' });
+                window._oneSignalReady = true;
+                document.dispatchEvent(new Event('onesignal-ready'));
+            } catch (e) {
+                console.warn('OneSignal init failed:', e);
+            }
+        });
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500;600;700&family=Cormorant+Garant:wght@600;700;800&display=swap" rel="stylesheet">
@@ -7332,6 +7351,37 @@ function buildEvolutionCanvas(evoData) {
         cv.width = W; cv.height = H;
         const ctx = cv.getContext('2d');
 
+        // =====================================================================
+        // PREMIUM POSTER COMPOSITION — same treatment as the mood card, Weekly
+        // Ritual card, and Monthly Report: this card occupies ~81.5% of the
+        // canvas, centered, with a minimal background behind it instead of
+        // filling the screen. Uses a single UNIFORM scale (draws a circular
+        // orb via ctx.arc()) — same reasoning as those two: a non-uniform
+        // scale would squash the circle into an oval.
+        //
+        // Unlike the old version of this function, content here is measured
+        // BEFORE it's drawn and the whole block (brand → footer) is vertically
+        // centered as one unit. The old version anchored content to the top
+        // and the footer to a fixed distance from the bottom — fine for a
+        // long title+quote, but for a short one it left a large dead gap in
+        // the middle of the card (this is what prompted the change).
+        // =====================================================================
+        const SCALE  = 0.815;
+        const CARD_W = Math.round(W * SCALE);
+        const CARD_H = Math.round(H * SCALE);
+        const cardX  = Math.round((W - CARD_W) / 2);
+        const cardY  = Math.round((H - CARD_H) / 2);
+        const CARD_R = 88; // pre-scale; ×0.815 ≈ 72px final, matching the other cards
+
+        function evoCardRoundedRect(x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x+r, y); ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+            ctx.lineTo(x+w, y+h-r); ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+            ctx.lineTo(x+r, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+            ctx.lineTo(x, y+r); ctx.quadraticCurveTo(x, y, x+r, y);
+            ctx.closePath();
+        }
+
         function wrapText(text, x, y, maxWidth, lineHeight) {
             const words = text.split(' ');
             let line = '';
@@ -7346,6 +7396,62 @@ function buildEvolutionCanvas(evoData) {
             lines.forEach((l, i) => ctx.fillText(l, x, y + i * lineHeight));
             return lines.length;
         }
+        // Same wrapping rule as wrapText, but only counts lines — used to measure
+        // the title and quote before drawing, so the whole block can be centered.
+        function countWrappedLines(text, maxWidth) {
+            const words = text.split(' ');
+            let line = '', count = 1;
+            for (let n = 0; n < words.length; n++) {
+                const test = line + words[n] + ' ';
+                if (ctx.measureText(test).width > maxWidth && n > 0) {
+                    count++; line = words[n] + ' ';
+                } else line = test;
+            }
+            return count;
+        }
+
+        // ── Minimal outer background (the canvas, not the card) ──
+        const bgOuter = ctx.createLinearGradient(0, 0, 0, H);
+        bgOuter.addColorStop(0,   '#0d0812');
+        bgOuter.addColorStop(0.5, '#0a0710');
+        bgOuter.addColorStop(1,   '#06040a');
+        ctx.fillStyle = bgOuter;
+        ctx.fillRect(0, 0, W, H);
+
+        const outerGlow = ctx.createRadialGradient(W/2, cardY + CARD_H*0.35, 0, W/2, cardY + CARD_H*0.35, W*0.75);
+        outerGlow.addColorStop(0,   tier.glow);
+        outerGlow.addColorStop(0.6, tier.glow.replace(/[\d.]+\)$/, '0.04)'));
+        outerGlow.addColorStop(1,   'rgba(0,0,0,0)');
+        ctx.fillStyle = outerGlow;
+        ctx.fillRect(0, 0, W, H);
+
+        // ── Card elevation — soft shadow + tier-tinted border glow ──
+        ctx.save();
+        evoCardRoundedRect(cardX, cardY, CARD_W, CARD_H, CARD_R * SCALE);
+        ctx.fillStyle = 'rgba(0,0,0,0.001)';
+        ctx.shadowColor = 'rgba(0,0,0,0.55)';
+        ctx.shadowBlur = 90;
+        ctx.shadowOffsetY = 36;
+        ctx.fill();
+        ctx.restore();
+
+        ctx.save();
+        evoCardRoundedRect(cardX, cardY, CARD_W, CARD_H, CARD_R * SCALE);
+        ctx.strokeStyle = tier.glow.replace(/[\d.]+\)$/, '0.35)');
+        ctx.lineWidth = 3;
+        ctx.shadowColor = tier.glow.replace(/[\d.]+\)$/, '0.45)');
+        ctx.shadowBlur = 50;
+        ctx.stroke();
+        ctx.restore();
+
+        // ── Clip to the card, scale uniformly, then draw everything below in
+        // the original 1080×1920 coordinate space — the scale transform alone
+        // handles the size change. ──
+        ctx.save();
+        ctx.translate(cardX, cardY);
+        ctx.scale(SCALE, SCALE);
+        evoCardRoundedRect(0, 0, W, H, CARD_R);
+        ctx.clip();
 
         /* 1. Deep cosmic background, tinted by rarity tier */
         const bg = ctx.createRadialGradient(W/2, H*0.30, 0, W/2, H*0.55, W*1.3);
@@ -7370,18 +7476,54 @@ function buildEvolutionCanvas(evoData) {
 
         ctx.textAlign = 'center';
 
+        // ── Pre-measure the title and quote so the whole content block (brand
+        // → footer) can be centered as one unit, instead of anchored to the
+        // top with the footer fixed to the bottom regardless of how much (or
+        // little) is in between. ──
+        ctx.font = '900 96px "Playfair Display"';
+        const titleLines = countWrappedLines(newTitle.toUpperCase(), W*0.82);
+        ctx.font = 'italic 400 42px "Playfair Display", Georgia, serif';
+        const quoteLines = countWrappedLines(quote, W*0.74);
+
+        const ORB_R = 200;
+        const GAP_BRAND_EYEBROW   = 65;
+        const GAP_EYEBROW_ORB     = 265;   // eyebrow baseline -> orb center
+        const GAP_ORB_TITLE       = 330;   // orb center -> first title line
+        const TITLE_LINE_H        = 104;
+        const GAP_TITLE_QUOTE     = 92;
+        const QUOTE_LINE_H        = 60;
+        const GAP_QUOTE_LEVEL     = 84;
+        const GAP_LEVEL_DIVIDER   = 64;
+        const GAP_DIVIDER_FOOTER  = 56;
+
+        // Total span from the brand line's baseline to the footer's baseline.
+        const contentSpan =
+            GAP_BRAND_EYEBROW + GAP_EYEBROW_ORB + GAP_ORB_TITLE +
+            (titleLines - 1) * TITLE_LINE_H + GAP_TITLE_QUOTE +
+            (quoteLines - 1) * QUOTE_LINE_H + GAP_QUOTE_LEVEL +
+            GAP_LEVEL_DIVIDER + GAP_DIVIDER_FOOTER;
+
+        // Visual bounding box is a bit taller than the baseline span (room for
+        // the brand line's ascent above it and the footer's descent below it,
+        // plus the orb's own radius+ring extending above/below its center).
+        const visualTop    = -55;                    // relative to brandY
+        const visualBottom = contentSpan + 30;        // relative to brandY
+        const visualHeight = visualBottom - visualTop;
+        const brandY = Math.round((H - visualHeight) / 2 - visualTop);
+
         /* 4. Brand */
         ctx.fillStyle = 'rgba(232,213,176,0.85)';
         ctx.font = '600 34px "DM Sans"';
-        ctx.fillText('✦  A U R A', W/2, 140);
+        ctx.fillText('✦  A U R A', W/2, brandY);
 
         /* 5. Eyebrow */
+        const eyebrowY = brandY + GAP_BRAND_EYEBROW;
         ctx.fillStyle = 'rgba(237,223,192,0.55)';
         ctx.font = '700 26px "DM Sans"';
-        ctx.fillText("I'VE EVOLVED", W/2, 205);
+        ctx.fillText("I'VE EVOLVED", W/2, eyebrowY);
 
         /* 6. Procedural orb (no per-rank artwork — rendered from tier palette) */
-        const orbY = 470, orbR = 200;
+        const orbY = eyebrowY + GAP_EYEBROW_ORB, orbR = ORB_R;
         ctx.save();
         ctx.shadowColor = tier.glow; ctx.shadowBlur = 110;
         const orbGrad = ctx.createRadialGradient(W/2 - orbR*0.35, orbY - orbR*0.35, orbR*0.08, W/2, orbY, orbR);
@@ -7407,35 +7549,39 @@ function buildEvolutionCanvas(evoData) {
         ctx.restore();
 
         /* 7. Identity title */
+        const titleY0 = orbY + GAP_ORB_TITLE;
         ctx.fillStyle = '#fff';
         ctx.font = '900 96px "Playfair Display"';
         ctx.shadowColor = tier.glow; ctx.shadowBlur = 36;
-        const titleLines = wrapText(newTitle.toUpperCase(), W/2, orbY + 330, W*0.82, 104);
+        wrapText(newTitle.toUpperCase(), W/2, titleY0, W*0.82, TITLE_LINE_H);
         ctx.shadowBlur = 0;
 
         /* 8. Quote */
-        const quoteY0 = orbY + 330 + (titleLines - 1) * 104 + 92;
+        const quoteY0 = titleY0 + (titleLines - 1) * TITLE_LINE_H + GAP_TITLE_QUOTE;
         ctx.fillStyle = 'rgba(255,255,255,0.82)';
         ctx.font = 'italic 400 42px "Playfair Display", Georgia, serif';
-        const quoteLines = wrapText(quote, W/2, quoteY0, W*0.74, 60);
+        wrapText(quote, W/2, quoteY0, W*0.74, QUOTE_LINE_H);
 
         /* 9. Level */
-        const levelY = quoteY0 + (quoteLines - 1) * 60 + 84;
+        const levelY = quoteY0 + (quoteLines - 1) * QUOTE_LINE_H + GAP_QUOTE_LEVEL;
         ctx.fillStyle = 'rgba(232,213,176,0.80)';
         ctx.font = '600 32px "DM Sans"';
         ctx.fillText('LEVEL ' + level, W/2, levelY);
 
         /* 10. Divider */
-        const dividerY = H - 150;
+        const dividerY = levelY + GAP_LEVEL_DIVIDER;
         ctx.strokeStyle = 'rgba(232,213,176,0.18)'; ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(W*0.32, dividerY); ctx.lineTo(W*0.68, dividerY);
         ctx.stroke();
 
         /* 11. Footer */
+        const footerY = dividerY + GAP_DIVIDER_FOOTER;
         ctx.fillStyle = 'rgba(232,213,176,0.55)';
         ctx.font = '600 26px "DM Sans"';
-        ctx.fillText('CREATED WITH AURA', W/2, H - 100);
+        ctx.fillText('CREATED WITH AURA', W/2, footerY);
+
+        ctx.restore(); // undo card translate+scale+clip
 
         resolve(cv);
     });
@@ -12048,6 +12194,67 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// ── Push notification opt-in (OneSignal) — separate concern from the daily
+// local-reminder toggle above, and deliberately its own listener rather than
+// added into that one: OneSignal loads asynchronously (the 'onesignal-ready'
+// event from the init script in <head>), so this needs to tolerate the SDK
+// not being ready yet, independent of whether the rest of Preferences is.
+document.addEventListener('DOMContentLoaded', () => {
+    const pushToggle = document.getElementById('notifPushToggle');
+    if (!pushToggle) return;
+
+    function setPushToggleUI(on) {
+        pushToggle.classList.toggle('on', !!on);
+        pushToggle.setAttribute('aria-checked', on ? 'true' : 'false');
+    }
+
+    // Reflect actual OneSignal state once it's loaded (falls back to the last
+    // known local value in the meantime, so the toggle isn't stuck at "off"
+    // for however long the SDK takes to initialize).
+    try { setPushToggleUI(localStorage.getItem('aura_push_opted_in') === 'true'); } catch (e) {}
+
+    function syncFromOneSignal() {
+        try {
+            const OneSignal = window.OneSignal;
+            if (!OneSignal || !OneSignal.User) return;
+            const optedIn = !!(OneSignal.User.PushSubscription && OneSignal.User.PushSubscription.optedIn);
+            setPushToggleUI(optedIn);
+            try { localStorage.setItem('aura_push_opted_in', optedIn ? 'true' : 'false'); } catch (e) {}
+        } catch (e) {}
+    }
+    if (window._oneSignalReady) syncFromOneSignal();
+    document.addEventListener('onesignal-ready', syncFromOneSignal);
+
+    pushToggle.addEventListener('click', async () => {
+        const turningOn = !pushToggle.classList.contains('on');
+        setPushToggleUI(turningOn); // optimistic — reverted below on failure
+        try {
+            const OneSignal = window.OneSignal;
+            if (!OneSignal) throw new Error('OneSignal not loaded');
+            if (turningOn) {
+                // First-time ask: requests OS/browser permission, then opts this
+                // device in. If the person previously denied permission at the
+                // browser/OS level, this silently does nothing (Notification.
+                // permission is 'denied' and cannot be re-prompted from code) —
+                // resolved by pointing them to their device settings instead.
+                await OneSignal.Notifications.requestPermission();
+                if (Notification.permission !== 'granted') {
+                    setPushToggleUI(false);
+                    if (window.reportAppError) window.reportAppError('Push opt-in blocked: permission ' + Notification.permission);
+                    return;
+                }
+                await OneSignal.User.PushSubscription.optIn();
+            } else {
+                await OneSignal.User.PushSubscription.optOut();
+            }
+            try { localStorage.setItem('aura_push_opted_in', turningOn ? 'true' : 'false'); } catch (e) {}
+        } catch (e) {
+            setPushToggleUI(!turningOn); // revert the optimistic flip
+            if (window.reportAppError) window.reportAppError('Push toggle failed: ' + (e && e.message));
+        }
+    });
+});
+
 // Session-only — resets on every fresh page load ("every time they access
 // the app"). Dismissing the invite only silences it for the rest of THIS
 // visit; it's fair game to ask again next time, until permission is truly
@@ -14051,6 +14258,18 @@ async function saveToHistory(entry) {
                             <div class="notif-permission-text">
                                 It looks like notifications are turned off in your device settings. You can turn them back on anytime.
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="notif-card" id="notifPushCard" style="margin-top: 0.75rem;">
+                    <div class="notif-card-row">
+                        <div class="notif-card-text">
+                            <div class="notif-card-title">Product Updates & Announcements</div>
+                            <div class="notif-card-desc">Get notified about new features and news — occasional, not daily.</div>
+                        </div>
+                        <div class="notif-toggle" id="notifPushToggle" role="switch" aria-checked="false">
+                            <div class="notif-toggle-knob"></div>
                         </div>
                     </div>
                 </div>

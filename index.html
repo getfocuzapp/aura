@@ -12415,7 +12415,43 @@ function escapeHTML(str) {
     return d.innerHTML;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+// Pulls in anything OneSignalSDKWorker.js recorded into IndexedDB while the app
+// was fully closed (see that file's 'push' listener — service workers can't
+// reach localStorage, so IndexedDB is the handoff point). Each entry is moved
+// into the normal localStorage inbox, then removed from IndexedDB so it's
+// never double-added on a later visit.
+function drainServiceWorkerInbox() {
+    return new Promise((resolve) => {
+        if (!('indexedDB' in window)) return resolve();
+        try {
+            const req = indexedDB.open('aura-notif-db', 1);
+            req.onupgradeneeded = () => req.result.createObjectStore('inbox', { keyPath: 'id' });
+            req.onerror = () => resolve();
+            req.onsuccess = () => {
+                const db = req.result;
+                let tx;
+                try { tx = db.transaction('inbox', 'readwrite'); }
+                catch (e) { return resolve(); } // store doesn't exist yet — nothing to drain
+                const store = tx.objectStore('inbox');
+                const getAllReq = store.getAll();
+                getAllReq.onsuccess = () => {
+                    const items = getAllReq.result || [];
+                    if (items.length > 0) {
+                        const list = getNotifInbox();
+                        items.forEach(n => list.unshift({ id: n.id, title: n.title || 'AURA', body: n.body || '', ts: n.ts || Date.now(), read: false }));
+                        saveNotifInbox(list);
+                        store.clear();
+                    }
+                    resolve();
+                };
+                getAllReq.onerror = () => resolve();
+            };
+        } catch (e) { resolve(); }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    await drainServiceWorkerInbox();
     updateBellBadge();
 
     const bellBtn      = document.getElementById('bellBtn');

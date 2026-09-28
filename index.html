@@ -11999,6 +11999,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!inviteEl) return;
         inviteEl.classList.remove('show');
         inviteDismissedThisSession = true; // quiet for the rest of this visit; asked again next time
+        // If reminders are already on and this card was only offering the newer
+        // push-updates option, treat "Not now" as a real answer rather than
+        // re-asking about it every single visit.
+        try {
+            const p = loadNotifPrefs();
+            if (p.enabled && getNotifPermissionState() === 'granted') localStorage.setItem('aura_push_prompted', 'true');
+        } catch (e) {}
     }
 
     if (inviteEnable) inviteEnable.addEventListener('click', async () => {
@@ -12007,7 +12014,12 @@ document.addEventListener('DOMContentLoaded', () => {
         prefs.permissionAsked = true;
         prefs.enabled = true; // reflect intent even if denied — friendly card in Settings covers that state
         saveNotifPrefs(prefs);
-        if (result === 'granted') startNotifWatcher();
+        if (result === 'granted') {
+            startNotifWatcher();
+            // Same single permission covers push announcements too — opt in now
+            // instead of making the person find a second toggle in Preferences.
+            optInToPushAnnouncements();
+        }
         inviteEl.classList.remove('show');
         inviteDismissedThisSession = true;
     });
@@ -12285,6 +12297,10 @@ document.addEventListener('DOMContentLoaded', () => {
         pushToggle.classList.toggle('on', !!on);
         pushToggle.setAttribute('aria-checked', on ? 'true' : 'false');
     }
+    // Lets the entry-time invite card refresh this toggle after opting in.
+    window.syncPushToggleUI = () => {
+        try { setPushToggleUI(localStorage.getItem('aura_push_opted_in') === 'true'); } catch (e) {}
+    };
 
     // Reflect actual OneSignal state once it's loaded (falls back to the last
     // known local value in the meantime, so the toggle isn't stuck at "off"
@@ -12454,7 +12470,7 @@ let inviteDismissedThisSession = false;
 // denied" (a working Enable button is impossible here — browsers refuse to
 // re-show their permission dialog once the person has tapped Block, so we
 // switch to a quiet, honest note instead of a button that would do nothing).
-function renderInviteContent(permState) {
+function renderInviteContent(permState, pushOnly) {
     const titleEl   = document.querySelector('#notifInvite .notif-invite-title');
     const descEl    = document.querySelector('#notifInvite .notif-invite-desc');
     const enableBtn = document.getElementById('notifInviteEnable');
@@ -12462,15 +12478,63 @@ function renderInviteContent(permState) {
     if (!titleEl || !descEl || !enableBtn || !laterBtn) return;
 
     if (permState === 'denied') {
-        titleEl.textContent    = 'Reminders are off in your settings';
+        titleEl.textContent    = 'Notifications are off in your settings';
         descEl.textContent     = "You can turn them back on anytime from your browser or device's notification settings.";
         enableBtn.style.display = 'none';
         laterBtn.textContent    = 'Got it';
     } else {
-        titleEl.textContent    = 'Never miss a day';
-        descEl.textContent     = "We'll send a nudge, only if you haven't checked in yet.";
+        if (pushOnly) {
+            titleEl.textContent = 'Get updates from AURA';
+            descEl.textContent  = 'Occasional news about new features and improvements.';
+        } else {
+            titleEl.textContent = 'Stay in the loop';
+            descEl.textContent  = 'Daily check-in reminders, plus occasional news about new features.';
+        }
         enableBtn.style.display = '';
         laterBtn.textContent    = 'Not now';
+    }
+}
+
+// Push announcements count as "handled" once the person is subscribed OR has
+// already been offered them (Enable tapped, or "Not now" when this was the only
+// thing left to offer) — so a push provider that can't subscribe for some reason
+// never turns the invite into a card that reappears forever.
+function isPushHandled() {
+    try {
+        return localStorage.getItem('aura_push_opted_in') === 'true' ||
+               localStorage.getItem('aura_push_prompted') === 'true';
+    } catch (e) { return false; }
+}
+
+// Opts this device into OneSignal push announcements. Assumes browser notification
+// permission has already been granted (the caller just requested it). Waits up to
+// 8s for the SDK if it's still starting up, rather than silently skipping.
+async function optInToPushAnnouncements() {
+    try { localStorage.setItem('aura_push_prompted', 'true'); } catch (e) {}
+    if (!('Notification' in window)) return false;
+
+    const run = async () => {
+        const OneSignal = window.OneSignal;
+        if (!OneSignal || !OneSignal.User || !OneSignal.User.PushSubscription) return false;
+        if (Notification.permission !== 'granted') return false;
+        await OneSignal.User.PushSubscription.optIn();
+        try { localStorage.setItem('aura_push_opted_in', 'true'); } catch (e) {}
+        if (window.syncPushToggleUI) window.syncPushToggleUI();
+        return true;
+    };
+
+    try {
+        if (window._oneSignalReady) return await run();
+        return await new Promise((resolve) => {
+            const timer = setTimeout(() => resolve(false), 8000);
+            document.addEventListener('onesignal-ready', async () => {
+                clearTimeout(timer);
+                try { resolve(await run()); } catch (e) { resolve(false); }
+            }, { once: true });
+        });
+    } catch (e) {
+        if (window.reportAppError) window.reportAppError('Push opt-in (invite card) failed: ' + (e && e.message));
+        return false;
     }
 }
 
@@ -12483,9 +12547,10 @@ function maybeShowNotifInvite() {
     const permState = getNotifPermissionState();
 
     if (permState === 'unsupported') return;                // nothing this platform can offer
-    if (prefs.enabled && permState === 'granted') return;    // already on and actually working
+    const pushHandled = isPushHandled();
+    if (prefs.enabled && permState === 'granted' && pushHandled) return;    // everything on (or already offered) — nothing left to ask
 
-    renderInviteContent(permState);
+    renderInviteContent(permState, prefs.enabled && permState === 'granted');
     // Small delay so it never competes with whatever animation is already
     // in flight (card-close, or the home screen's own fade-in).
     setTimeout(() => inviteEl.classList.add('show'), 900);

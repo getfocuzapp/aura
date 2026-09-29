@@ -1,5 +1,13 @@
 importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");
 
+// Take control immediately on every update, instead of waiting for every open
+// tab on this site to be closed first. Without this, a freshly deployed worker
+// file can sit "installed but not active" for a while, so the OLD version
+// (without the logging below) keeps handling pushes — which is why a push can
+// arrive right after a deploy and still not show up in the bell.
+self.addEventListener('install', function (event) { self.skipWaiting(); });
+self.addEventListener('activate', function (event) { event.waitUntil(self.clients.claim()); });
+
 // Also record every push into IndexedDB, so AURA's in-app notification bell
 // can show a history of announcements received even while the app was fully
 // closed. Service workers have no access to localStorage or the app's own

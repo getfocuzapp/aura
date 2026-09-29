@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#0c0c0f">
     <title>AURA</title>
+
+    <!-- PWA — makes the site properly installable ("Add to Home Screen"),
+         which is also what gets notification permission out of Chrome's
+         temporary "until I close this site" mode and into a real, persistent
+         permission like a native app has. -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="/icon-192.png" type="image/png">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AURA">
     <!-- OneSignal — push notifications, entirely separate from Firebase (own
          project, own quota, no billing tie to AURA's Firebase project). Only
          initializes; requesting permission and opting in/out happens from the
@@ -12494,6 +12505,52 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('onesignal-ready', wireOneSignalListeners);
 });
 
+// ── PWA install prompt ──
+// Chrome only fires 'beforeinstallprompt' when it has independently decided
+// the site qualifies (valid manifest, HTTPS, some engagement) — there's no way
+// to force this to fire, so the row in Preferences stays hidden until Chrome
+// actually offers it. Installing is also what gets notification permission out
+// of Chrome's temporary "until I close this site" mode into a persistent one.
+let _deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    _deferredInstallPrompt = e;
+    const section = document.getElementById('prefSectionInstall');
+    if (section && !window.matchMedia('(display-mode: standalone)').matches) {
+        section.style.display = '';
+    }
+});
+window.addEventListener('appinstalled', () => {
+    _deferredInstallPrompt = null;
+    const section = document.getElementById('prefSectionInstall');
+    if (section) section.style.display = 'none';
+});
+document.addEventListener('DOMContentLoaded', () => {
+    const row = document.getElementById('prefInstallRow');
+    const title = document.getElementById('prefInstallTitle');
+    if (!row) return;
+    // Already running as an installed app — nothing to offer.
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+        const section = document.getElementById('prefSectionInstall');
+        if (section) section.style.display = 'none';
+        return;
+    }
+    row.addEventListener('click', async () => {
+        if (!_deferredInstallPrompt) return;
+        const original = title.textContent;
+        try {
+            _deferredInstallPrompt.prompt();
+            const choice = await _deferredInstallPrompt.userChoice;
+            title.textContent = choice.outcome === 'accepted' ? 'Installed!' : 'Install AURA';
+        } catch (e) {
+            if (window.reportAppError) window.reportAppError('PWA install prompt failed: ' + (e && e.message));
+        } finally {
+            _deferredInstallPrompt = null;
+            setTimeout(() => { title.textContent = original; }, 2500);
+        }
+    });
+});
+
 // Session-only — resets on every fresh page load ("every time they access
 // the app"). Dismissing the invite only silences it for the rest of THIS
 // visit; it's fair game to ask again next time, until permission is truly
@@ -14638,7 +14695,25 @@ async function saveToHistory(entry) {
                 </div>
             </div>
 
-            <!-- Section 5: Danger Zone — extra spacing above, red accent only here -->
+            <!-- Only shown when the browser confirms the app is actually
+                 installable (see the 'beforeinstallprompt' handling in JS) —
+                 hidden by default, and hidden again once already installed. -->
+            <div class="pref-section" id="prefSectionInstall" style="display:none;">
+                <div class="notif-section-label">Get the App</div>
+                <div class="pref-nav-card" id="prefInstallRow" role="button" tabindex="0" aria-label="Install AURA">
+                    <div class="pref-nav-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
+                    </div>
+                    <div class="pref-nav-text">
+                        <div class="pref-nav-title" id="prefInstallTitle">Install AURA</div>
+                        <div class="pref-nav-desc">Adds AURA to your home screen and makes notifications more reliable</div>
+                    </div>
+                    <div class="pref-nav-chevron">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                    </div>
+                </div>
+            </div>
+ — extra spacing above, red accent only here -->
             <div class="pref-section pref-section-danger" id="prefSectionDanger">
                 <div class="pref-danger-label">Danger Zone</div>
 

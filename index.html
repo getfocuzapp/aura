@@ -375,6 +375,16 @@
 
         /* Notification center panel */
         #notifCenterOverlay .modal-box { max-width: 26rem; }
+        /* This overlay doesn't use the cinematic reveal animation the mood-card
+           modal uses (further down this stylesheet) — that animation's CSS
+           targets the bare .modal-overlay/.modal-box classes rather than its
+           own modal specifically, so without this override, this panel and
+           its content would inherit that animation's "invisible until a
+           reveal-active class is added" starting state and never actually
+           become visible. Using #id selectors here to reliably win regardless
+           of where that other rule sits in the stylesheet. */
+        #notifCenterOverlay.modal-overlay { opacity: 1; }
+        #notifCenterOverlay .modal-box { opacity: 1; transform: none; }
         .nc-header { display: flex; align-items: center; gap: 0.7rem; padding: 0.2rem 0.2rem 0.6rem; }
         .nc-title { flex: 1; font-family: 'Playfair Display', serif; font-size: 1.15rem; color: rgba(237,223,192,0.95); }
         .nc-clear-btn { font-family: 'DM Sans', sans-serif; font-size: 0.72rem; color: rgba(192,132,252,0.75); background: none; border: none; cursor: pointer; }
@@ -747,6 +757,11 @@
         .paywall-box {
             max-width: 20rem;
         }
+        /* Same reasoning as #notifCenterOverlay above — this modal doesn't use
+           the cinematic reveal animation, so it needs its own override to
+           avoid inheriting that animation's invisible starting state. */
+        #paywallOverlay.modal-overlay { opacity: 1; }
+        #paywallOverlay .modal-box { opacity: 1; transform: none; }
         .paywall-content {
             width: 100%;
             text-align: center;

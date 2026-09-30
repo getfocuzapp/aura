@@ -375,8 +375,8 @@
 
         /* Notification center panel */
         #notifCenterOverlay .modal-box { max-width: 26rem; }
-        .nc-header { display: flex; align-items: center; justify-content: space-between; padding: 0.2rem 0.2rem 0.6rem; }
-        .nc-title { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: rgba(237,223,192,0.95); }
+        .nc-header { display: flex; align-items: center; gap: 0.7rem; padding: 0.2rem 0.2rem 0.6rem; }
+        .nc-title { flex: 1; font-family: 'Playfair Display', serif; font-size: 1.15rem; color: rgba(237,223,192,0.95); }
         .nc-clear-btn { font-family: 'DM Sans', sans-serif; font-size: 0.72rem; color: rgba(192,132,252,0.75); background: none; border: none; cursor: pointer; }
         .nc-list { display: flex; flex-direction: column; gap: 0.6rem; max-height: 60vh; overflow-y: auto; }
         .nc-item {
@@ -5702,9 +5702,9 @@
             <div class="nc-header">
                 <div class="nc-title">Notifications</div>
                 <button class="nc-clear-btn" id="ncClearBtn">Clear all</button>
+                <button class="close-btn" id="closeNotifCenterBtn" aria-label="Close">&times;</button>
             </div>
             <div id="ncList" class="nc-list"></div>
-            <button class="close-btn" id="closeNotifCenterBtn" style="position:absolute; top:0.9rem; right:1rem;">&times;</button>
         </div>
     </div>
 
@@ -12465,13 +12465,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     await drainServiceWorkerInbox();
     updateBellBadge();
 
+    // Installed apps are often resumed from the background rather than fully
+    // reloaded when reopened (e.g. tapping a notification, or switching back
+    // from another app) — DOMContentLoaded doesn't fire again in that case, so
+    // without this the badge could sit stale until something else happened to
+    // trigger a re-check.
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            drainServiceWorkerInbox().then(updateBellBadge);
+        }
+    });
+
     const bellBtn      = document.getElementById('bellBtn');
     const overlay       = document.getElementById('notifCenterOverlay');
     const closeBtn       = document.getElementById('closeNotifCenterBtn');
     const clearBtn       = document.getElementById('ncClearBtn');
     if (!bellBtn || !overlay) return;
 
-    bellBtn.addEventListener('click', () => {
+    bellBtn.addEventListener('click', async () => {
+        // Catch anything the service worker logged since the last drain (e.g. a
+        // push that arrived while this tab was merely backgrounded, not reloaded).
+        await drainServiceWorkerInbox();
         renderNotifCenter();
         overlay.classList.remove('hidden');
         // Mark everything read once they've actually opened the panel to look.

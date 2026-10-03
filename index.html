@@ -28,7 +28,7 @@
         // show up in a browser devtools console — not useful on a phone.
         function _oneSignalDiagReport(message) {
             try {
-                fetch('https://discord.com/api/webhooks/1552959975624675398/pLrDR2VlSLwkk-DylBHYDMknX7KB3OElgmMR3Z_2pdsMsRu1CchN1bkuxWeLySU99OIe', {
+                fetch('/api/report-error', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ embeds: [{
@@ -68,7 +68,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, deleteUser, reauthenticateWithPopup } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { getFirestore, initializeFirestore, persistentLocalCache, persistentSingleTabManager, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteField, deleteDoc, collection, query, where, orderBy, limit, getDocs, enableNetwork, disableNetwork } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { getFirestore, initializeFirestore, persistentLocalCache, persistentSingleTabManager, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteField, deleteDoc, collection, query, where, orderBy, limit, startAfter, getDocs, getDocFromCache, getDocsFromCache, enableNetwork, disableNetwork } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAkOvsrQzbCicxylWgLBSIMO-RcNbTH4DQ",
@@ -100,7 +100,7 @@
         window.firebaseAuth   = auth;
         window.firebaseDB     = db;
         window.googleProvider = provider;
-        window.firebaseFns    = { signInWithPopup, signOut, onAuthStateChanged, deleteUser, reauthenticateWithPopup, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteField, deleteDoc, collection, query, where, orderBy, limit, getDocs, enableNetwork, disableNetwork };
+        window.firebaseFns    = { signInWithPopup, signOut, onAuthStateChanged, deleteUser, reauthenticateWithPopup, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteField, deleteDoc, collection, query, where, orderBy, limit, startAfter, getDocs, getDocFromCache, getDocsFromCache, enableNetwork, disableNetwork };
 
         // Auth state — fires as soon as Firebase resolves
         // authStateReady() resolves ONCE when Firebase has fully determined
@@ -5844,7 +5844,10 @@
    Deduped per unique error message+location, and capped per day, both
    tracked in localStorage so a repeating bug can't spam the channel. */
 (function () {
-    const WEBHOOK_URL = 'https://discord.com/api/webhooks/1552959975624675398/pLrDR2VlSLwkk-DylBHYDMknX7KB3OElgmMR3Z_2pdsMsRu1CchN1bkuxWeLySU99OIe';
+    // Relative path to our own Vercel serverless function — the real Discord
+    // webhook URL lives only in that function's environment variable now,
+    // never in this client-side code.
+    const WEBHOOK_URL = '/api/report-error';
     const DEDUPE_WINDOW_MS = 15 * 60 * 1000;  // don't repeat the same error within 15 minutes
     const DAILY_CAP        = 20;              // hard ceiling on webhook posts per calendar day
     const SEEN_KEY  = 'aura_err_seen_v1';
@@ -9389,7 +9392,7 @@ shareBtn.addEventListener('click', async () => {
         if (orbEl) {
             const orbSrc = (typeof MOOD_SVG !== 'undefined') ? MOOD_SVG[(d.moodKey || '').toLowerCase()] : null;
             if (orbSrc) {
-                orbEl.innerHTML = `<img src="${orbSrc}" alt="${d.moodLabel}" />`;
+                orbEl.innerHTML = `<img src="${orbSrc}" alt="${escapeHTML(d.moodLabel || '')}" />`;
                 orbEl.classList.remove('fallback');
             } else {
                 orbEl.innerHTML = '';
@@ -9935,7 +9938,11 @@ function getMoodIconMini(mood) {
 }
 
 /* ── SHARED: FETCH RAW HISTORY + FAVORITES FROM FIRESTORE ── */
-const HISTORY_FETCH_LIMIT = 500; // generous cap — far more than any single view renders at once
+const HISTORY_FETCH_LIMIT = 60; // a small default page — far more than most sessions need to see;
+                                 // scrolling past this fetches more via fetchMoreHistoryData() below,
+                                 // instead of pulling a long-time user's entire history every single
+                                 // time they open the History tab (this was the main Firestore-read
+                                 // cost driver as accounts accumulate months of entries).
 
 // Scoped fetch for callers that only need a recent date window (e.g. Weekly Ritual's
 // 7-day check) — reads only the documents that actually fall in range instead of
@@ -9971,10 +9978,11 @@ async function fetchHistoryData() {
     ]);
 
     const data = userSnap.data() || {};
+    const rawDocs = historySnap.docs || [];
     // Subcollection is fetched newest-first (for the LIMIT to keep the *recent* end,
     // not the oldest); reverse to restore the oldest-first order the rest of the app
     // already expects (matching the old array-field contract exactly).
-    let history = historySnap.docs.map(d => d.data()).reverse();
+    let history = rawDocs.map(d => d.data()).reverse();
 
     // Backward compatibility: merge in any entries still sitting in the legacy array
     // field from before this migration, so nothing already written is silently lost.
@@ -9984,10 +9992,48 @@ async function fetchHistoryData() {
         data.history.forEach(h => { if (!seen.has(h.date)) history.unshift(h); });
     }
 
+    // Cursor for continuing to OLDER entries beyond this page, only used if the
+    // person actually scrolls that deep into History (see fetchMoreHistoryData).
+    // rawDocs.length === HISTORY_FETCH_LIMIT is a cheap "might be more" signal —
+    // if fewer came back than we asked for, we've reached the true end already.
+    window._historyFetchCursor    = rawDocs.length ? rawDocs[rawDocs.length - 1] : null;
+    window._historyHasMoreOnServer = rawDocs.length === HISTORY_FETCH_LIMIT;
+
     return {
         history,
         favorites: Array.isArray(data.favorites) ? data.favorites : []
     };
+}
+
+// Fetches the next OLDER page of history beyond what's already loaded, continuing
+// from window._historyFetchCursor. Only called once the person has scrolled through
+// everything already loaded AND the server might have more — keeps the common case
+// (most sessions never scroll this deep) at the small page-size cost above, instead
+// of always paying for a long-time user's entire history on every visit.
+async function fetchMoreHistoryData() {
+    if (!window.firebaseAuth?.currentUser || !window._historyFetchCursor) return [];
+    const { collection, query, orderBy, limit, startAfter, getDocs } = window.firebaseFns;
+    const uid = window.firebaseAuth.currentUser.uid;
+    try {
+        const snap = await getDocs(query(
+            collection(window.firebaseDB, 'users', uid, 'history'),
+            orderBy('date', 'desc'),
+            startAfter(window._historyFetchCursor),
+            limit(HISTORY_FETCH_LIMIT)
+        ));
+        const rawDocs = snap.docs || [];
+        window._historyFetchCursor    = rawDocs.length ? rawDocs[rawDocs.length - 1] : window._historyFetchCursor;
+        window._historyHasMoreOnServer = rawDocs.length === HISTORY_FETCH_LIMIT;
+        // NOT reversed, deliberately — window._allHistoryEntries is newest-first
+        // throughout the app (see loadHistory's history.slice().reverse()), and this
+        // page is already newest-first internally (Firestore query is orderBy date
+        // desc), so callers can .concat() this directly onto the end of that array
+        // and the newest-to-oldest sequence continues correctly across the join.
+        return rawDocs.map(d => d.data());
+    } catch (e) {
+        window._historyHasMoreOnServer = false;
+        return [];
+    }
 }
 
 async function loadHistory() {
@@ -10020,7 +10066,7 @@ async function loadHistory() {
     window._favorites = new Set(favorites.map(Number));
     try { localStorage.setItem('aura_favorites', JSON.stringify([...window._favorites])); } catch(e) {}
 
-    renderHistoryList(window._allHistoryEntries);
+    renderHistoryList(window._allHistoryEntries, false);
 
     // Wire filter chips
     const chips = document.querySelectorAll('.hf-chip');
@@ -10092,7 +10138,7 @@ async function toggleFavorite(dateVal) {
 const HISTORY_PAGE_SIZE = 25;
 let _historyPageState = null; // { entries, rendered, cardIndex, lastGroup } — reset on every fresh renderHistoryList call
 
-function renderHistoryList(entries) {
+function renderHistoryList(entries, isFiltered) {
     const list = document.getElementById('historyList');
     if (!list) return;
     list.innerHTML = '';
@@ -10106,7 +10152,7 @@ function renderHistoryList(entries) {
         return;
     }
     // Fresh list (new search/filter/initial load) — always starts pagination over from page 1.
-    _historyPageState = { entries, rendered: 0, cardIndex: 0, lastGroup: null };
+    _historyPageState = { entries, rendered: 0, cardIndex: 0, lastGroup: null, isFiltered: !!isFiltered };
     renderNextHistoryPage();
 }
 
@@ -10219,13 +10265,13 @@ function renderNextHistoryPage() {
           ">
             <div class="history-card-glass-edge"></div>
             <div class="history-card-header">
-              <div class="history-mood" style="color:${color}">${getMoodIconMini(item.mood)} ${item.mood ? item.mood[0].toUpperCase()+item.mood.slice(1) : ''}</div>
+              <div class="history-mood" style="color:${color}">${getMoodIconMini(item.mood)} ${item.mood ? escapeHTML(item.mood[0].toUpperCase()+item.mood.slice(1)) : ''}</div>
               <div style="display:flex;align-items:center;gap:0.4rem">
                 ${isLatest ? `<span class="latest-badge" style="background:${color}; color:#08080f; border:none; font-weight:800">LATEST</span>` : ''}
                 <button class="hc-fav-btn ${isFav ? 'active' : ''}" data-date="${item.date}" aria-label="Favorite" style="color:${isFav ? color : 'rgba(255,255,255,0.25)'}">♥</button>
               </div>
             </div>
-            <div class="history-text">${item.text || ''}</div>
+            <div class="history-text">${escapeHTML(item.text || '')}</div>
             <div class="history-date" style="color:${tsColor}">${new Date(item.date).toLocaleString()}</div>
           </div>`;
         const card = div.querySelector('.history-card');
@@ -10244,13 +10290,39 @@ function renderNextHistoryPage() {
     state.cardIndex  = cardIndex;
     state.lastGroup  = lastGroup;
 
-    if (state.rendered < state.entries.length) {
-        const remaining = state.entries.length - state.rendered;
+    const localRemaining = state.entries.length - state.rendered;
+    if (localRemaining > 0) {
         const btn = document.createElement('button');
         btn.id = 'historyLoadMoreBtn';
         btn.className = 'history-load-more-btn';
-        btn.textContent = `Load ${Math.min(HISTORY_PAGE_SIZE, remaining)} More`;
+        btn.textContent = `Load ${Math.min(HISTORY_PAGE_SIZE, localRemaining)} More`;
         btn.addEventListener('click', renderNextHistoryPage);
+        list.appendChild(btn);
+    } else if (!state.isFiltered && window._historyHasMoreOnServer) {
+        // Local batch (from fetchHistoryData's HISTORY_FETCH_LIMIT) is exhausted, but
+        // the server likely has older entries beyond it — fetch the next page instead
+        // of having already pulled a long-time user's entire history up front. Only
+        // offered on the unfiltered view: search/mood-filter results are drawn from
+        // whatever's already loaded, not re-queried, so fetching more here wouldn't
+        // even match the active filter.
+        const btn = document.createElement('button');
+        btn.id = 'historyLoadMoreBtn';
+        btn.className = 'history-load-more-btn';
+        btn.textContent = 'Load More';
+        btn.addEventListener('click', async () => {
+            btn.disabled = true;
+            btn.textContent = 'Loading…';
+            try {
+                const more = await fetchMoreHistoryData();
+                if (more.length) {
+                    window._allHistoryEntries = (window._allHistoryEntries || []).concat(more);
+                    state.entries = state.entries.concat(more);
+                }
+            } catch (e) {
+                if (window.reportAppError) window.reportAppError('History load-more fetch failed: ' + (e && e.message));
+            }
+            renderNextHistoryPage();
+        });
         list.appendChild(btn);
     }
 }
@@ -10270,7 +10342,7 @@ function renderNextHistoryPage() {
         const color = getMoodColor(item.mood);
         const moodLabel = item.mood ? item.mood[0].toUpperCase() + item.mood.slice(1) : '';
         document.getElementById('hdMoodRow').innerHTML =
-            `<span style="color:${color}">${getMoodIconMini(item.mood)} ${moodLabel}</span>`;
+            `<span style="color:${color}">${getMoodIconMini(item.mood)} ${escapeHTML(moodLabel)}</span>`;
         document.getElementById('hdTitle').textContent = item.title || '';
         document.getElementById('hdText').textContent  = item.text  || '';
         document.getElementById('hdDate').textContent  = new Date(item.date).toLocaleString();
@@ -10357,7 +10429,7 @@ function applyHistoryFilters() {
         );
     }
 
-    renderHistoryList(filtered);
+    renderHistoryList(filtered, !!q || moodFilter !== 'all');
 }
 
 
@@ -10837,6 +10909,31 @@ async function populateInsights(targetYear, targetMonth) {
         }
     }
 
+    // fetchHistoryData() only loads a recent page by default (see its own comment) —
+    // for an active user that page can cover as little as a month, so browsing to an
+    // older month here needs to explicitly pull more before filtering, or that month
+    // would incorrectly look empty. Bounded to a handful of pages so a very old month
+    // can't trigger an unbounded fetch loop.
+    async function ensureHistoryCoversMonth(year, month) {
+        const monthStart = new Date(year, month, 1).getTime();
+        let guard = 0;
+        while (window._historyHasMoreOnServer && guard < 6) {
+            // window._allHistoryEntries is newest-first throughout the app, so the
+            // oldest entry loaded so far is the LAST element, not the first.
+            const loaded = window._allHistoryEntries;
+            const oldestLoaded = loaded && loaded.length ? loaded[loaded.length - 1] : null;
+            if (oldestLoaded && new Date(oldestLoaded.date).getTime() <= monthStart) break;
+            const more = await fetchMoreHistoryData();
+            if (!more.length) break;
+            window._allHistoryEntries = (window._allHistoryEntries || []).concat(more);
+            history = window._allHistoryEntries;
+            guard++;
+        }
+    }
+    await ensureHistoryCoversMonth(curYear, curMonth);
+    const _prevForCoverage = new Date(curYear, curMonth - 1, 1);
+    await ensureHistoryCoversMonth(_prevForCoverage.getFullYear(), _prevForCoverage.getMonth());
+
     // Filter to selected month — exclude weekly_ritual aggregated entries
     const monthEntries = (history || []).filter(item => {
         if (item.type === 'weekly_ritual') return false; // aggregated, not a single check-in
@@ -10915,7 +11012,7 @@ async function populateInsights(targetYear, targetMonth) {
         if (heroOrbImg) {
             heroOrbImg.classList.remove('fallback');
             if (heroOrbSrc) {
-                heroOrbImg.innerHTML = `<img src="${heroOrbSrc}" alt="${heroMoodLabel}">`;
+                heroOrbImg.innerHTML = `<img src="${heroOrbSrc}" alt="${escapeHTML(heroMoodLabel || '')}">`;
             } else {
                 heroOrbImg.innerHTML = '✦';
                 heroOrbImg.classList.add('fallback');
@@ -11103,7 +11200,7 @@ async function populateInsights(targetYear, targetMonth) {
                     const theme   = getRecapTheme(mood);
                     const orbSrc  = MOOD_SVG[mood];
                     const pct     = Math.round((count / monthEntries.length) * 100);
-                    const label   = mood[0].toUpperCase() + mood.slice(1);
+                    const label   = escapeHTML(mood[0].toUpperCase() + mood.slice(1));
                     const orbHTML = orbSrc
                         ? `<img src="${orbSrc}" alt="${label}">`
                         : '';
@@ -13414,7 +13511,7 @@ function populateWRRecap(weekData) {
     // Top 3 mood pills
     const top3El = document.getElementById('wrTop3Moods');
     top3El.innerHTML = top3.map(({mood, pct}) =>
-        `<div class="wr-top3-pill">${MOOD_EMOJIS[mood] || ''} ${mood} ${pct}%</div>`
+        `<div class="wr-top3-pill">${MOOD_EMOJIS[mood] || ''} ${escapeHTML(mood || '')} ${pct}%</div>`
     ).join('');
 
     // Pre-build the share blob now, while the user is still reading their
